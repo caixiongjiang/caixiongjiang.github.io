@@ -1,0 +1,1159 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>🌀riba2534&#39;s Blog</title>
+    <link>https://blog.riba2534.cn/</link>
+    <description>Recent content on 🌀riba2534&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Mon, 20 Sep 2021 09:40:54 +0800</lastBuildDate>
+    
+        <atom:link href="https://blog.riba2534.cn/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+        <item>
+        <title>LeetCode 72 编辑距离(dp)</title>
+        <link>https://blog.riba2534.cn/blog/2020/leetcode-72-%E7%BC%96%E8%BE%91%E8%B7%9D%E7%A6%BBdp/</link>
+        <pubDate>Mon, 06 Apr 2020 11:50:20 +0800</pubDate>
+        
+        <guid>https://blog.riba2534.cn/blog/2020/leetcode-72-%E7%BC%96%E8%BE%91%E8%B7%9D%E7%A6%BBdp/</guid>
+        <description>🌀riba2534&#39;s Blog https://blog.riba2534.cn/blog/2020/leetcode-72-%E7%BC%96%E8%BE%91%E8%B7%9D%E7%A6%BBdp/ -&lt;p&gt;题目链接：&lt;a href=&#34;https://leetcode-cn.com/problems/edit-distance/&#34;&gt;编辑距离&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;给你两个单词 &lt;em&gt;word1&lt;/em&gt; 和 &lt;em&gt;word2&lt;/em&gt;，请你计算出将 &lt;em&gt;word1&lt;/em&gt; 转换成 &lt;em&gt;word2&lt;/em&gt; 所使用的最少操作数 。&lt;/p&gt;
+&lt;p&gt;你可以对一个单词进行如下三种操作：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;插入一个字符&lt;/li&gt;
+&lt;li&gt;删除一个字符&lt;/li&gt;
+&lt;li&gt;替换一个字符&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;示例 1：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;输入：word1 = &amp;quot;horse&amp;quot;, word2 = &amp;quot;ros&amp;quot;
+输出：3
+解释：
+horse -&amp;gt; rorse (将 &#39;h&#39; 替换为 &#39;r&#39;)
+rorse -&amp;gt; rose (删除 &#39;r&#39;)
+rose -&amp;gt; ros (删除 &#39;e&#39;)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;示例 2：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;输入：word1 = &amp;quot;intention&amp;quot;, word2 = &amp;quot;execution&amp;quot;
+输出：5
+解释：
+intention -&amp;gt; inention (删除 &#39;t&#39;)
+inention -&amp;gt; enention (将 &#39;i&#39; 替换为 &#39;e&#39;)
+enention -&amp;gt; exention (将 &#39;n&#39; 替换为 &#39;x&#39;)
+exention -&amp;gt; exection (将 &#39;n&#39; 替换为 &#39;c&#39;)
+exection -&amp;gt; execution (插入 &#39;u&#39;)
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;思路&#34;&gt;思路&lt;/h2&gt;
+&lt;p&gt;简单dp，定义&lt;code&gt;dp[i][j]&lt;/code&gt;代表把第一个串的前&lt;code&gt;i&lt;/code&gt;个字符，变成第2个串的前&lt;code&gt;j&lt;/code&gt;个字符，需要花费的代价。&lt;/p&gt;
+&lt;p&gt;由题意易得&lt;code&gt;dp[i][0]=i&lt;/code&gt;，&lt;code&gt;dp[0][j]=j&lt;/code&gt;，因为当一个串为空，变为第二个串，必然要花费和第二个串长度相同的代价。所以得到状态转移方程：&lt;/p&gt;
+&lt;p&gt;$$dp[i][j]=\left{\begin{matrix}
+dp[i-1][j]+1\ 
+dp[i][j-1]+1\ 
+dp[i-1][j-1]+(s1[i]!=s2[j])
+\end{matrix}\right.$$&lt;/p&gt;
+&lt;p&gt;可参考我之前博客:&lt;a href=&#34;https://blog.csdn.net/riba2534/article/details/79884301&#34;&gt;51Nod - 1183 编辑距离(dp)&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;代码&#34;&gt;代码&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Solution&lt;/span&gt;
+{
+&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt;:
+    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; minDistance(string word1, string word2)
+    {
+        &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; len1 = word1.size();
+        &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; len2 = word2.size();
+        vector&amp;lt;vector&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;&amp;gt; dp(len1 + &lt;span style=&#34;color:#b452cd&#34;&gt;10&lt;/span&gt;, vector&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;(len2 + &lt;span style=&#34;color:#b452cd&#34;&gt;10&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;));
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; i &amp;lt;= len1; i++)
+            dp[i][&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;] = i;
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; j = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; j &amp;lt;= len2; j++)
+            dp[&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;][j] = j;
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;; i &amp;lt;= len1; i++)
+            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; j = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;; j &amp;lt;= len2; j++)
+                dp[i][j] = min(min(dp[i - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;][j] + &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, dp[i][j - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;] + &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;), dp[i - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;][j - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;] + (word1[i - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;] == word2[j - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;] ? &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; : &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;));
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; dp[len1][len2];
+    }
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;- https://blog.riba2534.cn/blog/2020/leetcode-72-%E7%BC%96%E8%BE%91%E8%B7%9D%E7%A6%BBdp/ - </description>
+        </item>
+    
+    
+    
+        <item>
+        <title>LeetCode 460 LFU缓存(模拟)</title>
+        <link>https://blog.riba2534.cn/blog/2020/leetcode-460-lfu%E7%BC%93%E5%AD%98%E6%A8%A1%E6%8B%9F/</link>
+        <pubDate>Mon, 06 Apr 2020 11:49:42 +0800</pubDate>
+        
+        <guid>https://blog.riba2534.cn/blog/2020/leetcode-460-lfu%E7%BC%93%E5%AD%98%E6%A8%A1%E6%8B%9F/</guid>
+        <description>🌀riba2534&#39;s Blog https://blog.riba2534.cn/blog/2020/leetcode-460-lfu%E7%BC%93%E5%AD%98%E6%A8%A1%E6%8B%9F/ -&lt;p&gt;题目描述：&lt;a href=&#34;https://leetcode-cn.com/problems/lfu-cache/&#34;&gt;LFU缓存&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;设计并实现&lt;a href=&#34;https://baike.baidu.com/item/%E7%BC%93%E5%AD%98%E7%AE%97%E6%B3%95&#34;&gt;最不经常使用（LFU）&lt;/a&gt;缓存的数据结构。它应该支持以下操作：&lt;code&gt;get&lt;/code&gt; 和 &lt;code&gt;put&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;get(key)&lt;/code&gt; - 如果键存在于缓存中，则获取键的值（总是正数），否则返回 -1。
+&lt;code&gt;put(key, value)&lt;/code&gt; - 如果键不存在，请设置或插入值。当缓存达到其容量时，它应该在插入新项目之前，使最不经常使用的项目无效。在此问题中，当存在平局（即两个或更多个键具有相同使用频率）时，&lt;strong&gt;最近&lt;/strong&gt;最少使用的键将被去除。&lt;/p&gt;
+&lt;p&gt;一个项目的使用次数就是该项目被插入后对其调用 get 和 put 函数的次数之和。使用次数会在对应项目被移除后置为 0。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;进阶：&lt;/strong&gt;
+你是否可以在 &lt;strong&gt;O(1)&lt;/strong&gt; 时间复杂度内执行两项操作？&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;示例：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;LFUCache cache = new LFUCache( 2 /* capacity (缓存容量) */ );
+
+cache.put(1, 1);
+cache.put(2, 2);
+cache.get(1);       // 返回 1
+cache.put(3, 3);    // 去除 key 2
+cache.get(2);       // 返回 -1 (未找到key 2)
+cache.get(3);       // 返回 3
+cache.put(4, 4);    // 去除 key 1
+cache.get(1);       // 返回 -1 (未找到 key 1)
+cache.get(3);       // 返回 3
+cache.get(4);       // 返回 4
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;思路&#34;&gt;思路&lt;/h2&gt;
+&lt;p&gt;首先知道LFU的定义，就是在一个容器中，当容量不够的时候，就把访问次数最少的删除掉。&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;最不经常使用算法（LFU）：这个缓存算法使用一个计数器来记录条目被访问的频率。通过使用LFU缓存算法，最低访问数的条目首先被移除。这个方法并不经常使用，因为它无法对一个拥有最初高访问率之后长时间没有被访问的条目缓存负责。
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;我们要用两个变量记录访问次数和时间戳，然后当访问次数一样时，时间戳早的先删，不一样就先删访问次数少的。可以用一个哈希表和一个&lt;code&gt;Set&lt;/code&gt;来维护。&lt;/p&gt;
+&lt;h2 id=&#34;代码&#34;&gt;代码&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;44
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;45
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;46
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;47
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;48
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;49
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;50
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;51
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;52
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;53
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;54
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;55
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;56
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;57
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;58
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;59
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;60
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;61
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;62
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;63
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;64
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;65
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;66
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;67
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;68
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;69
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;70
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;71
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;72
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;73
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;74
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;75
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;76
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;77
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;78
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;79
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;80
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;81
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;82
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Node&lt;/span&gt;
+{
+    &lt;span style=&#34;color:#228b22&#34;&gt;// 查询次数、时间戳、k、v
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; cnt, time, key, value;
+
+    Node(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; _cnt, &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; _time, &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; _key, &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; _value) : cnt(_cnt), time(_time), key(_key), value(_value) {}
+
+    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;operator&lt;/span&gt;&amp;lt;(&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;const&lt;/span&gt; Node &amp;amp;rhs) &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;const&lt;/span&gt;
+    {
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; cnt == rhs.cnt ? time &amp;lt; rhs.time : cnt &amp;lt; rhs.cnt;
+    }
+};
+&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;LFUCache&lt;/span&gt;
+{
+    &lt;span style=&#34;color:#228b22&#34;&gt;// 缓存容量，时间戳
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; capacity, time;
+    unordered_map&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;, Node&amp;gt; key_table;
+    set&amp;lt;Node&amp;gt; S;
+
+&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt;:
+    LFUCache(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; _capacity)
+    {
+        capacity = _capacity;
+        time = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;;
+        key_table.clear();
+        S.clear();
+    }
+
+    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;get&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; key)
+    {
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (capacity == &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;)
+            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;auto&lt;/span&gt; it = key_table.find(key);
+        &lt;span style=&#34;color:#228b22&#34;&gt;// 如果哈希表中没有键 key，返回 -1
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (it == key_table.end())
+            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
+        &lt;span style=&#34;color:#228b22&#34;&gt;// 从哈希表中得到旧的缓存
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        Node cache = it-&amp;gt;second;
+        &lt;span style=&#34;color:#228b22&#34;&gt;// 从平衡二叉树中删除旧的缓存
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        S.erase(cache);
+        &lt;span style=&#34;color:#228b22&#34;&gt;// 将旧缓存更新
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        cache.cnt += &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
+        cache.time = ++time;
+        &lt;span style=&#34;color:#228b22&#34;&gt;// 将新缓存重新放入哈希表和平衡二叉树中
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        S.insert(cache);
+        it-&amp;gt;second = cache;
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; cache.value;
+    }
+
+    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;put&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; key, &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; value)
+    {
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (capacity == &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;)
+            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt;;
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;auto&lt;/span&gt; it = key_table.find(key);
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (it == key_table.end())
+        {
+            &lt;span style=&#34;color:#228b22&#34;&gt;// 如果到达缓存容量上限
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (key_table.size() == capacity)
+            {
+                &lt;span style=&#34;color:#228b22&#34;&gt;// 从哈希表和平衡二叉树中删除最近最少使用的缓存
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;                key_table.erase(S.begin()-&amp;gt;key);
+                S.erase(S.begin());
+            }
+            &lt;span style=&#34;color:#228b22&#34;&gt;// 创建新的缓存
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            Node cache = Node(&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, ++time, key, value);
+            &lt;span style=&#34;color:#228b22&#34;&gt;// 将新缓存放入哈希表和平衡二叉树中
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            key_table.insert(make_pair(key, cache));
+            S.insert(cache);
+        }
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;
+        {
+            &lt;span style=&#34;color:#228b22&#34;&gt;// 这里和 get() 函数类似
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            Node cache = it-&amp;gt;second;
+            S.erase(cache);
+            cache.cnt += &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
+            cache.time = ++time;
+            cache.value = value;
+            S.insert(cache);
+            it-&amp;gt;second = cache;
+        }
+    }
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;- https://blog.riba2534.cn/blog/2020/leetcode-460-lfu%E7%BC%93%E5%AD%98%E6%A8%A1%E6%8B%9F/ - </description>
+        </item>
+    
+    
+    
+        <item>
+        <title>LeetCode 289 接雨水(单调栈)</title>
+        <link>https://blog.riba2534.cn/blog/2020/leetcode-289-%E6%8E%A5%E9%9B%A8%E6%B0%B4%E5%8D%95%E8%B0%83%E6%A0%88/</link>
+        <pubDate>Mon, 06 Apr 2020 11:48:56 +0800</pubDate>
+        
+        <guid>https://blog.riba2534.cn/blog/2020/leetcode-289-%E6%8E%A5%E9%9B%A8%E6%B0%B4%E5%8D%95%E8%B0%83%E6%A0%88/</guid>
+        <description>🌀riba2534&#39;s Blog https://blog.riba2534.cn/blog/2020/leetcode-289-%E6%8E%A5%E9%9B%A8%E6%B0%B4%E5%8D%95%E8%B0%83%E6%A0%88/ -&lt;p&gt;题目链接：&lt;a href=&#34;https://leetcode-cn.com/problems/trapping-rain-water/&#34;&gt;接雨水&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;给定 &lt;em&gt;n&lt;/em&gt; 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/10/22/rainwatertrap.png&#34; alt=&#34;img&#34;&gt;&lt;/p&gt;
+&lt;p&gt;上面是由数组 [0,1,0,2,1,0,1,3,2,1,2,1] 表示的高度图，在这种情况下，可以接 6 个单位的雨水（蓝色部分表示雨水）。 &lt;strong&gt;感谢 Marcos&lt;/strong&gt; 贡献此图。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;示例:&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;输入: [0,1,0,2,1,0,1,3,2,1,2,1]
+输出: 6
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;思路&#34;&gt;思路&lt;/h2&gt;
+&lt;p&gt;用单调栈的思路，维护一个递减的单调栈，当不满足递减条件的时候，每弹出一个元素，就计算出这一块区域能接的水量，最后的和就是答案，复杂度为$O(n)$&lt;/p&gt;
+&lt;h2 id=&#34;代码&#34;&gt;代码&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Solution&lt;/span&gt;
+{
+&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt;:
+    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; trap(vector&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt; &amp;amp;height)
+    {
+        &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; ans = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;;
+        stack&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt; st;
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; i &amp;lt; height.size(); i++)
+        {
+            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;while&lt;/span&gt; (!st.empty() &amp;amp;&amp;amp; height[i] &amp;gt; height[st.top()])
+            {
+                &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; cur = height[st.top()];
+                st.pop();
+                &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; l = st.empty() ? -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt; : st.top();
+                ans += (l == -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;) ? &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; : (min(height[l], height[i]) - cur) * (i - l - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;);
+            }
+            st.push(i);
+        }
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; ans;
+    }
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;- https://blog.riba2534.cn/blog/2020/leetcode-289-%E6%8E%A5%E9%9B%A8%E6%B0%B4%E5%8D%95%E8%B0%83%E6%A0%88/ - </description>
+        </item>
+    
+    
+    
+        <item>
+        <title>LeetCode 289 生命游戏(模拟)</title>
+        <link>https://blog.riba2534.cn/blog/2020/leetcode-289-%E7%94%9F%E5%91%BD%E6%B8%B8%E6%88%8F%E6%A8%A1%E6%8B%9F/</link>
+        <pubDate>Thu, 02 Apr 2020 14:40:49 +0800</pubDate>
+        
+        <guid>https://blog.riba2534.cn/blog/2020/leetcode-289-%E7%94%9F%E5%91%BD%E6%B8%B8%E6%88%8F%E6%A8%A1%E6%8B%9F/</guid>
+        <description>🌀riba2534&#39;s Blog https://blog.riba2534.cn/blog/2020/leetcode-289-%E7%94%9F%E5%91%BD%E6%B8%B8%E6%88%8F%E6%A8%A1%E6%8B%9F/ -&lt;p&gt;题目链接：&lt;a href=&#34;https://leetcode-cn.com/problems/game-of-life/&#34;&gt;生命游戏&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;根据 &lt;code&gt;百度百科&lt;/code&gt; ，生命游戏，简称为生命，是英国数学家约翰·何顿·康威在 1970 年发明的细胞自动机。&lt;/p&gt;
+&lt;p&gt;给定一个包含 &lt;code&gt;m × n&lt;/code&gt; 个格子的面板，每一个格子都可以看成是一个细胞。每个细胞都具有一个初始状态：&lt;code&gt;1&lt;/code&gt; 即为活细胞（live），或 &lt;code&gt;0&lt;/code&gt; 即为死细胞（dead）。每个细胞与其八个相邻位置（水平，垂直，对角线）的细胞都遵循以下四条生存定律：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;如果活细胞周围八个位置的活细胞数少于两个，则该位置活细胞死亡；&lt;/li&gt;
+&lt;li&gt;如果活细胞周围八个位置有两个或三个活细胞，则该位置活细胞仍然存活；&lt;/li&gt;
+&lt;li&gt;如果活细胞周围八个位置有超过三个活细胞，则该位置活细胞死亡；&lt;/li&gt;
+&lt;li&gt;如果死细胞周围正好有三个活细胞，则该位置死细胞复活；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;根据当前状态，写一个函数来计算面板上所有细胞的下一个（一次更新后的）状态。下一个状态是通过将上述规则同时应用于当前状态下的每个细胞所形成的，其中细胞的出生和死亡是同时发生的。&lt;/p&gt;
+&lt;p&gt;示例：&lt;/p&gt;
+&lt;p&gt;输入：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[
+  [0,1,0],
+  [0,0,1],
+  [1,1,1],
+  [0,0,0]
+]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;输出：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[
+  [0,0,0],
+  [1,0,1],
+  [0,1,1],
+  [0,1,0]
+]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;进阶：&lt;/p&gt;
+&lt;p&gt;你可以使用原地算法解决本题吗？请注意，面板上所有格子需要同时被更新：你不能先更新某些格子，然后使用它们的更新后的值再更新其他格子。
+本题中，我们使用二维数组来表示面板。原则上，面板是无限的，但当活细胞侵占了面板边界时会造成问题。你将如何解决这些问题？&lt;/p&gt;
+&lt;h2 id=&#34;思路&#34;&gt;思路&lt;/h2&gt;
+&lt;p&gt;中文题意，刚开始看到题以为是个搜索之类的，用手推了一下样例。发现一个格子的状态改变不会，以后的格子计算状态还是按照格子上原来的数字计算状态的，所以问题就非常简单了，把原数组复制一遍，计算八个方向的活细胞的数量，直接按照题意改一下活细胞或死细胞状态即可，最后用复制出来的数组覆盖原数组。&lt;/p&gt;
+&lt;p&gt;或者也可以不复制数组，直接在原数组上做一些标记也可以实现。&lt;/p&gt;
+&lt;h2 id=&#34;代码&#34;&gt;代码&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Solution&lt;/span&gt;
+{
+&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt;:
+    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; go[&lt;span style=&#34;color:#b452cd&#34;&gt;8&lt;/span&gt;][&lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;] = {&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;};
+    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;gameOfLife&lt;/span&gt;(vector&amp;lt;vector&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;&amp;gt; &amp;amp;board)
+    {
+        vector&amp;lt;vector&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;&amp;gt; grid = board;
+        &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; n = board.size(), m = board[&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;].size();
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; i &amp;lt; n; i++)
+        {
+            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; j = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; j &amp;lt; m; j++)
+            {
+                &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; cnt1 = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;;
+                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; p = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; p &amp;lt; &lt;span style=&#34;color:#b452cd&#34;&gt;8&lt;/span&gt;; p++)
+                {
+                    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; xx = i + go[p][&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;];
+                    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; yy = j + go[p][&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;];
+                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (xx &amp;gt;= &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &amp;amp;&amp;amp; xx &amp;lt; n &amp;amp;&amp;amp; yy &amp;gt;= &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &amp;amp;&amp;amp; yy &amp;lt; m)
+                        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (board[xx][yy] == &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;)
+                            cnt1++;
+                }
+                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (board[i][j] == &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;)
+                {
+                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (cnt1 &amp;lt; &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt; || cnt1 &amp;gt; &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;)
+                        grid[i][j] = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;;
+                }
+                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;
+                {
+                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (cnt1 == &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;)
+                        grid[i][j] = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
+                }
+            }
+        }
+        board = grid;
+    }
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;golang:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;gameOfLife&lt;/span&gt;(board [][]&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;) {
+	vis := [&lt;span style=&#34;color:#b452cd&#34;&gt;8&lt;/span&gt;][&lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;]&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;{{&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;}, {-&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;}, {&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;}, {&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;}, {&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;}, {&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;}, {-&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;}, {-&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;}}
+	grid := [][]&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;{}
+	n := &lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(board)
+	m := &lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(board[&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;])
+	&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; i := &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; i &amp;lt; n; i++ {
+		row := []&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;{}
+		&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; j := &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; j &amp;lt; m; j++ {
+			row = &lt;span style=&#34;color:#658b00&#34;&gt;append&lt;/span&gt;(row, board[i][j])
+		}
+		grid = &lt;span style=&#34;color:#658b00&#34;&gt;append&lt;/span&gt;(grid, row)
+	}
+	&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; i := &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; i &amp;lt; n; i++ {
+		&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; j := &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; j &amp;lt; m; j++ {
+			cnt1 := &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
+			&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; p := &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; p &amp;lt; &lt;span style=&#34;color:#b452cd&#34;&gt;8&lt;/span&gt;; p++ {
+				xx := i + vis[p][&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;]
+				yy := j + vis[p][&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;]
+				&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; xx &amp;gt;= &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &amp;amp;&amp;amp; xx &amp;lt; n &amp;amp;&amp;amp; yy &amp;gt;= &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &amp;amp;&amp;amp; yy &amp;lt; m {
+					&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; board[xx][yy] == &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt; {
+						cnt1++
+					}
+				}
+			}
+			&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; board[i][j] == &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt; {
+				&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; cnt1 &amp;lt; &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt; || cnt1 &amp;gt; &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt; {
+					grid[i][j] = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
+				}
+			} &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt; {
+				&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; cnt1 == &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt; {
+					grid[i][j] = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;
+				}
+			}
+		}
+	}
+	&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; i := &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; i &amp;lt; n; i++ {
+		&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; j := &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; j &amp;lt; m; j++ {
+			board[i][j] = grid[i][j]
+		}
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;- https://blog.riba2534.cn/blog/2020/leetcode-289-%E7%94%9F%E5%91%BD%E6%B8%B8%E6%88%8F%E6%A8%A1%E6%8B%9F/ - </description>
+        </item>
+    
+    
+    
+        <item>
+        <title>LeetCode 1111 有效括号的嵌套深度(找规律)</title>
+        <link>https://blog.riba2534.cn/blog/2020/leetcode-1111-%E6%9C%89%E6%95%88%E6%8B%AC%E5%8F%B7%E7%9A%84%E5%B5%8C%E5%A5%97%E6%B7%B1%E5%BA%A6%E6%89%BE%E8%A7%84%E5%BE%8B/</link>
+        <pubDate>Wed, 01 Apr 2020 14:29:14 +0800</pubDate>
+        
+        <guid>https://blog.riba2534.cn/blog/2020/leetcode-1111-%E6%9C%89%E6%95%88%E6%8B%AC%E5%8F%B7%E7%9A%84%E5%B5%8C%E5%A5%97%E6%B7%B1%E5%BA%A6%E6%89%BE%E8%A7%84%E5%BE%8B/</guid>
+        <description>🌀riba2534&#39;s Blog https://blog.riba2534.cn/blog/2020/leetcode-1111-%E6%9C%89%E6%95%88%E6%8B%AC%E5%8F%B7%E7%9A%84%E5%B5%8C%E5%A5%97%E6%B7%B1%E5%BA%A6%E6%89%BE%E8%A7%84%E5%BE%8B/ -&lt;p&gt;题目链接：&lt;a href=&#34;https://leetcode-cn.com/problems/maximum-nesting-depth-of-two-valid-parentheses-strings/&#34;&gt;有效括号的嵌套深度&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;有效括号字符串 定义：对于每个左括号，都能找到与之对应的右括号，反之亦然。详情参见题末「有效括号字符串」部分。&lt;/p&gt;
+&lt;p&gt;嵌套深度 &lt;code&gt;depth&lt;/code&gt; 定义：即有效括号字符串嵌套的层数。详情参见题末「嵌套深度」部分。&lt;/p&gt;
+&lt;p&gt;给你一个「有效括号字符串」 &lt;code&gt;seq&lt;/code&gt;，请你将其分成两个不相交的子序列 &lt;code&gt;A&lt;/code&gt; 和 &lt;code&gt;B&lt;/code&gt;，且 &lt;code&gt;A&lt;/code&gt; 和 &lt;code&gt;B&lt;/code&gt; 都满足有效括号字符串的定义（注意：&lt;code&gt;A.length + B.length = seq.length&lt;/code&gt;）。&lt;/p&gt;
+&lt;p&gt;由于可能存在多种划分方案，请你从中选出 任意 一组有效括号字符串 &lt;code&gt;A&lt;/code&gt; 和 &lt;code&gt;B&lt;/code&gt;，使 &lt;code&gt;max(depth(A), depth(B))&lt;/code&gt; 的可能取值最小。其中 &lt;code&gt;depth(A)&lt;/code&gt; 表示 &lt;code&gt;A&lt;/code&gt; 的嵌套深度，&lt;code&gt;depth(B)&lt;/code&gt; 表示 &lt;code&gt;B&lt;/code&gt; 的嵌套深度。&lt;/p&gt;
+&lt;p&gt;请你返回一个长度为 &lt;code&gt;seq.length&lt;/code&gt; 的答案数组 &lt;code&gt;answer&lt;/code&gt;，编码规则如下：如果 &lt;code&gt;seq[i]&lt;/code&gt; 是 &lt;code&gt;A&lt;/code&gt; 的一部分，那么 &lt;code&gt;answer[i] = 0&lt;/code&gt;。否则，&lt;code&gt;answer[i] = 1&lt;/code&gt;。即便有多个满足要求的答案存在，你也只需返回 一个。&lt;/p&gt;
+&lt;p&gt;示例 1：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;输入：seq = &amp;quot;(()())&amp;quot;
+输出：[0,1,1,1,1,0]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;示例 2：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;输入：seq = &amp;quot;()(())()&amp;quot;
+输出：[0,0,0,1,1,0,1,1]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;提示：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;1 &amp;lt;= text.size &amp;lt;= 10000
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;有效括号字符串&lt;/strong&gt;：&lt;/p&gt;
+&lt;p&gt;仅由 &lt;code&gt;&amp;quot;(&amp;quot;&lt;/code&gt; 和 &lt;code&gt;&amp;quot;)&amp;quot;&lt;/code&gt; 构成的字符串，对于每个左括号，都能找到与之对应的右括号，反之亦然。&lt;/p&gt;
+&lt;p&gt;下述几种情况同样属于有效括号字符串：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;空字符串&lt;/li&gt;
+&lt;li&gt;连接，可以记作 AB（A 与 B 连接），其中 A 和 B 都是有效括号字符串&lt;/li&gt;
+&lt;li&gt;嵌套，可以记作 (A)，其中 A 是有效括号字符串&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;嵌套深度&lt;/strong&gt;：&lt;/p&gt;
+&lt;p&gt;类似地，我们可以定义任意有效括号字符串 s 的 嵌套深度 depth(S)：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;s 为空时，depth(&amp;quot;&amp;quot;) = 0&lt;/li&gt;
+&lt;li&gt;s 为 A 与 B 连接时，depth(A + B) = max(depth(A), depth(B))，其中 A 和 B 都是有效括号字符串&lt;/li&gt;
+&lt;li&gt;s 为嵌套情况，depth(&amp;quot;(&amp;quot; + A + &amp;ldquo;)&amp;quot;) = 1 + depth(A)，其中 A 是有效括号字符串&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;例如：&amp;quot;&amp;quot;，&amp;quot;()()&amp;quot;，和 &amp;ldquo;()(()())&amp;rdquo; 都是有效括号字符串，嵌套深度分别为 0，1，2，而 &amp;ldquo;)(&amp;rdquo; 和 &amp;ldquo;(()&amp;rdquo; 都不是有效括号字符串。&lt;/p&gt;
+&lt;h2 id=&#34;思路&#34;&gt;思路&lt;/h2&gt;
+&lt;p&gt;题意很简单，就是给你一个已经配对好的括号序列。让你分成两个括号序列，且需要分成的这两个序列的的深度的最大值尽可能小，也就是使&lt;code&gt;max(depth(A), depth(B))&lt;/code&gt; 最小.&lt;/p&gt;
+&lt;p&gt;容易想到，我们需要尽量把这两个序列分成两个相同深度的序列，这样就可以满足深度差最小，那如何对半分呢，用一个变量 &lt;code&gt;depth&lt;/code&gt; 来记录深度，O(n)扫一遍序列，遇到左括号深度加一，遇到右括号深度减一，把奇数深度的放一起，把偶数深度的放一起。&lt;/p&gt;
+&lt;h2 id=&#34;代码&#34;&gt;代码&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Solution&lt;/span&gt;
+{
+&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt;:
+    vector&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt; maxDepthAfterSplit(string seq)
+    {
+        vector&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt; res;
+        &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; depth = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;;
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; i &amp;lt; seq.size(); i++)
+        {
+            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (seq[i] == &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;(&amp;#39;&lt;/span&gt;)
+                res.push_back((++depth) &amp;amp; &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;);
+            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;
+                res.push_back((depth--) &amp;amp; &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;);
+        }
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; res;
+    }
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;- https://blog.riba2534.cn/blog/2020/leetcode-1111-%E6%9C%89%E6%95%88%E6%8B%AC%E5%8F%B7%E7%9A%84%E5%B5%8C%E5%A5%97%E6%B7%B1%E5%BA%A6%E6%89%BE%E8%A7%84%E5%BE%8B/ - </description>
+        </item>
+    
+    
+    
+        <item>
+        <title>主流消息队列介绍</title>
+        <link>https://blog.riba2534.cn/blog/2019/%E4%B8%BB%E6%B5%81%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E4%BB%8B%E7%BB%8D/</link>
+        <pubDate>Fri, 13 Dec 2019 20:32:00 +0800</pubDate>
+        
+        <guid>https://blog.riba2534.cn/blog/2019/%E4%B8%BB%E6%B5%81%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E4%BB%8B%E7%BB%8D/</guid>
+        <description>🌀riba2534&#39;s Blog https://blog.riba2534.cn/blog/2019/%E4%B8%BB%E6%B5%81%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E4%BB%8B%E7%BB%8D/ -&lt;h1 id=&#34;主流消息队列介绍&#34;&gt;主流消息队列介绍&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;RabbitMQ
+&lt;ul&gt;
+&lt;li&gt;特点
+&lt;ul&gt;
+&lt;li&gt;Erlang 语言编写&lt;/li&gt;
+&lt;li&gt;为电信行业可靠性设计&lt;/li&gt;
+&lt;li&gt;支持 AMQP 协议&lt;/li&gt;
+&lt;li&gt;轻量级，容易部署及使用&lt;/li&gt;
+&lt;li&gt;每秒几万到十几万&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;劣势
+&lt;ul&gt;
+&lt;li&gt;消息大量堆积时，性能会下降&lt;/li&gt;
+&lt;li&gt;性能相比较于其他的比较差&lt;/li&gt;
+&lt;li&gt;Erlang 太冷门，不好维护&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;RocketMQ
+&lt;ul&gt;
+&lt;li&gt;特点
+&lt;ul&gt;
+&lt;li&gt;阿里巴巴 2012 开源，后来捐给 Apache 成了顶级项目&lt;/li&gt;
+&lt;li&gt;可靠性、稳定性高的国产消息队列，时延低&lt;/li&gt;
+&lt;li&gt;中文社区活跃&lt;/li&gt;
+&lt;li&gt;JAVA 开发，贡献者大多是中国人&lt;/li&gt;
+&lt;li&gt;比 RabbitMQ 的性能高出一个数量级，每秒钟能处理几十万条消息&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;劣势
+&lt;ul&gt;
+&lt;li&gt;作为国产的消息队列，在国际上没有那么流行&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Kafka
+&lt;ul&gt;
+&lt;li&gt;特点
+&lt;ul&gt;
+&lt;li&gt;由 LinkedIn 开发，也是 Apache 顶级项目&lt;/li&gt;
+&lt;li&gt;早期为了获得高性能，设计方面有牺牲
+&lt;ul&gt;
+&lt;li&gt;不保证消息可靠性&lt;/li&gt;
+&lt;li&gt;可能丢失消息&lt;/li&gt;
+&lt;li&gt;不支持集群&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;当前的 Kafka 已经成熟，可靠性稳定性已经可以满足绝大多数场景&lt;/li&gt;
+&lt;li&gt;周边生态好，在大数据和流式计算领域，所有的相关开源软件都会优先支持 kafka&lt;/li&gt;
+&lt;li&gt;使用 Scala 和 JAVA 开发，Kafka 的异步收发性能是三者最好的&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;劣势
+&lt;ul&gt;
+&lt;li&gt;同步收发消息响应时延比较高
+&lt;ul&gt;
+&lt;li&gt;客户端发一条消息时，kafka 不会立即发送，而是要等一会攒一批再发送，所以不适合在线业务场景&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;ActiveMQ
+&lt;ul&gt;
+&lt;li&gt;特点
+&lt;ul&gt;
+&lt;li&gt;最老牌开源消息队列&lt;/li&gt;
+&lt;li&gt;十年前唯一可供选择的消息队列&lt;/li&gt;
+&lt;li&gt;存在的意义是兼容还在用的爷爷辈的系统&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;劣势
+&lt;ul&gt;
+&lt;li&gt;社区不活跃&lt;/li&gt;
+&lt;li&gt;功能和性能差&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;ZeroMQ
+&lt;ul&gt;
+&lt;li&gt;基于消息队列的多线程网络库&lt;/li&gt;
+&lt;li&gt;如果需求是把消息队列的功能集成进系统进程中，可以考虑使用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Pulsar
+&lt;ul&gt;
+&lt;li&gt;新兴消息队列产品&lt;/li&gt;
+&lt;li&gt;处于成长期&lt;/li&gt;
+&lt;li&gt;存储和计算分离设计&lt;/li&gt;
+&lt;li&gt;也许是未来发展方向，建议关注&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/12/13/HOP2EQVNa3tYgwy.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+- https://blog.riba2534.cn/blog/2019/%E4%B8%BB%E6%B5%81%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E4%BB%8B%E7%BB%8D/ - </description>
+        </item>
+    
+    
+    
+        <item>
+        <title>消息队列的消息模型</title>
+        <link>https://blog.riba2534.cn/blog/2019/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/</link>
+        <pubDate>Fri, 13 Dec 2019 20:32:00 +0800</pubDate>
+        
+        <guid>https://blog.riba2534.cn/blog/2019/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/</guid>
+        <description>🌀riba2534&#39;s Blog https://blog.riba2534.cn/blog/2019/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/ -&lt;h1 id=&#34;消息队列的消息模型&#34;&gt;消息队列的消息模型&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;主题和队列&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;好的队列不是设计出来的，而是演进出来的&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;最初的消息队列模型&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;严格意义上的队列，数据结构中的队列&lt;/li&gt;
+&lt;li&gt;满足先进先出&lt;/li&gt;
+&lt;li&gt;要求满足严格有序&lt;/li&gt;
+&lt;li&gt;队列没有读操作，只有「出队」&lt;/li&gt;
+&lt;li&gt;多个生产者写，可消费到的信息是这些生产者生产的消息合集，每个消费者只能收到队列的一部分信息，任何一条消息只能被一个消费者收到&lt;/li&gt;
+&lt;li&gt;如果需要每个消费者都受到全量的消息怎么办？
+&lt;ul&gt;
+&lt;li&gt;为每个消费者单独创建一个队列，让生产者发送多份
+&lt;ul&gt;
+&lt;li&gt;方法比较蠢&lt;/li&gt;
+&lt;li&gt;浪费资源&lt;/li&gt;
+&lt;li&gt;生产者必须要知道有多少个消费者，违背了「解耦」的初衷&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;发布-订阅模型&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;模型图&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://mubu.com/document_image/58b818ad-8383-41dd-ac05-dc6d85637678-5127810.jpg&#34; alt=&#34;img&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;发送方被称为发布者，接收方被称为订阅者&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;服务端存放消息的容器叫做主题&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;发布者将消息发布进主题中，订阅者需要先「订阅主题」&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;「订阅」是一个动作，同时可以认为是主题在消费时的一个逻辑副本，每份订阅中，订阅者都可以接收到主题的所有消息&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;对比&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在消息队列历史上很长时间，这两种模式是并存的，有些消息队列同时支持这两种模型，比如 ActiveMQ。&lt;/li&gt;
+&lt;li&gt;这两种模型，生产者就是发布者，消费者就是订阅者，队列就是主题&lt;/li&gt;
+&lt;li&gt;最大区别就是，一份消息数据能不能被消费多次&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;RabbitMQ 消息模型&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;坚持使用队列模型的产品之一&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;通过 Exchange 模块，此模块位于生产者和队列之间，生产者并不关心将消息发到哪个队列，而是将消息发送给 Exchange，由 Exchange 配置的策略来决定将消息投递到哪些队列当中&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://mubu.com/document_image/edf6815c-17e7-4204-ad36-61e22c716555-5127810.jpg&#34; alt=&#34;img&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;同一份消息如果需要多个消费者来消费，就需要配置 Exchange 将消息发送到多个队列，每个队列中都存在一份完整的消息数据。这样就变相的实现了发布订阅模型中的一份消息数据可以被多个订阅者来多次消费&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;RocketMQ 消息模型&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;标准的发布订阅模型&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;在 RocketMQ 的术语表中，生产者，消费者和主题与上面讲的发布订阅模型是完全一样的&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;请求-确认机制&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;生产者生产消息后，会将消息发送给服务端，也就是 Broker（中间人）, 服务端将消息接受并写入队列后，会给生产者发确认的响应。如果没有得到响应，就会不断重试&lt;/li&gt;
+&lt;li&gt;消费者消费消息后，服务端要得到消费成功的响应，如果没有得到，也会不断发送，直到收到对应的消费成功确认&lt;/li&gt;
+&lt;li&gt;这个机制很好的保证了消息传递过程中的可靠性&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;RocketMQ 中队列的概念&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;引用请求确认机制保证了可靠性，但是为了保证消息的有序性，在某一条消息被成功消费之前，下一条消息是不能消费的，否则就会出现消息空洞，违背了有序性的原则&lt;/li&gt;
+&lt;li&gt;任意时刻，至多只能有一个消费者实例进行消费，所以没法通过水平扩充消费者的数量来提升消费端的总体性能，为了解决这个问题，RocketMQ 增加了队列的概念&lt;/li&gt;
+&lt;li&gt;每个主题包含多个队列，通过多个队列来实现多实例并行生产和消费
+&lt;ul&gt;
+&lt;li&gt;只在队列上保证消息的有序性，主题层面无法保证消息的严格顺序&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;订阅者的概念是通过「消费组」来体现的，每个消费组都消费主题中一份完整的消息，不同消费组之间消费进度彼此不影响。也就是说，一条消息被 Consumer Group1 消费过，也会再给 Consumer Group2 消费。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;消费组包含多个消费者，同一个组内消息的消费时竞争消费关系，每个消费者负责消息组内的一部分消息，如果一条消息给 Consumer1 消费了，那么其他消费者不会收到这条消息&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;消费过程中，消息要被不同的组消费，所以消费完的消息不会被立刻删除。所以，RocketMQ 在每个队列上维护一个消费位置 (Consumer Offset)，这个位置之前的消息都被消费过，之后的都没有。每成功一条消息，位置就加一&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;RocketMQ 消息模型&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://mubu.com/document_image/67280ed3-9cad-4bab-bccb-e1fd77a0d7fc-5127810.jpg&#34; alt=&#34;img&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Kafka 消息模型&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;消息模型与 RocketMQ 完全一样&lt;/li&gt;
+&lt;li&gt;在 kafka 中，「队列」这个概念的名称不一样，kafka 中对应的名称是，分区 (Partition)，含义和功能是没有任何区别的&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;总结&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;两个模型
+&lt;ul&gt;
+&lt;li&gt;发布-订阅模型&lt;/li&gt;
+&lt;li&gt;队列模型&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;两种消息模型没有本质区别，都可以通过一些扩展或变化相互替代&lt;/li&gt;
+&lt;li&gt;以上相关概念是业务层面的模型，不是实现层面。比如说 MySQL 和 Hbase 同样是支持 SQL 的数据库，它们的业务模型中，存放数据的单元都是“表”，但是在实现层面，没有哪个数据库是以二维表的方式去存储数据的，MySQL 使用 B+ 树来存储数据，而 HBase 使用的是 KV 的结构来存储。同样，像 Kafka 和 RocketMQ 的业务模型基本是一样的，并不是说他们的实现就是一样的，实际上这两个消息队列的实现是完全不同的。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/12/13/MHDZv4b6an8BfTi.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+- https://blog.riba2534.cn/blog/2019/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/ - </description>
+        </item>
+    
+    
+    
+        <item>
+        <title>消息队列的功能和用途</title>
+        <link>https://blog.riba2534.cn/blog/2019/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E5%8A%9F%E8%83%BD%E5%92%8C%E7%94%A8%E9%80%94/</link>
+        <pubDate>Fri, 13 Dec 2019 20:31:00 +0800</pubDate>
+        
+        <guid>https://blog.riba2534.cn/blog/2019/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E5%8A%9F%E8%83%BD%E5%92%8C%E7%94%A8%E9%80%94/</guid>
+        <description>🌀riba2534&#39;s Blog https://blog.riba2534.cn/blog/2019/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E5%8A%9F%E8%83%BD%E5%92%8C%E7%94%A8%E9%80%94/ -&lt;h1 id=&#34;消息队列的功能和用途&#34;&gt;消息队列的功能和用途&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;解耦
+&lt;ul&gt;
+&lt;li&gt;上游关注通知，不关注处理&lt;/li&gt;
+&lt;li&gt;下游只关注处理，约定好消息格式&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;流量控制
+&lt;ul&gt;
+&lt;li&gt;应对突发流量，削峰填谷
+&lt;ul&gt;
+&lt;li&gt;大量请求先放入消息队列，然后服务端按照自己最大能力去处理&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;广播
+&lt;ul&gt;
+&lt;li&gt;一条消息，可以被多个下游处理&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;异步
+&lt;ul&gt;
+&lt;li&gt;收到消息之后，不需要马上进行，提高效率
+&lt;ul&gt;
+&lt;li&gt;秒杀系统
+&lt;ul&gt;
+&lt;li&gt;用户秒杀只需要通过风险控制以及库存锁定这两个操作就可以了&lt;/li&gt;
+&lt;li&gt;后续生成订单，短信通知，可以用消息队列异步处理&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;冗余
+&lt;ul&gt;
+&lt;li&gt;消息可以被持久化，容易回溯&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;选择消息队列的基本标准
+&lt;ul&gt;
+&lt;li&gt;消息的可靠传递，确保不丢消息&lt;/li&gt;
+&lt;li&gt;Cluster 支持集群，确保不会因为某个节点而导致集群不可用&lt;/li&gt;
+&lt;li&gt;性能，性能要满足场景的需要&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/12/13/t2bIoTnLuQHXiN6.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+- https://blog.riba2534.cn/blog/2019/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E5%8A%9F%E8%83%BD%E5%92%8C%E7%94%A8%E9%80%94/ - </description>
+        </item>
+    
+    
+    
+        <item>
+        <title>Linux 网络通信瑞士军刀 nc 命令使用</title>
+        <link>https://blog.riba2534.cn/blog/2019/linux-%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E7%91%9E%E5%A3%AB%E5%86%9B%E5%88%80-nc-%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8/</link>
+        <pubDate>Fri, 27 Sep 2019 18:36:41 +0800</pubDate>
+        
+        <guid>https://blog.riba2534.cn/blog/2019/linux-%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E7%91%9E%E5%A3%AB%E5%86%9B%E5%88%80-nc-%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8/</guid>
+        <description>🌀riba2534&#39;s Blog https://blog.riba2534.cn/blog/2019/linux-%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E7%91%9E%E5%A3%AB%E5%86%9B%E5%88%80-nc-%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8/ -&lt;h1 id=&#34;linux-网络通信瑞士军刀-nc-命令使用&#34;&gt;Linux 网络通信瑞士军刀 nc 命令使用&lt;/h1&gt;
+&lt;h2 id=&#34;简介&#34;&gt;简介&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;netcat&lt;/code&gt;也就是&lt;code&gt;nc&lt;/code&gt;被称为&lt;code&gt;TCP/IP&lt;/code&gt;的瑞士军刀。以体积小，功能灵活著称。在各个发行版有默认安装，可以用来做很多网络相关的工作。它是一款拥有多种功能的 CLI 工具，可以用来在网络上读、写以及重定向数据。 它被设计成可以被脚本或其他程序调用的可靠的后端工具。同时由于它能创建任意所需的连接，因此也是一个很好的网络调试工具。甚至还可以作为简单的 TCP 代理。&lt;/p&gt;
+&lt;p&gt;我简单的列一下我使用过的常用的命令。&lt;/p&gt;
+&lt;p&gt;命令选项：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;-g&amp;lt;网关&amp;gt;：设置路由器跃程通信网关，最多设置 &lt;span style=&#34;color:#b452cd&#34;&gt;8&lt;/span&gt; 个；
+-G&amp;lt;指向器数目&amp;gt;：设置来源路由指向器，其数值为 &lt;span style=&#34;color:#b452cd&#34;&gt;4&lt;/span&gt; 的倍数；
+-h：在线帮助；
+-i&amp;lt;延迟秒数&amp;gt;：设置时间间隔，以便传送信息及扫描通信端口；
+-l：使用监听模式，监控传入的资料；
+-n：直接使用 ip 地址，而不通过域名服务器；
+-o&amp;lt;输出文件&amp;gt;：指定文件名称，把往来传输的数据以 &lt;span style=&#34;color:#b452cd&#34;&gt;16&lt;/span&gt; 进制字码倾倒成该文件保存；
+-p&amp;lt;通信端口&amp;gt;：设置本地主机使用的通信端口；
+-r：指定源端口和目的端口都进行随机的选择；
+-s&amp;lt;来源位址&amp;gt;：设置本地主机送出数据包的 IP 地址；
+-u：使用 UDP 传输协议；
+-v：显示指令执行过程；
+-w&amp;lt;超时秒数&amp;gt;：设置等待连线的时间；
+-z：使用 &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; 输入/输出模式，只在扫描通信端口时使用。
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;常用命令&#34;&gt;常用命令&lt;/h2&gt;
+&lt;h3 id=&#34;传输测试&#34;&gt;传输测试&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;nc -l &lt;span style=&#34;color:#b452cd&#34;&gt;8080&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;这个命令会监听本机 8080 端口，直到有 http 请求过来，然后显示出相关信息。&lt;/p&gt;
+&lt;p&gt;在主机 A 执行了这个命令之后，如果访问方式不是浏览器通过 HTTP 进行的，可以在主机 B 上面使用命令&lt;code&gt;nc ip port&lt;/code&gt;连接过去，这样两台主机就可以通信了，随便输点什么，对方就会显示。&lt;/p&gt;
+&lt;h3 id=&#34;测试-udp-会话&#34;&gt;测试 UDP 会话&lt;/h3&gt;
+&lt;p&gt;测试两台主机 UDP 连接是否可以通信时，在主机 A 上：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;nc -u -l -p &lt;span style=&#34;color:#b452cd&#34;&gt;8080&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;在主机 B 上面，连上去：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;nc -u IP &lt;span style=&#34;color:#b452cd&#34;&gt;8080&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;可以向之前 tcp 一样的方法进行检测。&lt;/p&gt;
+&lt;h3 id=&#34;端口测试&#34;&gt;端口测试&lt;/h3&gt;
+&lt;p&gt;比如你在远程服务器 A 的某个端口启动了一个服务，但是你怎么测试这个服务通不通呢，这时你可以用本地机器 B 使用 nc 命令来测试。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;nc -zv IP &lt;span style=&#34;color:#b452cd&#34;&gt;8080&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;这个命令会告诉你，远端服务器的 8080 端口是否可以正常连接。nc 后面的端口也可以变成一个范围进行扫描。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;nc -v -v -w3 -z IP 8080-8083
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;两次 -v 是让它报告更详细的内容，-w3 是设置扫描超时时间为 3 秒。&lt;/p&gt;
+&lt;h3 id=&#34;网络代理端口转发&#34;&gt;网络代理&amp;amp;端口转发&lt;/h3&gt;
+&lt;p&gt;某些时候，我们可能需要一个网络代理来进行一些事情。在条件有限的情况下，可以做一个简单的代理。&lt;/p&gt;
+&lt;p&gt;现在假设有 A B C 三个主机。&lt;/p&gt;
+&lt;p&gt;在主机 A 上运行。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;nc -l &lt;span style=&#34;color:#b452cd&#34;&gt;8080&lt;/span&gt; | nc B &lt;span style=&#34;color:#b452cd&#34;&gt;8081&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;代表主机 A 监听自己的 8080 端口，并且把收到的请求都传送到主机 B 上。看命令可以知道把第一个命令的输出作为第二个命令的输入。但是此时代理是单向的，我们修改一下就可以变成双向。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;mkfifo riba
+nc -l &lt;span style=&#34;color:#b452cd&#34;&gt;8080&lt;/span&gt; 0&amp;lt;riba | nc B &lt;span style=&#34;color:#b452cd&#34;&gt;8081&lt;/span&gt; 1&amp;gt;riba
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;稍微解释一下这个命令，首先用 mkfifo 创建了一个双向管道，&lt;code&gt;&amp;lt;&lt;/code&gt; 和 &lt;code&gt;&amp;gt;&lt;/code&gt; 是用来重定向的符号，&lt;code&gt;0&lt;/code&gt; 在 linux 中代表标准输入，&lt;code&gt;1&lt;/code&gt; 代标准输出，&lt;code&gt;2&lt;/code&gt; 代表标准错误输出。那么这个命令就首先在 A 机器监听 8080 端口，把标准输入定向为管道，发送给 B, 然后 B 把自己接收的信息写进管道，标准输出到了管道，这样可以实现双向通信。&lt;/p&gt;
+&lt;h2 id=&#34;总结&#34;&gt;总结&lt;/h2&gt;
+&lt;p&gt;暂时就用到这么多，先更到这。netcat 就是可以在命令行直接的方式操作 TCP 或者 UDP 进行原始的：监听，连接，数据传输等工作。然后搭配管道，实现灵活多样的功能。&lt;/p&gt;
+- https://blog.riba2534.cn/blog/2019/linux-%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E7%91%9E%E5%A3%AB%E5%86%9B%E5%88%80-nc-%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8/ - </description>
+        </item>
+    
+    
+    
+        <item>
+        <title>彻底解决go get golang.org/x等包失败与VSCode golang插件安装失败问题</title>
+        <link>https://blog.riba2534.cn/blog/2019/%E5%BD%BB%E5%BA%95%E8%A7%A3%E5%86%B3go-get-golang.org-x%E7%AD%89%E5%8C%85%E5%A4%B1%E8%B4%A5%E4%B8%8Evscode-golang%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85%E5%A4%B1%E8%B4%A5%E9%97%AE%E9%A2%98/</link>
+        <pubDate>Mon, 23 Sep 2019 16:16:00 +0800</pubDate>
+        
+        <guid>https://blog.riba2534.cn/blog/2019/%E5%BD%BB%E5%BA%95%E8%A7%A3%E5%86%B3go-get-golang.org-x%E7%AD%89%E5%8C%85%E5%A4%B1%E8%B4%A5%E4%B8%8Evscode-golang%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85%E5%A4%B1%E8%B4%A5%E9%97%AE%E9%A2%98/</guid>
+        <description>🌀riba2534&#39;s Blog https://blog.riba2534.cn/blog/2019/%E5%BD%BB%E5%BA%95%E8%A7%A3%E5%86%B3go-get-golang.org-x%E7%AD%89%E5%8C%85%E5%A4%B1%E8%B4%A5%E4%B8%8Evscode-golang%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85%E5%A4%B1%E8%B4%A5%E9%97%AE%E9%A2%98/ -&lt;h2 id=&#34;问题描述&#34;&gt;问题描述&lt;/h2&gt;
+&lt;p&gt;由于某种众所周知的一些原因，&lt;code&gt;https://golang.org/&lt;/code&gt; golang 的官方域名是被墙了的，这也就导致了，在广大 go 开发者使用 golang 的时候，总会出现 &lt;code&gt;go get&lt;/code&gt; 失败的问题。解决这个问题的办法，网上一搜一大堆，总结一下，网上大概有两种解决方案。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;因为 &lt;code&gt;go get&lt;/code&gt; 不到的库，一般来说在 &lt;code&gt;github&lt;/code&gt; 都有人做了镜像，这个时候一般是曲线救国，从 &lt;code&gt;github&lt;/code&gt; 上面搞下来，然后把对应的东西放在对应目录，这种方式比较麻烦，而且比较慢。&lt;/li&gt;
+&lt;li&gt;用代理，需要一台国外服务器，开启一个 http 代理或者 socks5 代理，或者各种梯子，曲线救国，这种方式其实挺好的，我之前一直用这种方式，不过需要国外服务器以及其他一些知识。或者设置 &lt;code&gt;GOPROXY&lt;/code&gt; 等。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;解决方案&#34;&gt;解决方案&lt;/h2&gt;
+&lt;p&gt;golang 的 1.13 版本已经正式发布了，这个版本中，新的包管理方式 &lt;code&gt;Go module&lt;/code&gt; 已经正式被扶正，还有支持 go 模块代理。对于咱们中国的开发者来说，一个优秀的 Go 模块代理可以帮助我们解决很多问题。比如 Go 语言中最知名的 golang.org/x/&amp;hellip; 模块在中国大陆是无法访问到的，以前我们会用很多其他的办法来抓取他们，而若依靠一个可以访问到它们的模块代理，那么将事半功倍。更因为 Go 1.13 将 GOPROXY 默认成了中国大陆无法访问的 &lt;a href=&#34;https://proxy.golang.org&#34;&gt;https://proxy.golang.org&lt;/a&gt; ，所以我们中国的开发者从今以后必须先修改 GOPROXY 才能正常使用 go 来开发应用了。为此，我们联合中国备受信赖的云服务提供商七牛云专门为咱们中国开发者而打造了一个 Go 模块代理：goproxy.cn。github地址：&lt;a href=&#34;https://github.com/goproxy/goproxy.cn&#34;&gt;goproxy&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;那么如何使用这个代理呢？只需要一句命令。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;go env -w &lt;span style=&#34;color:#00688b&#34;&gt;GOPROXY&lt;/span&gt;=https://goproxy.cn,direct
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;完成。然后进行 go get 以及其他获取包的命令，都会经过七牛云进行代理，速度回有一个质的飞跃。前提是需要把 go 版本升级为 &lt;code&gt;&amp;gt;=1.13&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id=&#34;参考资料&#34;&gt;参考资料&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://studygolang.com/topics/10014&#34;&gt;goproxy.cn - 为中国 Go 语言开发者量身打造的模块代理&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://studygolang.com/topics/10021&#34;&gt;Go 1.13 正式发布，看看都有哪些值得关注的特性&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/goproxy/goproxy.cn/blob/master/README.zh-CN.md&#34;&gt;goproxy中文说明&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+- https://blog.riba2534.cn/blog/2019/%E5%BD%BB%E5%BA%95%E8%A7%A3%E5%86%B3go-get-golang.org-x%E7%AD%89%E5%8C%85%E5%A4%B1%E8%B4%A5%E4%B8%8Evscode-golang%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85%E5%A4%B1%E8%B4%A5%E9%97%AE%E9%A2%98/ - </description>
+        </item>
+    
+    
+  </channel>
+</rss> 

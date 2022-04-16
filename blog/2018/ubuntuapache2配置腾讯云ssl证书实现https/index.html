@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html><head>
+<title>Ubuntu&#43;Apache2配置腾讯云ssl证书实现https</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="Ubuntu&#43;Apache2配置腾讯云ssl证书实现https" />
+<meta property="og:description" content="Ubuntu&#43;Apache2配置腾讯云ssl证书实现https 前言 本文所用的服务器环境是 Ubuntu18.04 &#43; Apache2 .通过部署 ssl 来达到默认使用https方式访问网站的目的。
+ 超文本传输安全协议（英语：Hypertext Transfer Protocol Secure，缩写：HTTPS，常称为HTTP over TLS，HTTP over SSL或HTTP Secure）是一种透过计算机网络进行安全通信的传输协议。HTTPS经由HTTP进行通信，但利用SSL/TLS来加密数据包。HTTPS开发的主要目的，是提供对网站服务器的身份认证，保护交换数据的隐私与完整性。这个协议由网景公司（Netscape）在1994年首次提出，随后扩展到互联网上。
+历史上，HTTPS连接经常用于万维网上的交易支付和企业信息系统中敏感信息的传输。在2000年代晚期和2010年代早期，HTTPS开始广泛使用于保护所有类型网站上的网页真实性，保护账户和保持用户通信，身份和网络浏览的私密性。
+&mdash; 来自《维基百科》
+ 其实可以解决很大部分的运营商劫持问题，比如别人打开你的网站，网页上面会出现一些广告之类的，所以需要配置 https 来防止这个问题。
+正文 Ubuntu 下 LAMP 环境的搭建，就不细说了，主要讲一下如何配置证书。
+申请证书 打开腾讯云https://buy.cloud.tencent.com/ssl来获得腾讯云提供的免费证书：
+点击域名型免费版，然后进去填一下网址和邮箱即可申请到。
+过了几分钟，就会受到一个邮件，是一个压缩包，里面有各种服务器的 ssl 证书文件，我们进入 Apache2 这个目录，然后发现里面有三个文件：
+1 2 3  1_root_bundle.crt # 证书文件 2_xxx.xxx.xxx.crt # 证书文件 3_xxx.xxx.xxx.key # 私钥文件    1_root_bundle.crt包含一段代码-----BEGIN CERTIFICATE-----和-----END CERTIFICATE----- 2_xxx.xxx.xxx.crt文件包括一段证书代码-----BEGIN CERTIFICATE-----和-----END CERTIFICATE----- 3_xxx.xxx.xxx.key文件包括一段私钥代码-----BEGIN RSA PRIVATE KEY-----和-----END RSA PRIVATE KEY-----  这是这几个文件的作用。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.riba2534.cn/blog/2018/ubuntuapache2%E9%85%8D%E7%BD%AE%E8%85%BE%E8%AE%AF%E4%BA%91ssl%E8%AF%81%E4%B9%A6%E5%AE%9E%E7%8E%B0https/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2018-12-28T19:22:00+08:00" />
+<meta property="article:modified_time" content="2018-12-28T19:37:46+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210427152737.jpeg">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.3.1/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://blog.riba2534.cn/">
+    
+        <div class="nav-title">
+            🌀riba2534&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            凡事有交代，件件有着落，事事有回音
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://blog.csdn.net/riba2534">
+    CSDN
+</a>
+<br>
+
+<a href="https://github.com/riba2534">
+    GitHub
+</a>
+<br>
+
+<a href="https://www.zhihu.com/people/riba2534">
+    Zhihu
+</a>
+<br>
+
+<a href="mailto:riba2534@qq.com">
+    Email
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#ubuntuapache2%e9%85%8d%e7%bd%ae%e8%85%be%e8%ae%af%e4%ba%91ssl%e8%af%81%e4%b9%a6%e5%ae%9e%e7%8e%b0https" onclick="onNavClick(`#ubuntuapache2配置腾讯云ssl证书实现https-nav`)" id="ubuntuapache2配置腾讯云ssl证书实现https-nav">
+									Ubuntu&#43;Apache2配置腾讯云ssl证书实现https
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%89%8d%e8%a8%80" onclick="onNavClick(`#前言-nav`)" id="前言-nav">
+									前言
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%ad%a3%e6%96%87" onclick="onNavClick(`#正文-nav`)" id="正文-nav">
+									正文
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%94%b3%e8%af%b7%e8%af%81%e4%b9%a6" onclick="onNavClick(`#申请证书-nav`)" id="申请证书-nav">
+									申请证书
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%85%8d%e7%bd%ae%e8%af%81%e4%b9%a6" onclick="onNavClick(`#配置证书-nav`)" id="配置证书-nav">
+									配置证书
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bc%ba%e5%88%b6%e4%bd%bf%e7%94%a8https" onclick="onNavClick(`#强制使用https-nav`)" id="强制使用https-nav">
+									强制使用https
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%82%e8%80%83%e9%93%be%e6%8e%a5" onclick="onNavClick(`#参考链接-nav`)" id="参考链接-nav">
+									参考链接：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#ubuntuapache2%e9%85%8d%e7%bd%ae%e8%85%be%e8%ae%af%e4%ba%91ssl%e8%af%81%e4%b9%a6%e5%ae%9e%e7%8e%b0https" onclick="onNavClick(`#ubuntuapache2配置腾讯云ssl证书实现https-nav`)" id="ubuntuapache2配置腾讯云ssl证书实现https-nav">
+									Ubuntu&#43;Apache2配置腾讯云ssl证书实现https
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%89%8d%e8%a8%80" onclick="onNavClick(`#前言-nav`)" id="前言-nav">
+									前言
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%ad%a3%e6%96%87" onclick="onNavClick(`#正文-nav`)" id="正文-nav">
+									正文
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%94%b3%e8%af%b7%e8%af%81%e4%b9%a6" onclick="onNavClick(`#申请证书-nav`)" id="申请证书-nav">
+									申请证书
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%85%8d%e7%bd%ae%e8%af%81%e4%b9%a6" onclick="onNavClick(`#配置证书-nav`)" id="配置证书-nav">
+									配置证书
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bc%ba%e5%88%b6%e4%bd%bf%e7%94%a8https" onclick="onNavClick(`#强制使用https-nav`)" id="强制使用https-nav">
+									强制使用https
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%82%e8%80%83%e9%93%be%e6%8e%a5" onclick="onNavClick(`#参考链接-nav`)" id="参考链接-nav">
+									参考链接：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://blog.riba2534.cn/">
+            🌀riba2534&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://blog.riba2534.cn/">
+        <div class="single-column-header-title">🌀riba2534&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">凡事有交代，件件有着落，事事有回音</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://image.riba2534.cn/18-12-22/35474812.jpg')"
+                    
+                
+            >
+                <div class="post-title">
+                    Ubuntu&#43;Apache2配置腾讯云ssl证书实现https
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2018-12-28 19:22
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/linux">Linux</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/linux">Linux</a>
+                                &nbsp;
+                            
+                                <a href="/tags/lamp">LAMP</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            9 min
+                            
+                            44 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h1 id="ubuntuapache2配置腾讯云ssl证书实现https">Ubuntu+Apache2配置腾讯云ssl证书实现https</h1>
+<h2 id="前言">前言</h2>
+<p>本文所用的服务器环境是 Ubuntu18.04 + Apache2 .通过部署 ssl 来达到默认使用https方式访问网站的目的。</p>
+<blockquote>
+<p><strong>超文本传输安全协议</strong>（英语：<strong>Hypertext Transfer Protocol Secure</strong>，<a href="https://zh.wikipedia.org/wiki/%E7%B8%AE%E5%AF%AB">缩写</a>：<strong>HTTPS</strong>，常称为<strong>HTTP over TLS</strong>，<strong>HTTP over SSL</strong>或<strong>HTTP Secure</strong>）是一种透过<a href="https://zh.wikipedia.org/wiki/%E8%A8%88%E7%AE%97%E6%A9%9F%E7%B6%B2%E7%B5%A1">计算机网络</a>进行安全通信的<a href="https://zh.wikipedia.org/wiki/%E7%B6%B2%E8%B7%AF%E5%82%B3%E8%BC%B8%E5%8D%94%E5%AE%9A">传输协议</a>。HTTPS经由<a href="https://zh.wikipedia.org/wiki/HTTP">HTTP</a>进行通信，但利用<a href="https://zh.wikipedia.org/wiki/%E4%BC%A0%E8%BE%93%E5%B1%82%E5%AE%89%E5%85%A8">SSL/TLS</a>来加密数据包。HTTPS开发的主要目的，是提供对<a href="https://zh.wikipedia.org/wiki/%E7%B6%B2%E7%AB%99">网站</a>服务器的<a href="https://zh.wikipedia.org/wiki/%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81">身份认证</a>，保护交换数据的隐私与<a href="https://zh.wikipedia.org/wiki/%E5%AE%8C%E6%95%B4%E6%80%A7">完整性</a>。这个协议由<a href="https://zh.wikipedia.org/wiki/%E7%B6%B2%E6%99%AF">网景</a>公司（Netscape）在1994年首次提出，随后扩展到<a href="https://zh.wikipedia.org/wiki/%E7%B6%B2%E9%9A%9B%E7%B6%B2%E8%B7%AF">互联网</a>上。</p>
+<p>历史上，HTTPS连接经常用于<a href="https://zh.wikipedia.org/wiki/%E4%B8%87%E7%BB%B4%E7%BD%91">万维网</a>上的交易支付和企业信息系统中敏感信息的传输。在2000年代晚期和2010年代早期，HTTPS开始广泛使用于保护所有类型网站上的网页真实性，保护账户和保持用户通信，身份和网络浏览的私密性。</p>
+<p>&mdash; 来自《维基百科》</p>
+</blockquote>
+<p>其实可以解决很大部分的运营商劫持问题，比如别人打开你的网站，网页上面会出现一些广告之类的，所以需要配置 https 来防止这个问题。</p>
+<h2 id="正文">正文</h2>
+<p>Ubuntu 下 LAMP 环境的搭建，就不细说了，主要讲一下如何配置证书。</p>
+<h3 id="申请证书">申请证书</h3>
+<p>打开腾讯云<a href="https://buy.cloud.tencent.com/ssl">https://buy.cloud.tencent.com/ssl</a>来获得腾讯云提供的免费证书：</p>
+<p><img src="https://i.loli.net/2018/12/28/5c25f27d232cf.png" alt=""></p>
+<p>点击<code>域名型免费版</code>，然后进去填一下网址和邮箱即可申请到。</p>
+<p>过了几分钟，就会受到一个邮件，是一个压缩包，里面有各种服务器的 ssl 证书文件，我们进入 Apache2 这个目录，然后发现里面有三个文件：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">1_root_bundle.crt    <span style="color:#228b22"># 证书文件</span>
+2_xxx.xxx.xxx.crt <span style="color:#228b22"># 证书文件</span>
+3_xxx.xxx.xxx.key <span style="color:#228b22"># 私钥文件</span>
+</code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><code>1_root_bundle.crt</code>包含一段代码<code>-----BEGIN CERTIFICATE-----</code>和<code>-----END CERTIFICATE-----</code></li>
+<li><code>2_xxx.xxx.xxx.crt</code>文件包括一段证书代码<code>-----BEGIN CERTIFICATE-----</code>和<code>-----END CERTIFICATE-----</code></li>
+<li><code>3_xxx.xxx.xxx.key</code>文件包括一段私钥代码<code>-----BEGIN RSA PRIVATE KEY-----</code>和<code>-----END RSA PRIVATE KEY-----</code></li>
+</ul>
+<p>这是这几个文件的作用。</p>
+<h3 id="配置证书">配置证书</h3>
+<p>在这里，我假设你已经会配置基本的<code>/etc/apache2/sites-available/000-default.conf</code>这个文件来达到已经可以通过 http 的方式来访问你的站点。</p>
+<p>在<code>/etc/apache2</code>这个目录下，有两个有关的目录<code>sites-available</code>和<code>sites-enabled</code>，我们进入<code>sites-enabled</code>目录下可以发现，里面有一个文件<code>000-default.conf</code></p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">lrwxrwxrwx <span style="color:#b452cd">1</span> root root <span style="color:#b452cd">35</span> Dec <span style="color:#b452cd">28</span> 15:24 000-default.conf -&gt; ../sites-available/000-default.conf
+</code></pre></td></tr></table>
+</div>
+</div><p>实质上这个文件是<code>/etc/apache2/sites-available/000-default.conf</code>这个文件的软链接。</p>
+<p>我们要配置另 ssl 证书，要依靠另一个文件，也就是<code>default-ssl.conf</code>，首先我们需要设置一个软链接，把这个文件链接到<code>sites-enabled</code>这个文件夹中:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">ln -s /etc/apache2/sites-available/default-ssl.conf /etc/apache2/sites-enabled/000-default-ssl.conf
+</code></pre></td></tr></table>
+</div>
+</div><p>然后去修改这个文件<code>000-default-ssl.conf</code>，因为已经做了软链接，其实这时候修改<code>000-default-ssl.conf</code>或<code>default-ssl.conf</code>都一样。</p>
+<p>这个文件没有做任何修改前长这样子（去除自带的注释之后）：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#8b008b;font-weight:bold">&lt;IfModule</span> <span style="color:#a61717;background-color:#e3d2d2">mod_ssl.c</span><span style="color:#8b008b;font-weight:bold">&gt;</span>
+	<span style="color:#8b008b;font-weight:bold">&lt;VirtualHost</span> <span style="color:#a61717;background-color:#e3d2d2">_default_:443</span><span style="color:#8b008b;font-weight:bold">&gt;</span>
+		ServerAdmin webmaster@localhost
+
+		DocumentRoot /var/www/html
+
+		ErrorLog ${APACHE_LOG_DIR}/error.log
+		CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+		SSLEngine on
+
+		SSLCertificateFile	/etc/ssl/certs/ssl-cert-snakeoil.pem
+		SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+	
+		<span style="color:#8b008b;font-weight:bold">&lt;FilesMatch</span> <span style="color:#a61717;background-color:#e3d2d2">&#34;\.(cgi|shtml|phtml|php)$&#34;</span><span style="color:#8b008b;font-weight:bold">&gt;</span>
+				SSLOptions +StdEnvVars
+		<span style="color:#8b008b;font-weight:bold">&lt;/FilesMatch&gt;</span>
+		<span style="color:#8b008b;font-weight:bold">&lt;Directory</span> <span style="color:#a61717;background-color:#e3d2d2">/usr/lib/cgi-bin</span><span style="color:#8b008b;font-weight:bold">&gt;</span>
+				SSLOptions +StdEnvVars
+		<span style="color:#8b008b;font-weight:bold">&lt;/Directory&gt;</span>
+
+	<span style="color:#8b008b;font-weight:bold">&lt;/VirtualHost&gt;</span>
+<span style="color:#8b008b;font-weight:bold">&lt;/IfModule&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>然后把从腾讯云上面下载好的证书(3个文件)传到你自定义的目录中</p>
+<p>然后我们需要修改一下，修改成这样:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#8b008b;font-weight:bold">&lt;IfModule</span> <span style="color:#a61717;background-color:#e3d2d2">mod_ssl.c</span><span style="color:#8b008b;font-weight:bold">&gt;</span>
+	<span style="color:#8b008b;font-weight:bold">&lt;VirtualHost</span> <span style="color:#a61717;background-color:#e3d2d2">_default_:443</span><span style="color:#8b008b;font-weight:bold">&gt;</span>
+		ServerAdmin 你的邮箱
+        
+		DocumentRoot /var/www/你的目录
+	    ServerName 你的域名
+
+		ErrorLog ${APACHE_LOG_DIR}/error.log
+		CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+		SSLEngine on
+		# 注意，需要添加这三行
+		SSLCertificateFile 你自定义的路径/2_xxx.xxx.xxx.crt
+    	SSLCertificateKeyFile 你自定义的路径/3_xxx.xxx.xxx.key
+    	SSLCertificateChainFile 你自定义的路径/1_root_bundle.crt
+	
+		<span style="color:#8b008b;font-weight:bold">&lt;FilesMatch</span> <span style="color:#a61717;background-color:#e3d2d2">&#34;\.(cgi|shtml|phtml|php)$&#34;</span><span style="color:#8b008b;font-weight:bold">&gt;</span>
+				SSLOptions +StdEnvVars
+		<span style="color:#8b008b;font-weight:bold">&lt;/FilesMatch&gt;</span>
+		<span style="color:#8b008b;font-weight:bold">&lt;Directory</span> <span style="color:#a61717;background-color:#e3d2d2">/usr/lib/cgi-bin</span><span style="color:#8b008b;font-weight:bold">&gt;</span>
+				SSLOptions +StdEnvVars
+		<span style="color:#8b008b;font-weight:bold">&lt;/Directory&gt;</span>
+	<span style="color:#8b008b;font-weight:bold">&lt;/VirtualHost&gt;</span>
+<span style="color:#8b008b;font-weight:bold">&lt;/IfModule&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>重要的三个参数的作用如下表：</p>
+<table>
+<thead>
+<tr>
+<th>配置文件参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SSLEngine on</td>
+<td>启用 SSL 功能</td>
+</tr>
+<tr>
+<td>SSLCertificateFile</td>
+<td>证书文件</td>
+</tr>
+<tr>
+<td>SSLCertificateKeyFile</td>
+<td>私钥文件</td>
+</tr>
+<tr>
+<td>SSLCertificateChainFile</td>
+<td>证书链文件</td>
+</tr>
+</tbody>
+</table>
+<p>改好之后保存。</p>
+<p>然后这时，我们加载一下 Apache2 的 SSL 模块：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sudo a2enmod ssl   <span style="color:#228b22">#加载模块</span>
+sudo service apache2 restart <span style="color:#228b22"># 重启服务</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>这时，在浏览器输入<code>https://你的域名</code>应该已经可以通过 https 的方式来访问网站了，这时浏览器那里应该也已经有了一个绿色的小锁。</p>
+<p><strong>但是</strong>，<strong>但是</strong>&hellip;..这还不够，因为我们如果不主动输入<code>https://</code>的话，直接输入域名，还是会直接跳转到 80 端口的普通的 http 方式访问，所以我们需要强制使用 https 来访问</p>
+<h3 id="强制使用https">强制使用https</h3>
+<p>我们只需要打开<code>/etc/apache2/sites-available/000-default.conf</code>这个文件，在你的<code> &lt;VirtualHost*:80&gt;&lt;/VirtualHost&gt;</code>这个标签内随便一个地方加上三行：</p>
+<pre tabindex="0"><code>RewriteEngine on
+RewriteCond   %{HTTPS} !=on
+RewriteRule   ^(.*)  https://%{SERVER_NAME}$1 [L,R]
+</code></pre><p>然后保存,然后启动 Apache2 的重定向：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"> sudo a2enmod rewrite
+</code></pre></td></tr></table>
+</div>
+</div><p>然后再重启 Apache2，至此大功告成：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sudo service apache2 restart
+</code></pre></td></tr></table>
+</div>
+</div><p>然后，打开浏览器直接输入域名，就会自动跳转到 https 的方式。</p>
+<h3 id="参考链接">参考链接：</h3>
+<ul>
+<li><a href="https://cloud.tencent.com/document/product/400/4143">证书安装指引</a></li>
+<li><a href="https://blog.csdn.net/qq_36652619/article/details/78310779">腾讯云 Ubuntu+Apache2配置https和重定向</a></li>
+<li><a href="http://bbs.qcloud.com/thread-22552-1-1.html">ubuntu下apache2.4怎么配置SSL证书</a></li>
+<li><a href="https://www.luochenzhimu.com/archives/448.html">Ubuntu下Apache2配置https且强制http转为https</a></li>
+<li><a href="https://www.jianshu.com/p/0d042be99380">ubuntu apache2配置子域名以及添加ssl证书</a></li>
+</ul>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2018-12-28</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="https://blog.riba2534.cn/blog/2018/-%E7%89%9B%E5%AE%A2%E7%BD%91-%E7%BD%91%E6%98%932017%E7%AC%94%E8%AF%95-%E5%90%88%E5%94%B1%E5%9B%A2dp/">
+			下回<br> 牛客网-网易2017笔试 合唱团(dp)
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://blog.riba2534.cn/blog/2018/c-cpp-%E9%9D%A2%E8%AF%95%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/">
+			上回<br>C/C&#43;&#43; 面试知识总结
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "blog-9g6ht92ca9c564c6",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

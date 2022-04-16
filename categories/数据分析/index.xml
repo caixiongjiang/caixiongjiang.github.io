@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>数据分析 on 🌀riba2534&#39;s Blog</title>
+    <link>https://blog.riba2534.cn/categories/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/</link>
+    <description>Recent content in 数据分析 on 🌀riba2534&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 08 Sep 2017 22:49:00 +0800</lastBuildDate><atom:link href="https://blog.riba2534.cn/categories/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>爬取nyist-6000张证件照进行微软小冰颜值分析</title>
+      <link>https://blog.riba2534.cn/blog/2017/%E7%88%AC%E5%8F%96nyist-6000%E5%BC%A0%E8%AF%81%E4%BB%B6%E7%85%A7%E8%BF%9B%E8%A1%8C%E5%BE%AE%E8%BD%AF%E5%B0%8F%E5%86%B0%E9%A2%9C%E5%80%BC%E5%88%86%E6%9E%90/</link>
+      <pubDate>Fri, 08 Sep 2017 22:49:00 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2017/%E7%88%AC%E5%8F%96nyist-6000%E5%BC%A0%E8%AF%81%E4%BB%B6%E7%85%A7%E8%BF%9B%E8%A1%8C%E5%BE%AE%E8%BD%AF%E5%B0%8F%E5%86%B0%E9%A2%9C%E5%80%BC%E5%88%86%E6%9E%90/</guid>
+      <description>Python爬取nyist-6000张证件照进行颜值分析 前言 本文章同步至CSDN博客：http://blog.csdn.net/riba2534/article/details/77894500
+前几天学校要求更新档案资料库的照片，所以要求每个人去照证件照，大多数人是在学校里面的一个照相的地方照的，为了容易使同学们拿到照片，他们会每天把每个人的证件照上传到一个网站，于是我就用爬虫爬取了6000+照片，结合微软小冰的人脸识别中的颜值分析功能对每张照片进行打分，然后进行一次简单的颜值分析，下面简单说一说我的过程,结论在最后
+工具准备  python-3.6.2（必备） requests库（请求网络） re库（正则表达式） base64库（对base64编码进行处理） time库（构造post请求时要用到） os库（处理一些文件要用到） matplotlib库（用于绘制图表）  采集照片的网址：http://ngsying.com/list.asp?classid=22 微软小冰的颜值分析网址：https://kan.msxiaobing.com/ImageGame/Portal?task=yanzhi&amp;amp;feid=541a6dd6cd178819892a917dd772e702 微软的图片服务器网址：http://kan.msxiaobing.com/Api/Image/UploadBase64    一、爬取并保存图片 首先，我们打开要采集照片的地址：http://ngsying.com/list.asp?classid=22,会看到这样： 然后引入相关的库：
+1 2 3 4 5  import re import requests from bs4 import BeautifulSoup import lxml import os   我们打开这些链接发现：
+ http://ngsying.com/show.asp?id=99 http://ngsying.com/show.asp?id=100  因为日期的不同，所以网页地址变得只是后面的数字，所以我们只需要找到我们要爬取的第一个页面的标号和最后一个页面的标号，然后对每一个页面分别爬取就好了。 随便打开一个页面，会发现图片是这样的：
+我们解析一下网页源代码会发现是这样的：
+这些图片都无一例外的藏在img标签里面的，所以我们只需要把这些里面的内容提取出来就可以得到每一张图片的地址了。 提取的方法有很多种，比如用BeautifulSoup,但是这里由于这个标签并不需要解析成文档树，可以直接写一个正则表达式提取出来，所以我们可以这么写：
+/upfile/201709/\d+\.JPG只需要简单的匹配一下多位数字就可以了，这样我们可以写出具体代码:
+这样因为正则匹配的缘故，会返回一个包含所有图片地址的列表，那么现在我们要做的就是利用这个列表，进行保存： 这个也很简单，我们遍历一下这个列表，然后构造每一个图片链接，这里也需要用正则表达式来匹配一下文件名，用requests请求一下把二进制的东西保存成.jpg文件就好了
+现在我们的代码已经实现了对每个页面的图片进行保存，剩下的就是调用这两个函数了，我们只需要遍历一下要爬的网页的id，然后等着爬取完成就好了,爬虫爬完后会得到一个文件夹，里面就是你爬好的照片，就像这样： 到了现在，第一步就做完了，已经拥有这几千张证件照了
+二、调用微软小冰人脸识别中的测颜值功能 首先，我们打开微软小冰的识别页面：
+https://kan.msxiaobing.com/ImageGame/Portal?task=yanzhi&amp;amp;feid=541a6dd6cd178819892a917dd772e702
+显示这样：
+这时我们点”上传图片”，然后进行抓包 我们发现有两个post请求，分别是把当前图片传到微软服务器，还有一个是进行颜值测试，进行颜值测试的时候其中的一个参数要传入当前这个图片在微软服务器的地址，所以我们要分两步来做：
+ 把图片上传至微软服务器，并且得到返回的图片地址 运用得到的图片地址，进行颜值颜值测试  通过抓包可以发现两个post地址，一个是提交图片的地址，另一个是获得颜值分数的地址:</description>
+    </item>
+    
+  </channel>
+</rss>

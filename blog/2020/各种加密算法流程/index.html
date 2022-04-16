@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html><head>
+<title>各种加密算法流程</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="各种加密算法流程" />
+<meta property="og:description" content="说到密码，我们第一个想到的就是登陆账户的密码，但是从密码学的角度来看，这种根本就不算合格的密码。
+为什么呢，因为我们的账户密码，是依靠隐蔽性来达到加密作用：密码藏在我心里，你不知道，所以你登不上我的账户。
+然而密码技术认为，「保密」信息总有一天会被扒出来，所以加密算法不应该依靠「保密」来保证机密性，而应该做到：即便知道了加密算法，依然无计可施。说的魔幻一点就是，告诉你我的密码，你依然不知道我的密码。
+最玄学的就是 Diffie-Hellman 密钥交换算法，我当初就觉得很惊奇，两个人当着你的面互相报几个数字，他们就可以拥有一个共同的秘密，而你却根本不可能算出来这个秘密。下文会着重介绍一下这个算法。
+本文讨论的密码技术要解决的主要是信息传输中的加密和解密问题。要假设数据传输过程是不安全的，所有信息都在被窃听的，所以发送端要把信息加密，接收方收到信息之后，肯定得知道如何解密。有意思的是，如果你能够让接收者知道如何解密，那么窃听者不是也能够知道如何解密了吗？
+下面，我们会介绍对称加密算法、密钥交换算法、非对称加密算法、数字签名、公钥证书，看看解决安全传输问题的一路坎坷波折。
+一、对称性加密 对称性密码，也叫共享密钥密码，顾名思义，这种加密方式用相同的密钥进行加密和解密。
+比如我说一种最简单的对称加密的方法。首先我们知道信息都可以表示成 0/1 比特序列，也知道相同的两个比特序列做异或运算的结果为 0。
+那么我们就可以生成一个长度和原始信息一样的随机比特序列作为密钥，然后用它对原始信息做异或运算，就生成了密文。反之，再用该密钥对密文做一次异或运算，就可以恢复原始信息。
+这是一个简单例子，不过有些过于简单，有很多问题。比如密钥的长度和原始信息完全一致，如果原始信息很大，密钥也会一样大，而且生成大量真随机比特序列的计算开销也比较大。
+当然，有很多更复杂优秀的对称加密算法解决了这些问题，比如 Rijndael 算法、三重 DES 算法等等。它们从算法上是无懈可击的，也就是拥有巨大的密钥空间，基本无法暴力破解，而且加密过程相对快速。
+但是，一切对称加密算法的软肋在于密钥的配送。加密和解密用同一个密钥，发送方必须设法把密钥发送给接收方。如果窃听者有能力窃取密文，肯定也可以窃取密钥，那么再无懈可击的算法依然不攻自破。
+所以，下面介绍两种解决密钥配送问题最常见的算法，分别是 Diffie-Hellman 密钥交换算法和非对称加密算法。
+二、密钥交换算法 我们所说的密钥一般就是一个很大的数字，算法用这个数加密、解密。问题在于，信道是不安全的，所有发出的数据都会被窃取。换句话说，有没有一种办法，能够让两个人在众目睽睽之下，光明正大地交换一个秘密，把对称性密钥安全地送到接收方的手中？
+Diffie-Hellman 密钥交换算法可以做到。准确的说，该算法并不是把一个秘密安全地「送给」对方，而是通过一些共享的数字，双方「心中」各自「生成」了一个相同的秘密，而且双方的这个秘密，是第三方窃听者无法生成的。
+也许这就是传说中的心有灵犀一点通吧。
+这个算法规则不算复杂，你甚至都可以找个朋友尝试一下共享秘密，等会我会简单画出它的基本流程。在此之前，需要明确一个问题：并不是所有运算都有逆运算。
+最简单的例子就是我们熟知的单向散列函数，给一个数字 a 和一个散列函数 f，你可以很快计算出 f(a)，但是如果给你 f(a) 和 f，推出 a 是一件基本做不到的事。密钥交换算法之所以看起来如此玄幻，就是利用了这种不可逆的性质。
+下面，看下密钥交换算法的流程是什么，按照命名惯例，准备执行密钥交换算法的双方称为 Alice 和 Bob，在网络中企图窃取他俩通信内容的坏人称为 Hack 吧。
+首先，Alice 和 Bob 协商出两个数字 N 和 G 作为生成元，当然协商过程可以被窃听者 Hack 窃取，所以我把这两个数画到中间，代表三方都知道：
+现在 Alice 和 Bob 心中各自想一个数字出来，分别称为 A 和 B 吧：
+现在 Alice 将自己心里的这个数字 A 和 G 通过某些运算得出一个数 AG，然后发给 Bob；Bob 将自己心里的数 B 和 G 通过相同的运算得出一个数 BG，然后发给 Alice：" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.riba2534.cn/blog/2020/%E5%90%84%E7%A7%8D%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2020-05-02T11:54:48+08:00" />
+<meta property="article:modified_time" content="2020-05-02T11:54:48+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210427152737.jpeg">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.3.1/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://blog.riba2534.cn/">
+    
+        <div class="nav-title">
+            🌀riba2534&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            凡事有交代，件件有着落，事事有回音
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://blog.csdn.net/riba2534">
+    CSDN
+</a>
+<br>
+
+<a href="https://github.com/riba2534">
+    GitHub
+</a>
+<br>
+
+<a href="https://www.zhihu.com/people/riba2534">
+    Zhihu
+</a>
+<br>
+
+<a href="mailto:riba2534@qq.com">
+    Email
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%80%e5%af%b9%e7%a7%b0%e6%80%a7%e5%8a%a0%e5%af%86" onclick="onNavClick(`#一对称性加密-nav`)" id="一对称性加密-nav">
+									一、对称性加密
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%8c%e5%af%86%e9%92%a5%e4%ba%a4%e6%8d%a2%e7%ae%97%e6%b3%95" onclick="onNavClick(`#二密钥交换算法-nav`)" id="二密钥交换算法-nav">
+									二、密钥交换算法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%b8%89%e9%9d%9e%e5%af%b9%e7%a7%b0%e5%8a%a0%e5%af%86" onclick="onNavClick(`#三非对称加密-nav`)" id="三非对称加密-nav">
+									三、非对称加密
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%9b%e6%95%b0%e5%ad%97%e7%ad%be%e5%90%8d" onclick="onNavClick(`#四数字签名-nav`)" id="四数字签名-nav">
+									四、数字签名
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%94%e5%85%ac%e9%92%a5%e8%af%81%e4%b9%a6" onclick="onNavClick(`#五公钥证书-nav`)" id="五公钥证书-nav">
+									五、公钥证书
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%ad%e6%9c%80%e5%90%8e%e6%80%bb%e7%bb%93" onclick="onNavClick(`#六最后总结-nav`)" id="六最后总结-nav">
+									六、最后总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%82%e8%80%83%e8%b5%84%e6%96%99" onclick="onNavClick(`#参考资料-nav`)" id="参考资料-nav">
+									参考资料：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%80%e5%af%b9%e7%a7%b0%e6%80%a7%e5%8a%a0%e5%af%86" onclick="onNavClick(`#一对称性加密-nav`)" id="一对称性加密-nav">
+									一、对称性加密
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%8c%e5%af%86%e9%92%a5%e4%ba%a4%e6%8d%a2%e7%ae%97%e6%b3%95" onclick="onNavClick(`#二密钥交换算法-nav`)" id="二密钥交换算法-nav">
+									二、密钥交换算法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%b8%89%e9%9d%9e%e5%af%b9%e7%a7%b0%e5%8a%a0%e5%af%86" onclick="onNavClick(`#三非对称加密-nav`)" id="三非对称加密-nav">
+									三、非对称加密
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%9b%e6%95%b0%e5%ad%97%e7%ad%be%e5%90%8d" onclick="onNavClick(`#四数字签名-nav`)" id="四数字签名-nav">
+									四、数字签名
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%94%e5%85%ac%e9%92%a5%e8%af%81%e4%b9%a6" onclick="onNavClick(`#五公钥证书-nav`)" id="五公钥证书-nav">
+									五、公钥证书
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%ad%e6%9c%80%e5%90%8e%e6%80%bb%e7%bb%93" onclick="onNavClick(`#六最后总结-nav`)" id="六最后总结-nav">
+									六、最后总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%82%e8%80%83%e8%b5%84%e6%96%99" onclick="onNavClick(`#参考资料-nav`)" id="参考资料-nav">
+									参考资料：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://blog.riba2534.cn/">
+            🌀riba2534&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://blog.riba2534.cn/">
+        <div class="single-column-header-title">🌀riba2534&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">凡事有交代，件件有着落，事事有回音</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508201518.png')"
+                    
+                
+            >
+                <div class="post-title">
+                    各种加密算法流程
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2020-05-02 11:54
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8">网络安全</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/%E5%AF%86%E7%A0%81%E5%AD%A6">密码学</a>
+                                &nbsp;
+                            
+                                <a href="/tags/%E7%A7%98%E9%92%A5">秘钥</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            22 min
+                            
+                            7 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <p>说到密码，我们第一个想到的就是登陆账户的密码，但是从密码学的角度来看，这种根本就不算合格的密码。</p>
+<p>为什么呢，因为我们的账户密码，是依靠隐蔽性来达到加密作用：密码藏在我心里，你不知道，所以你登不上我的账户。</p>
+<p>然而密码技术认为，「保密」信息总有一天会被扒出来，所以加密算法不应该依靠「保密」来保证机密性，而应该做到：即便知道了加密算法，依然无计可施。说的魔幻一点就是，告诉你我的密码，你依然不知道我的密码。</p>
+<p>最玄学的就是 Diffie-Hellman 密钥交换算法，我当初就觉得很惊奇，两个人当着你的面互相报几个数字，他们就可以拥有一个共同的秘密，而你却根本不可能算出来这个秘密。下文会着重介绍一下这个算法。</p>
+<p>本文讨论的密码技术要解决的主要是信息传输中的加密和解密问题。要假设数据传输过程是不安全的，所有信息都在被窃听的，所以发送端要把信息加密，接收方收到信息之后，肯定得知道如何解密。有意思的是，如果你能够让接收者知道如何解密，那么窃听者不是也能够知道如何解密了吗？</p>
+<p>下面，<strong>我们会介绍对称加密算法、密钥交换算法、非对称加密算法、数字签名、公钥证书</strong>，看看解决安全传输问题的一路坎坷波折。</p>
+<h3 id="一对称性加密">一、对称性加密</h3>
+<p>对称性密码，也叫共享密钥密码，顾名思义，这种加密方式用相同的密钥进行加密和解密。</p>
+<p>比如我说一种最简单的对称加密的方法。首先我们知道信息都可以表示成 0/1 比特序列，也知道相同的两个比特序列做异或运算的结果为 0。</p>
+<p>那么我们就可以生成一个长度和原始信息一样的随机比特序列作为密钥，然后用它对原始信息做异或运算，就生成了密文。反之，再用该密钥对密文做一次异或运算，就可以恢复原始信息。</p>
+<p>这是一个简单例子，不过有些过于简单，有很多问题。比如密钥的长度和原始信息完全一致，如果原始信息很大，密钥也会一样大，而且生成大量真随机比特序列的计算开销也比较大。</p>
+<p>当然，有很多更复杂优秀的对称加密算法解决了这些问题，比如 Rijndael 算法、三重 DES 算法等等。<strong>它们从算法上是无懈可击的，也就是拥有巨大的密钥空间，基本无法暴力破解，而且加密过程相对快速</strong>。</p>
+<p><strong>但是，一切对称加密算法的软肋在于密钥的配送</strong>。加密和解密用同一个密钥，发送方必须设法把密钥发送给接收方。如果窃听者有能力窃取密文，肯定也可以窃取密钥，那么再无懈可击的算法依然不攻自破。</p>
+<p>所以，下面介绍两种解决密钥配送问题最常见的算法，分别是 Diffie-Hellman 密钥交换算法和非对称加密算法。</p>
+<h3 id="二密钥交换算法">二、密钥交换算法</h3>
+<p>我们所说的密钥一般就是一个很大的数字，算法用这个数加密、解密。问题在于，信道是不安全的，所有发出的数据都会被窃取。换句话说，有没有一种办法，能够让两个人在众目睽睽之下，光明正大地交换一个秘密，把对称性密钥安全地送到接收方的手中？</p>
+<p>Diffie-Hellman 密钥交换算法可以做到。<strong>准确的说，该算法并不是把一个秘密安全地「送给」对方，而是通过一些共享的数字，双方「心中」各自「生成」了一个相同的秘密，而且双方的这个秘密，是第三方窃听者无法生成的</strong>。</p>
+<p>也许这就是传说中的心有灵犀一点通吧。</p>
+<p>这个算法规则不算复杂，你甚至都可以找个朋友尝试一下共享秘密，等会我会简单画出它的基本流程。在此之前，需要明确一个问题：<strong>并不是所有运算都有逆运算</strong>。</p>
+<p>最简单的例子就是我们熟知的单向散列函数，给一个数字 <code>a</code> 和一个散列函数 <code>f</code>，你可以很快计算出 <code>f(a)</code>，但是如果给你 <code>f(a)</code> 和 <code>f</code>，推出 <code>a</code> 是一件基本做不到的事。密钥交换算法之所以看起来如此玄幻，就是利用了这种不可逆的性质。</p>
+<p>下面，看下密钥交换算法的流程是什么，按照命名惯例，准备执行密钥交换算法的双方称为 Alice 和 Bob，在网络中企图窃取他俩通信内容的坏人称为 Hack 吧。</p>
+<p>首先，Alice 和 Bob 协商出两个数字 <code>N</code> 和 <code>G</code> 作为生成元，当然协商过程可以被窃听者 Hack 窃取，所以我把这两个数画到中间，代表三方都知道：</p>
+<p><img src="https://raw.githubusercontent.com/labuladong/fucking-algorithm/master/pictures/%E5%AF%86%E7%A0%81%E6%8A%80%E6%9C%AF/1.jpg" alt=""></p>
+<p>现在 Alice 和 Bob <strong>心中</strong>各自想一个数字出来，分别称为 <code>A</code> 和 <code>B</code> 吧：</p>
+<p><img src="https://raw.githubusercontent.com/labuladong/fucking-algorithm/master/pictures/%E5%AF%86%E7%A0%81%E6%8A%80%E6%9C%AF/2.jpg" alt=""></p>
+<p>现在 Alice 将自己心里的这个数字 <code>A</code> 和 <code>G</code> 通过某些运算得出一个数 <code>AG</code>，然后发给 Bob；Bob 将自己心里的数 <code>B</code> 和 <code>G</code> 通过相同的运算得出一个数 <code>BG</code>，然后发给 Alice：</p>
+<p><img src="https://raw.githubusercontent.com/labuladong/fucking-algorithm/master/pictures/%E5%AF%86%E7%A0%81%E6%8A%80%E6%9C%AF/3.jpg" alt=""></p>
+<p>现在的情况变成这样了：</p>
+<p><img src="https://raw.githubusercontent.com/labuladong/fucking-algorithm/master/pictures/%E5%AF%86%E7%A0%81%E6%8A%80%E6%9C%AF/4.jpg" alt=""></p>
+<p>注意，类似刚才举的散列函数的例子，知道 <code>AG</code> 和 <code>G</code>，并不能反推出 <code>A</code> 是多少，<code>BG</code> 同理。</p>
+<p>那么，Alice 可以通过 <code>BG</code> 和自己的 <code>A</code> 通过某些运算得到一个数 <code>ABG</code>，Bob 也可以通过 <code>AG</code> 和自己的 <code>B</code> 通过某些运算得到 <code>ABG</code>，这个数就是 Alice 和 Bob 共有的秘密。</p>
+<p>而对于 Hack，可以窃取传输过程中的 <code>G</code>，<code>AG</code>，<code>BG</code>，但是由于计算不可逆，怎么都无法结合出 <code>ABG</code> 这个数字。</p>
+<p><img src="https://raw.githubusercontent.com/labuladong/fucking-algorithm/master/pictures/%E5%AF%86%E7%A0%81%E6%8A%80%E6%9C%AF/5.jpg" alt=""></p>
+<p>以上就是基本流程，至于具体的数字取值是有讲究的，运算方法在百度上很容易找到，限于篇幅我就不具体写了。</p>
+<p>该算法可以在第三者窃听的前提下，算出一个别人无法算出的秘密作为对称性加密算法的密钥，开始对称加密的通信。</p>
+<p>对于该算法，Hack 又想到一种破解方法，不是窃听 Alice 和 Bob 的通信数据，而是直接同时冒充 Alice 和 Bob 的身份，也就是我们说的「<strong>中间人攻击</strong>」：</p>
+<p><img src="https://raw.githubusercontent.com/labuladong/fucking-algorithm/master/pictures/%E5%AF%86%E7%A0%81%E6%8A%80%E6%9C%AF/6.jpg" alt=""></p>
+<p>这样，双方根本无法察觉在和 Hack 共享秘密，后果就是 Hack 可以解密甚至修改数据。</p>
+<p><strong>可见，密钥交换算法也不算完全解决了密钥配送问题，缺陷在于无法核实对方身份</strong>。所以密钥交换算法之前一般要核实对方身份，比如使用数字签名。</p>
+<h3 id="三非对称加密">三、非对称加密</h3>
+<p>非对称加密的思路就是，干脆别偷偷摸摸传输密钥了，我把加密密钥和解密密钥分开，公钥用于加密，私钥用于解密。只把公钥传送给对方，然后对方开始给我发送加密的数据，我用私钥就可以解密。至于窃听者，拿到公钥和加密数据也没用，因为只有我手上的私钥才能解密。</p>
+<p>可以这样想，<strong>私钥是钥匙，而公钥是锁，可以把锁公开出去，让别人把数据锁起来发给我；而钥匙一定要留在自己手里，用于解锁</strong>。我们常见的 RSA 算法就是典型的非对称加密算法，具体实现比较复杂，我就不写了，网上很多资料。</p>
+<p>在实际应用中，非对称性加密的运算速度要比对称性加密慢很多的，所以传输大量数据时，一般不会用公钥直接加密数据，而是加密对称性加密的密钥，传输给对方，然后双方使用对称性加密算法传输数据。</p>
+<p>需要注意的是，类似 Diffie-Hellman 算法，<strong>非对称加密算法也无法确定通信双方的身份，依然会遭到中间人攻击</strong>。比如 Hack 拦截 Bob 发出的公钥，然后冒充 Bob 的身份给 Alice 发送自己的公钥，那么不知情的 Alice 就会把私密数据用 Hack 的公钥加密，Hack 可以通过私钥解密窃取。</p>
+<p>那么，Diffie-Hellman 算法和 RSA 非对称加密算法都可以一定程度上解决密钥配送的问题，也具有相同的缺陷，二者的应用场景有什么区别呢？</p>
+<p>简单来说，根据两种算法的基本原理就可以看出来：</p>
+<p>如果双方有一个对称加密方案，希望加密通信，而且不能让别人得到钥匙，那么可以使用 Diffie-Hellman 算法交换密钥。</p>
+<p>如果你希望任何人都可以对信息加密，而只有你能够解密，那么就使用 RSA 非对称加密算法，公布公钥。</p>
+<p>下面，我们尝试着解决认证发送方身份的问题。</p>
+<h3 id="四数字签名">四、数字签名</h3>
+<p>刚才说非对称加密，把公钥公开用于他人对数据加密然后发给你，只有用你手上对应的私钥才能将密文解密。其实，<strong>私钥也可用用来加密数据的，对于 RSA 算法，私钥加密的数据只有公钥才能解开</strong>。</p>
+<p>数字签名也是利用了非对称性密钥的特性，但是和公钥加密完全颠倒过来：<strong>仍然公布公钥，但是用你的私钥加密数据，然后把加密的数据公布出去，这就是数字签名</strong>。</p>
+<p>你可能问，这有什么用，公钥可以解开私钥加密，我还加密发出去，不是多此一举吗？</p>
+<p>是的，但是<strong>数字签名的作用本来就不是保证数据的机密性，而是证明你的身份</strong>，证明这些数据确实是由你本人发出的。</p>
+<p>你想想，你的私钥加密的数据，只有你的公钥才能解开，那么如果一份加密数据能够被你的公钥解开，不就说明这份数据是你（私钥持有者）本人发布的吗？</p>
+<p>当然，加密数据仅仅是一个签名，签名应该和数据一同发出，具体流程应该是：</p>
+<p>1、Bob 生成公钥和私钥，然后把公钥公布出去，私钥自己保留。</p>
+<p>2、<strong>用私钥加密数据作为签名，然后将数据附带着签名一同发布出去</strong>。</p>
+<p>3、Alice 收到数据和签名，需要检查此份数据是否是 Bob 所发出，于是用 Bob 之前发出的公钥尝试解密签名，将收到的数据和签名解密后的结果作对比，如果完全相同，说明数据没被篡改，且确实由 Bob 发出。</p>
+<p>为什么 Alice 这么肯定呢，毕竟数据和签名是两部分，都可以被掉包呀？原因如下：</p>
+<p>1、如果有人修改了数据，那么 Alice 解密签名之后，对比发现二者不一致，察觉出异常。</p>
+<p>2、如果有人替换了签名，那么 Alice 用 Bob 的公钥只能解出一串乱码，显然和数据不一致。</p>
+<p>3、也许有人企图修改数据，然后将修改之后的数据制成签名，使得 Alice 的对比无法发现不一致；但是一旦解开签名，就不可能再重新生成 Bob 的签名了，因为没有 Bob 的私钥。</p>
+<p>综上，<strong>数字签名可以一定程度上认证数据的来源</strong>。之所以说是一定程度上，是因为这种方式依然可能受到中间人攻击。一旦涉及公钥的发布，接收方就可能收到中间人的假公钥，进行错误的认证，这个问题始终避免不了。</p>
+<p>说来可笑，数字签名就是验证对方身份的一种方式，但是前提是对方的身份必须是真的&hellip; 这似乎陷入一个先有鸡还是先有蛋的死循环，<strong>要想确定对方的身份，必须有一个信任的源头，否则的话，再多的流程也只是在转移问题，而不是真正解决问题</strong>。</p>
+<h3 id="五公钥证书">五、公钥证书</h3>
+<p><strong>证书其实就是公钥 + 签名，由第三方认证机构颁发</strong>。引入可信任的第三方，是终结信任循环的一种可行方案。</p>
+<p>证书认证的流程大致如下：</p>
+<p>1、Bob 去可信任的认证机构证实本人真实身份，并提供自己的公钥。</p>
+<p>2、Alice 想跟 Bob 通信，首先向认证机构请求 Bob 的公钥，认证机构会把一张证书（Bob 的公钥以及自己对其公钥的签名）发送给 Alice。</p>
+<p>3、Alice 检查签名，确定该公钥确实由这家认证机构发送，中途未被篡改。</p>
+<p>4、Alice 通过这个公钥加密数据，开始和 Bob 通信。</p>
+<p><img src="https://raw.githubusercontent.com/labuladong/fucking-algorithm/master/pictures/%E5%AF%86%E7%A0%81%E6%8A%80%E6%9C%AF/7.jpg" alt="图片来自《图解密码技术》"></p>
+<p>PS：以上只是为了说明，证书只需要安装一次，并不需要每次都向认证机构请求；一般是服务器直接给客户端发送证书，而不是认证机构。</p>
+<p>也许有人问，Alice 要想通过数字签名确定证书的有效性，前提是要有该机构的（认证）公钥，这不是又回到刚才的死循环了吗？</p>
+<p>我们安装的正规浏览器中都预存了正规认证机构的证书（包含其公钥），用于确认机构身份，所以说证书的认证是可信的。</p>
+<p>Bob 向机构提供公钥的过程中，需要提供很多个人信息进行身份验证，比较严格，所以说也算是可靠的。</p>
+<p>获得了 Bob 的可信公钥，Alice 和 Bob 之间的通信基于加密算法的保护，是完全无懈可击的。</p>
+<p>现在的正规网站，大都使用 HTTPS 协议，就是在 HTTP 协议和 TCP 协议之间加了一个 SSL/TLS 安全层。在你的浏览器和网站服务器完成 TCP 握手后，SSL 协议层也会进行 SSL 握手交换安全参数，其中就包含该网站的证书，以便浏览器验证站点身份。SSL 安全层验证完成之后，上层的 HTTP 协议内容都会被加密，保证数据的安全传输。</p>
+<p>这样一来，传统的中间人攻击就几乎没有了生存空间，攻击手段只能由技术缺陷转变为坑蒙拐骗。事实上，这种手段的效果反而更高效，比如我就发现<strong>网上不少下载网站发布的浏览器，不仅包含乱七八糟的导航和收藏网址，还包含一些不正规的认证机构证书。任何人都可以申请证书，这些不正规证书很可能造成安全隐患</strong>。</p>
+<h3 id="六最后总结">六、最后总结</h3>
+<p>对称性加密算法使用同一个密钥加密和解密，难以破解，加密速度较快，但是存在密钥配送问题。</p>
+<p>Diffie-Hellman 密钥交换算法可以让双方「心有灵犀一点通」，一定程度解决密钥配送问题，但是无法验证通信方的身份，所以可能受到中间人攻击。</p>
+<p>非对称性加密算法生成一对儿密钥，把加密和解密的工作分开了。</p>
+<p>RSA 算法作为经典的非对称加密算法，有两种用途：如果用于加密，可以把公钥发布出去用于加密，只有自己的私钥可以解密，保证了数据的机密性；如果用于数字签名，把公钥发布出去后，用私钥加密数据作为签名，以证明该数据由私钥持有者所发送。但是无论那种用法，涉及公钥的发布，都无法避免中间人攻击。</p>
+<p>公钥证书就是公钥 + 签名，由可信任的第三方认证机构颁发。由于正规浏览器都预装了可信的认证机构的公钥，所以可以有效防止中间人攻击。</p>
+<p>HTTPS 协议中的 SSL/TLS 安全层会组合使用以上几种加密方式，<strong>所以说不要安装非正规的浏览器，不要乱安装未知来源的证书</strong>。</p>
+<p>密码技术只是安全的一小部分，即便是通过正规机构认证的 HTTPS 站点，也不意味着可信任，只能说明其数据传输是安全的。技术永远不可能真正保护你，最重要的还是得提高个人的安全防范意识，多留心眼儿，谨慎处理敏感数据。</p>
+<hr>
+<h3 id="参考资料">参考资料：</h3>
+<ol>
+<li><a href="https://www.ruanyifeng.com/blog/2011/12/ssh_remote_login.html">SSH原理与运用（一）：远程登录</a></li>
+</ol>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2020-05-02</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="https://blog.riba2534.cn/blog/2020/leetcode-45-%E8%B7%B3%E8%B7%83%E6%B8%B8%E6%88%8F-ii%E8%B4%AA%E5%BF%83/">
+			下回<br>LeetCode 45 跳跃游戏 II(贪心)
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://blog.riba2534.cn/blog/2020/linux%E7%9A%84%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6%E6%98%AF%E4%BB%80%E4%B9%88/">
+			上回<br>Linux的进程、线程、文件描述符是什么
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "blog-9g6ht92ca9c564c6",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

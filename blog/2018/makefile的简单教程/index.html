@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html><head>
+<title>Makefile的简单教程</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="Makefile的简单教程" />
+<meta property="og:description" content="Makefile的简单教程 概述  什么是makefile？或许很多Winodws的程序员都不知道这个东西，因为那些Windows的集成开发环境 （integrated development environment，IDE）都为你做了这个工作，但我觉得要作一个好的和专 业的程序员，makefile还是要懂。这就好像现在有这么多的HTML编辑器，但如果你想成为一个专业人士， 你还是要了解HTML的标签的含义。特别在Unix下的软件编译，你就不能不自己写makefile了，会不会 写makefile，从一个侧面说明了一个人是否具备完成大型工程的能力。
+ 说起makefile，很多人可能不知道是干什么的，当一个工程可能包含很多个文件的时候，编译起来可能会很复杂，这个时候我们可以写一个makefile编译脚本来定义一下编译的规则，然后只需要执行make命令，就会自动的执行编译脚本里面定义好的编译规则来编译项目，来得到希望得到的可执行文件。
+在这里我简述一下几种简单的makefile文件的写法，已经可以解决很大一部分问题了。
+提起makefile就必须得说一下make，make是一个工具，它可以解释makefile这个脚本，然后根据规则来编译一个项目。makefile定义规则，make来编译它。
+关于makefile的更多知识，可以参考一下跟我一起写Makefile
+语法规范 大概就长这个样子：
+1 2 3 4  target ... : prerequisites ... command ... ...    target：你要生成的可执行文件 prerequisites：你要生成的可执行文件的依赖 command：通过什么命令来生成它  示例 概念说得再多，不如几个例子来的亲切。
+以下包含几个例子以及如何写makefile文件来进行编译。
+例子一： 现在我们随便写一个代码，用来找出一个数组中的最大值。
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16  // main.cpp #include &lt;bits/stdc&#43;&#43;.h&gt;using namespace std; int find_max(int arr[], int n) { int maxx = 0; for (int i = 0; i &lt; n; i&#43;&#43;) maxx = max(maxx, arr[i]); return maxx; } int main() { int arr[5] = {1, 8, 6, 3, 4}; printf(&#34;max is %d." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.riba2534.cn/blog/2018/makefile%E7%9A%84%E7%AE%80%E5%8D%95%E6%95%99%E7%A8%8B/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2018-12-22T17:02:00+08:00" />
+<meta property="article:modified_time" content="2018-12-25T12:12:54+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210427152737.jpeg">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.3.1/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://blog.riba2534.cn/">
+    
+        <div class="nav-title">
+            🌀riba2534&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            凡事有交代，件件有着落，事事有回音
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://blog.csdn.net/riba2534">
+    CSDN
+</a>
+<br>
+
+<a href="https://github.com/riba2534">
+    GitHub
+</a>
+<br>
+
+<a href="https://www.zhihu.com/people/riba2534">
+    Zhihu
+</a>
+<br>
+
+<a href="mailto:riba2534@qq.com">
+    Email
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#makefile%e7%9a%84%e7%ae%80%e5%8d%95%e6%95%99%e7%a8%8b" onclick="onNavClick(`#makefile的简单教程-nav`)" id="makefile的简单教程-nav">
+									Makefile的简单教程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%a6%82%e8%bf%b0" onclick="onNavClick(`#概述-nav`)" id="概述-nav">
+									概述
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%af%ad%e6%b3%95%e8%a7%84%e8%8c%83" onclick="onNavClick(`#语法规范-nav`)" id="语法规范-nav">
+									语法规范
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a4%ba%e4%be%8b" onclick="onNavClick(`#示例-nav`)" id="示例-nav">
+									示例
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%be%8b%e5%ad%90%e4%b8%80" onclick="onNavClick(`#例子一-nav`)" id="例子一-nav">
+									例子一：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%be%8b%e5%ad%90%e4%ba%8c" onclick="onNavClick(`#例子二-nav`)" id="例子二-nav">
+									例子二:
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%be%8b%e5%ad%90%e4%b8%89" onclick="onNavClick(`#例子三-nav`)" id="例子三-nav">
+									例子三:
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%be%8b%e5%ad%90%e5%9b%9b" onclick="onNavClick(`#例子四-nav`)" id="例子四-nav">
+									例子四:
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e8%af%ad" onclick="onNavClick(`#结语-nav`)" id="结语-nav">
+									结语
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#makefile%e7%9a%84%e7%ae%80%e5%8d%95%e6%95%99%e7%a8%8b" onclick="onNavClick(`#makefile的简单教程-nav`)" id="makefile的简单教程-nav">
+									Makefile的简单教程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%a6%82%e8%bf%b0" onclick="onNavClick(`#概述-nav`)" id="概述-nav">
+									概述
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%af%ad%e6%b3%95%e8%a7%84%e8%8c%83" onclick="onNavClick(`#语法规范-nav`)" id="语法规范-nav">
+									语法规范
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a4%ba%e4%be%8b" onclick="onNavClick(`#示例-nav`)" id="示例-nav">
+									示例
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%be%8b%e5%ad%90%e4%b8%80" onclick="onNavClick(`#例子一-nav`)" id="例子一-nav">
+									例子一：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%be%8b%e5%ad%90%e4%ba%8c" onclick="onNavClick(`#例子二-nav`)" id="例子二-nav">
+									例子二:
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%be%8b%e5%ad%90%e4%b8%89" onclick="onNavClick(`#例子三-nav`)" id="例子三-nav">
+									例子三:
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%be%8b%e5%ad%90%e5%9b%9b" onclick="onNavClick(`#例子四-nav`)" id="例子四-nav">
+									例子四:
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e8%af%ad" onclick="onNavClick(`#结语-nav`)" id="结语-nav">
+									结语
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://blog.riba2534.cn/">
+            🌀riba2534&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://blog.riba2534.cn/">
+        <div class="single-column-header-title">🌀riba2534&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">凡事有交代，件件有着落，事事有回音</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://image.riba2534.cn/18-12-22/35474812.jpg')"
+                    
+                
+            >
+                <div class="post-title">
+                    Makefile的简单教程
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2018-12-22 17:02
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/c&#43;&#43;">C&#43;&#43;</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/c&#43;&#43;">C&#43;&#43;</a>
+                                &nbsp;
+                            
+                                <a href="/tags/makefile">Makefile</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            12 min
+                            
+                            25 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h1 id="makefile的简单教程">Makefile的简单教程</h1>
+<h2 id="概述">概述</h2>
+<blockquote>
+<p>什么是makefile？或许很多Winodws的程序员都不知道这个东西，因为那些Windows的集成开发环境 （integrated development environment，IDE）都为你做了这个工作，但我觉得要作一个好的和专 业的程序员，makefile还是要懂。这就好像现在有这么多的HTML编辑器，但如果你想成为一个专业人士， 你还是要了解HTML的标签的含义。特别在Unix下的软件编译，你就不能不自己写makefile了，会不会 写makefile，从一个侧面说明了一个人是否具备完成大型工程的能力。</p>
+</blockquote>
+<p>说起makefile，很多人可能不知道是干什么的，当一个工程可能包含很多个文件的时候，编译起来可能会很复杂，这个时候我们可以写一个<code>makefile</code>编译脚本来定义一下编译的规则，然后只需要执行<code>make</code>命令，就会自动的执行编译脚本里面定义好的编译规则来编译项目，来得到希望得到的可执行文件。</p>
+<p>在这里我简述一下几种简单的<code>makefile</code>文件的写法，已经可以解决很大一部分问题了。</p>
+<p>提起<code>makefile</code>就必须得说一下<code>make</code>，make是一个工具，它可以解释<code>makefile</code>这个脚本，然后根据规则来编译一个项目。<code>makefile</code>定义规则，make来编译它。</p>
+<p>关于makefile的更多知识，可以参考一下<a href="https://seisman.github.io/how-to-write-makefile/index.html">跟我一起写Makefile</a></p>
+<h2 id="语法规范">语法规范</h2>
+<p>大概就长这个样子：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-makefile" data-lang="makefile"><span style="color:#008b45">target ... </span>: prerequisites ...
+    <span style="color:#658b00">command</span>
+    ...
+    ...
+</code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>target：你要生成的可执行文件</li>
+<li>prerequisites：你要生成的可执行文件的依赖</li>
+<li>command：通过什么命令来生成它</li>
+</ul>
+<h2 id="示例">示例</h2>
+<p>概念说得再多，不如几个例子来的亲切。</p>
+<p>以下包含几个例子以及如何写<code>makefile</code>文件来进行编译。</p>
+<h3 id="例子一">例子一：</h3>
+<p>现在我们随便写一个代码，用来找出一个数组中的最大值。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#228b22">// main.cpp
+</span><span style="color:#228b22"></span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;bits/stdc++.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#8b008b;font-weight:bold">using</span> <span style="color:#8b008b;font-weight:bold">namespace</span> std;
+<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">find_max</span>(<span style="color:#00688b;font-weight:bold">int</span> arr[], <span style="color:#00688b;font-weight:bold">int</span> n)
+{
+    <span style="color:#00688b;font-weight:bold">int</span> maxx = <span style="color:#b452cd">0</span>;
+    <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = <span style="color:#b452cd">0</span>; i &lt; n; i++)
+        maxx = max(maxx, arr[i]);
+    <span style="color:#8b008b;font-weight:bold">return</span> maxx;
+}
+<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>()
+{
+    <span style="color:#00688b;font-weight:bold">int</span> arr[<span style="color:#b452cd">5</span>] = {<span style="color:#b452cd">1</span>, <span style="color:#b452cd">8</span>, <span style="color:#b452cd">6</span>, <span style="color:#b452cd">3</span>, <span style="color:#b452cd">4</span>};
+    printf(<span style="color:#cd5555">&#34;max is %d.</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, find_max(arr, <span style="color:#b452cd">5</span>));
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>这个时候，是最简单的情况，我们只需要一句命令：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">g++ main.cpp -o main
+</code></pre></td></tr></table>
+</div>
+</div><p>然后使用<code>./main</code>就可以执行了，但是今天我们学习的是<code>makefile</code>，所以要使用<code>makefile</code>应该来怎么写呢。</p>
+<p>我们在本目录下新建一个文件<code>makefile</code>,没有后缀名，然后写上:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-makefile" data-lang="makefile"><span style="color:#008b45">main</span>: main.cpp
+	g++ main.cpp -o main
+</code></pre></td></tr></table>
+</div>
+</div><p>这样，就写好了一个最简单的<code>makefile</code>文件，这个时候，我们在终端中输入<code>make</code>，然后<code>make</code>命令就会自动解析<code>makefile</code>这个文件，然后生成一个可执行文件,然后执行，即可</p>
+<p><img src="https://i.loli.net/2018/12/22/5c1deaa59f72b.png" alt=""></p>
+<p>那么我们来解析一个这个文件，首先写下你要生成的目标文件是啥，这里是<code>main</code>,然后写下依赖于哪个文件，这里依赖<code>main.cpp</code>,然后换一行打一个<code>Tab</code>键，输入你要执行的命令，这时候写下<code>make</code>就是自动执行.</p>
+<h2 id="例子二">例子二:</h2>
+<p>我们还是要求数组中的最大值，我们把刚才的文件改造一下，改造成几个文件.</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#228b22">//main.cpp
+</span><span style="color:#228b22"></span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&#34;tool.h&#34;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>()
+{
+    <span style="color:#00688b;font-weight:bold">int</span> arr[<span style="color:#b452cd">5</span>] = {<span style="color:#b452cd">1</span>, <span style="color:#b452cd">8</span>, <span style="color:#b452cd">6</span>, <span style="color:#b452cd">3</span>, <span style="color:#b452cd">4</span>};
+    printf(<span style="color:#cd5555">&#34;max is %d.</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, find_max(arr, <span style="color:#b452cd">5</span>));
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#228b22">//tool.h
+</span><span style="color:#228b22"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">find_max</span>(<span style="color:#00688b;font-weight:bold">int</span> arr[], <span style="color:#00688b;font-weight:bold">int</span> n);
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#228b22">//tool.cpp
+</span><span style="color:#228b22"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">find_max</span>(<span style="color:#00688b;font-weight:bold">int</span> arr[], <span style="color:#00688b;font-weight:bold">int</span> n)
+{
+    <span style="color:#00688b;font-weight:bold">int</span> maxx = <span style="color:#b452cd">0</span>;
+    <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = <span style="color:#b452cd">0</span>; i &lt; n; i++)
+        maxx = maxx &gt; arr[i] ? maxx : arr[i];
+    <span style="color:#8b008b;font-weight:bold">return</span> maxx;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>这三个文件，<code>main.cpp</code>调用了<code>tool.h</code>中的<code>find_max</code>函数，而这个函数的实现再<code>tool.cpp</code>中。我们也可以用一个命令来编译：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">g++ main.cpp tool.cpp -o main
+</code></pre></td></tr></table>
+</div>
+</div><p>然后执行<code>./main</code>同样可以执行，那么如果写成<code>makefile</code>的写法应该怎么写呢.</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-makefile" data-lang="makefile"><span style="color:#008b45">main</span>: main.cpp tool.o
+	g++ main.cpp tool.o -o main
+<span style="color:#008b45">tool.o</span>: tool.cpp
+	g++ -c tool.cpp
+</code></pre></td></tr></table>
+</div>
+</div><p>那这些代表什么意思呢，<code>main</code>这个可执行文件的来源是<code>main.cpp</code>和<code>tool.o</code>,但是其中一个已经有了，那么另一个<code>tool.o</code>怎么来的呢，我们继续在下面写，<code>tool.o</code>怎么来的，他的来源是<code>tool.cpp</code>，生成他的命令是<code>g++ -c tool.cpp</code>,这时候运行结果如下图:</p>
+<p><img src="https://i.loli.net/2018/12/22/5c1df2b730a81.png" alt=""></p>
+<p>这样也可以打到目的。</p>
+<h3 id="例子三">例子三:</h3>
+<p>假设文件特别多呢,我们对上面的例子进行改造:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#228b22">//main.cpp
+</span><span style="color:#228b22"></span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&#34;foo.h&#34;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&#34;bar.h&#34;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>()
+{
+    <span style="color:#00688b;font-weight:bold">int</span> arr[<span style="color:#b452cd">5</span>] = {<span style="color:#b452cd">1</span>, <span style="color:#b452cd">8</span>, <span style="color:#b452cd">6</span>, <span style="color:#b452cd">3</span>, <span style="color:#b452cd">4</span>};
+    printf(<span style="color:#cd5555">&#34;max is %d.</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, find_max(arr, <span style="color:#b452cd">5</span>));
+    printf(<span style="color:#cd5555">&#34;min is %d.</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, find_min(arr, <span style="color:#b452cd">5</span>));
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#228b22">//foo.h
+</span><span style="color:#228b22"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">find_max</span>(<span style="color:#00688b;font-weight:bold">int</span> arr[], <span style="color:#00688b;font-weight:bold">int</span> n);
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#228b22">//foo.cpp
+</span><span style="color:#228b22"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">find_max</span>(<span style="color:#00688b;font-weight:bold">int</span> arr[], <span style="color:#00688b;font-weight:bold">int</span> n)
+{
+    <span style="color:#00688b;font-weight:bold">int</span> maxx = <span style="color:#b452cd">0</span>;
+    <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = <span style="color:#b452cd">0</span>; i &lt; n; i++)
+        maxx = maxx &gt; arr[i] ? maxx : arr[i];
+    <span style="color:#8b008b;font-weight:bold">return</span> maxx;
+}
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#228b22">//bar.h
+</span><span style="color:#228b22"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">find_min</span>(<span style="color:#00688b;font-weight:bold">int</span> arr[], <span style="color:#00688b;font-weight:bold">int</span> n);
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#228b22">//bar.cpp
+</span><span style="color:#228b22"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">find_min</span>(<span style="color:#00688b;font-weight:bold">int</span> arr[], <span style="color:#00688b;font-weight:bold">int</span> n)
+{
+    <span style="color:#00688b;font-weight:bold">int</span> minn = arr[<span style="color:#b452cd">0</span>];
+    <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = <span style="color:#b452cd">0</span>; i &lt; n; i++)
+        minn = minn &lt; arr[i] ? minn : arr[i];
+    <span style="color:#8b008b;font-weight:bold">return</span> minn;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>这一次我们有5个文件，怎么编译呢，当然，直接写编译命令是可以的，模仿上面的写法：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">g++ bar.cpp foo.cpp main.cpp -o main
+</code></pre></td></tr></table>
+</div>
+</div><p>这样可以编译出来,同样也可以运行。</p>
+<p>那么<code>makefile</code>怎么写呢.</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-makefile" data-lang="makefile"><span style="color:#008b45">main</span>: main.cpp bar.o foo.o
+	g++ main.cpp bar.o foo.o -o main
+<span style="color:#008b45">bar.o</span>:
+	g++ -c bar.cpp
+<span style="color:#008b45">foo.o</span>:
+	g++ -c foo.cpp
+<span style="color:#008b45">clean</span>:
+	rm *.o main
+</code></pre></td></tr></table>
+</div>
+</div><p>很容易的就可以看出，main依赖谁，先写上，然后把依赖是怎么编译来的也写上，最后就生成了可执行文件。</p>
+<p>但是这一次多了一个<code>clean</code>，这是什么意思呢，我们再生成可执行文件的过程中出现了很多<code>.o</code>文件，我们通过清理命令可以把它清理掉，先执行<code>make</code>生成可执行文件，等用完之后，执行<code>make clean</code>就会发现，现在已经回复原状，演示如下:</p>
+<p><img src="https://i.loli.net/2018/12/22/5c1df62138db9.png" alt=""></p>
+<p>假设，我们现在要用其他的编译器编译这个项目，一个一个改编译器会很麻烦，所以我们可以类似于定义变量的方式，改的时候只要改一个地方，就可以完成编译,<code>makefile</code>定义变量也很简单，直接写即可，假设我现在要把编译器换成<code>clang</code>，可以这么写:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-makefile" data-lang="makefile"><span style="color:#00688b">cc</span> = clang++ 
+<span style="color:#008b45">main</span>: main.cpp bar.o foo.o
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> main.cpp bar.o foo.o -o main
+<span style="color:#008b45">bar.o</span>:
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> -c bar.cpp
+<span style="color:#008b45">foo.o</span>:
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> -c foo.cpp
+<span style="color:#008b45">clean</span>:
+	rm *.o main
+</code></pre></td></tr></table>
+</div>
+</div><p>修改的时候只需要修改一个地方即可,假设我们要加很多不同的编译参数呢，可以同样采用这种定义变量的方式，比如:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-makefile" data-lang="makefile"><span style="color:#00688b">cc</span> = clang++ 
+<span style="color:#00688b">CFLAGS</span> = -O2 -std=c++14 -Wall
+<span style="color:#008b45">main</span>: main.cpp bar.o foo.o
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> <span style="color:#8b008b;font-weight:bold">$(</span>CFLAGS<span style="color:#8b008b;font-weight:bold">)</span> main.cpp bar.o foo.o -o main
+<span style="color:#008b45">bar.o</span>:
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> <span style="color:#8b008b;font-weight:bold">$(</span>CFLAGS<span style="color:#8b008b;font-weight:bold">)</span> -c bar.cpp
+<span style="color:#008b45">foo.o</span>:
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> <span style="color:#8b008b;font-weight:bold">$(</span>CFLAGS<span style="color:#8b008b;font-weight:bold">)</span> -c foo.cpp
+<span style="color:#008b45">clean</span>:
+	rm *.o main
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="例子四">例子四:</h3>
+<p>我们还是根据上面的例子来修改，这次头文件不变，我们定义两个主函数:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#228b22">//max_main.cpp
+</span><span style="color:#228b22"></span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&#34;foo.h&#34;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&#34;bar.h&#34;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>()
+{
+    <span style="color:#00688b;font-weight:bold">int</span> arr[<span style="color:#b452cd">5</span>] = {<span style="color:#b452cd">1</span>, <span style="color:#b452cd">8</span>, <span style="color:#b452cd">6</span>, <span style="color:#b452cd">3</span>, <span style="color:#b452cd">4</span>};
+    printf(<span style="color:#cd5555">&#34;max is %d.</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, find_max(arr, <span style="color:#b452cd">5</span>));
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#228b22">//min_main.cpp
+</span><span style="color:#228b22"></span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&#34;foo.h&#34;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&#34;bar.h&#34;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>()
+{
+    <span style="color:#00688b;font-weight:bold">int</span> arr[<span style="color:#b452cd">5</span>] = {<span style="color:#b452cd">1</span>, <span style="color:#b452cd">8</span>, <span style="color:#b452cd">6</span>, <span style="color:#b452cd">3</span>, <span style="color:#b452cd">4</span>};
+    printf(<span style="color:#cd5555">&#34;min is %d.</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, find_min(arr, <span style="color:#b452cd">5</span>));
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>我们想要达成的目的是，最终编译出来两个可执行文件，那么我们怎么写呢，可以根据上面的例子模仿一下:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-makefile" data-lang="makefile"><span style="color:#00688b">cc</span> = g++ 
+<span style="color:#00688b">CFLAGS</span> = -O2 -std=c++14 -Wall
+<span style="color:#008b45">max_main</span>: max_main.cpp bar.o foo.o
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> <span style="color:#8b008b;font-weight:bold">$(</span>CFLAGS<span style="color:#8b008b;font-weight:bold">)</span> max_main.cpp bar.o foo.o -o max_main
+<span style="color:#008b45">min_main</span>: min_main.cpp bar.o foo.o
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> <span style="color:#8b008b;font-weight:bold">$(</span>CFLAGS<span style="color:#8b008b;font-weight:bold">)</span> min_main.cpp bar.o foo.o -o min_main
+<span style="color:#008b45">bar.o</span>:
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> <span style="color:#8b008b;font-weight:bold">$(</span>CFLAGS<span style="color:#8b008b;font-weight:bold">)</span> -c bar.cpp
+<span style="color:#008b45">foo.o</span>:
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> <span style="color:#8b008b;font-weight:bold">$(</span>CFLAGS<span style="color:#8b008b;font-weight:bold">)</span> -c foo.cpp
+<span style="color:#008b45">clean</span>:
+	rm *.o
+</code></pre></td></tr></table>
+</div>
+</div><p>这样对不对呢?我们来测试一下</p>
+<p><img src="https://i.loli.net/2018/12/22/5c1dfc0d4afde.png" alt=""></p>
+<p>从图上可以发现，为啥编译出来的只有<code>max_main</code>这一个可执行文件呢，另一个去哪了。</p>
+<p><strong>makefile</strong>在执行的时候只根据第一条语句，第一条语句已经可以生成可执行文件了，那么他就<strong>不会</strong>执行生成下一个可执行文件，那么我们怎样可以打到我们的需求呢，我们需要进行一小部分的修改:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-makefile" data-lang="makefile"><span style="color:#00688b">cc</span> = g++ 
+<span style="color:#00688b">CFLAGS</span> = -O2 -std=c++14 -Wall
+
+<span style="color:#008b45">all</span>:max_main min_main
+
+<span style="color:#008b45">max_main</span>: max_main.cpp bar.o foo.o
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> <span style="color:#8b008b;font-weight:bold">$(</span>CFLAGS<span style="color:#8b008b;font-weight:bold">)</span> max_main.cpp bar.o foo.o -o max_main
+
+<span style="color:#008b45">min_main</span>: min_main.cpp bar.o foo.o
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> <span style="color:#8b008b;font-weight:bold">$(</span>CFLAGS<span style="color:#8b008b;font-weight:bold">)</span> min_main.cpp bar.o foo.o -o min_main
+
+<span style="color:#008b45">bar.o</span>:
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> <span style="color:#8b008b;font-weight:bold">$(</span>CFLAGS<span style="color:#8b008b;font-weight:bold">)</span> -c bar.cpp
+<span style="color:#008b45">foo.o</span>:
+	<span style="color:#8b008b;font-weight:bold">$(</span>cc<span style="color:#8b008b;font-weight:bold">)</span> <span style="color:#8b008b;font-weight:bold">$(</span>CFLAGS<span style="color:#8b008b;font-weight:bold">)</span> -c foo.cpp
+<span style="color:#008b45">clean</span>:
+	rm *.o
+
+</code></pre></td></tr></table>
+</div>
+</div><p>我们只需要加这一条即可<code>all:max_main min_main</code>,我们告诉他，需要生成两个文件,再试试:</p>
+<p><img src="https://i.loli.net/2018/12/22/5c1dfb7622152.png" alt=""></p>
+<p>这个时候已经成功了，生成了两个可执行文件。</p>
+<h2 id="结语">结语</h2>
+<p>这是<code>makefile</code>的一些简单的操作，如果要学习更详细的，推荐几个地址:</p>
+<ul>
+<li><a href="https://seisman.github.io/how-to-write-makefile/introduction.html">跟我一起写Makefile</a></li>
+<li><a href="https://github.com/seisman/how-to-write-makefile">how-to-write-makefile</a></li>
+</ul>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2018-12-25</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="https://blog.riba2534.cn/blog/2018/cpp%E4%B8%ADmain%E5%87%BD%E6%95%B0%E7%9A%84%E5%8F%82%E6%95%B0/">
+			下回<br>C&#43;&#43;中main函数的参数
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://blog.riba2534.cn/blog/2018/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+			上回<br>软件工程学习笔记
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "blog-9g6ht92ca9c564c6",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

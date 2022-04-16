@@ -1,0 +1,2191 @@
+<!DOCTYPE html>
+<html><head>
+<title>《TCP/IP网络编程》第 3 章 网络地址的初始化与分配 笔记</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="《TCP/IP网络编程》第 3 章 网络地址的初始化与分配 笔记" />
+<meta property="og:description" content="第 3 章 地址族与数据序列 本章代码，在TCP-IP-NetworkNote中可以找到。
+把套接字比喻成电话，那么目前只安装了电话机，本章讲解给电话机分配号码的方法，即给套接字分配 IP 地址和端口号。
+3.1 分配给套接字的 IP 地址与端口号 IP 是 Internet Protocol（网络协议）的简写，是为手法网络数据而分配给计算机的值。端口号并非赋予计算机的值，而是为了区分程序中创建的套接字而分配给套接字的端口号。
+3.1.1 网络地址（Internet Address） 为使计算机连接到网络并收发数据，必须为其分配 IP 地址。IP 地址分为两类。
+ IPV4（Internet Protocol version 4）4 字节地址族 IPV6（Internet Protocol version 6）6 字节地址族  两者之间的主要差别是 IP 地址所用的字节数，目前通用的是 IPV4 , IPV6 的普及还需要时间。
+IPV4 标准的 4 字节 IP 地址分为网络地址和主机（指计算机）地址，且分为 A、B、C、D、E 等类型。
+数据传输过程：
+某主机向 203.211.172.103 和 203.211.217.202 传递数据，其中 203.211.172 和 203.211.217 为该网络的网络地址，所以「向相应网络传输数据」实际上是向构成网络的路由器或者交换机传输数据，然后又路由器或者交换机根据数据中的主机地址向目标主机传递数据。
+3.1.2 网络地址分类与主机地址边界 只需通过IP地址的第一个字节即可判断网络地址占用的总字节数，因为我们根据IP地址的边界区分网络地址，如下所示：
+ A 类地址的首字节范围为：0~127 B 类地址的首字节范围为：128~191 C 类地址的首字节范围为：192~223  还有如下这种表示方式：" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-3-%E7%AB%A0-%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%88%86%E9%85%8D-%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2019-01-14T13:13:00+08:00" />
+<meta property="article:modified_time" content="2019-01-18T11:28:57+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210427152737.jpeg">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.3.1/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://blog.riba2534.cn/">
+    
+        <div class="nav-title">
+            🌀riba2534&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            凡事有交代，件件有着落，事事有回音
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://blog.csdn.net/riba2534">
+    CSDN
+</a>
+<br>
+
+<a href="https://github.com/riba2534">
+    GitHub
+</a>
+<br>
+
+<a href="https://www.zhihu.com/people/riba2534">
+    Zhihu
+</a>
+<br>
+
+<a href="mailto:riba2534@qq.com">
+    Email
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac-3-%e7%ab%a0-%e5%9c%b0%e5%9d%80%e6%97%8f%e4%b8%8e%e6%95%b0%e6%8d%ae%e5%ba%8f%e5%88%97" onclick="onNavClick(`#第-3-章-地址族与数据序列-nav`)" id="第-3-章-地址族与数据序列-nav">
+									第 3 章 地址族与数据序列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#31-%e5%88%86%e9%85%8d%e7%bb%99%e5%a5%97%e6%8e%a5%e5%ad%97%e7%9a%84-ip-%e5%9c%b0%e5%9d%80%e4%b8%8e%e7%ab%af%e5%8f%a3%e5%8f%b7" onclick="onNavClick(`#31-分配给套接字的-ip-地址与端口号-nav`)" id="31-分配给套接字的-ip-地址与端口号-nav">
+									3.1 分配给套接字的 IP 地址与端口号
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#311-%e7%bd%91%e7%bb%9c%e5%9c%b0%e5%9d%80internet-address" onclick="onNavClick(`#311-网络地址internet-address-nav`)" id="311-网络地址internet-address-nav">
+									3.1.1 网络地址（Internet Address）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#312-%e7%bd%91%e7%bb%9c%e5%9c%b0%e5%9d%80%e5%88%86%e7%b1%bb%e4%b8%8e%e4%b8%bb%e6%9c%ba%e5%9c%b0%e5%9d%80%e8%be%b9%e7%95%8c" onclick="onNavClick(`#312-网络地址分类与主机地址边界-nav`)" id="312-网络地址分类与主机地址边界-nav">
+									3.1.2 网络地址分类与主机地址边界
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#313-%e7%94%a8%e4%ba%8e%e5%8c%ba%e5%88%86%e5%a5%97%e6%8e%a5%e5%ad%97%e7%9a%84%e7%ab%af%e5%8f%a3%e5%8f%b7" onclick="onNavClick(`#313-用于区分套接字的端口号-nav`)" id="313-用于区分套接字的端口号-nav">
+									3.1.3 用于区分套接字的端口号
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#32-%e5%9c%b0%e5%9d%80%e4%bf%a1%e6%81%af%e7%9a%84%e8%a1%a8%e7%a4%ba" onclick="onNavClick(`#32-地址信息的表示-nav`)" id="32-地址信息的表示-nav">
+									3.2 地址信息的表示
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#321-%e8%a1%a8%e7%a4%ba-ipv4-%e5%9c%b0%e5%9d%80%e7%9a%84%e7%bb%93%e6%9e%84%e4%bd%93" onclick="onNavClick(`#321-表示-ipv4-地址的结构体-nav`)" id="321-表示-ipv4-地址的结构体-nav">
+									3.2.1 表示 IPV4 地址的结构体
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#322-%e7%bb%93%e6%9e%84%e4%bd%93-sockaddr_in-%e7%9a%84%e6%88%90%e5%91%98%e5%88%86%e6%9e%90" onclick="onNavClick(`#322-结构体-sockaddr_in-的成员分析-nav`)" id="322-结构体-sockaddr_in-的成员分析-nav">
+									3.2.2 结构体 sockaddr_in 的成员分析
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#33-%e7%bd%91%e7%bb%9c%e5%ad%97%e8%8a%82%e5%ba%8f%e4%b8%8e%e5%9c%b0%e5%9d%80%e5%8f%98%e6%8d%a2" onclick="onNavClick(`#33-网络字节序与地址变换-nav`)" id="33-网络字节序与地址变换-nav">
+									3.3 网络字节序与地址变换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#331-%e5%ad%97%e8%8a%82%e5%ba%8forder%e4%b8%8e%e7%bd%91%e7%bb%9c%e5%ad%97%e8%8a%82%e5%ba%8f" onclick="onNavClick(`#331-字节序order与网络字节序-nav`)" id="331-字节序order与网络字节序-nav">
+									3.3.1 字节序（Order）与网络字节序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#332-%e5%ad%97%e8%8a%82%e5%ba%8f%e8%bd%ac%e6%8d%a2" onclick="onNavClick(`#332-字节序转换-nav`)" id="332-字节序转换-nav">
+									3.3.2 字节序转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#34-%e7%bd%91%e7%bb%9c%e5%9c%b0%e5%9d%80%e7%9a%84%e5%88%9d%e5%a7%8b%e5%8c%96%e4%b8%8e%e5%88%86%e9%85%8d" onclick="onNavClick(`#34-网络地址的初始化与分配-nav`)" id="34-网络地址的初始化与分配-nav">
+									3.4 网络地址的初始化与分配
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#341-%e5%b0%86%e5%ad%97%e7%ac%a6%e4%b8%b2%e4%bf%a1%e6%81%af%e8%bd%ac%e6%8d%a2%e4%b8%ba%e7%bd%91%e7%bb%9c%e5%ad%97%e8%8a%82%e5%ba%8f%e7%9a%84%e6%95%b4%e6%95%b0%e5%9e%8b" onclick="onNavClick(`#341-将字符串信息转换为网络字节序的整数型-nav`)" id="341-将字符串信息转换为网络字节序的整数型-nav">
+									3.4.1 将字符串信息转换为网络字节序的整数型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#342-%e7%bd%91%e7%bb%9c%e5%9c%b0%e5%9d%80%e5%88%9d%e5%a7%8b%e5%8c%96" onclick="onNavClick(`#342-网络地址初始化-nav`)" id="342-网络地址初始化-nav">
+									3.4.2 网络地址初始化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#35-%e5%9f%ba%e4%ba%8e-windows-%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#35-基于-windows-的实现-nav`)" id="35-基于-windows-的实现-nav">
+									3.5 基于 Windows 的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#36-%e4%b9%a0%e9%a2%98" onclick="onNavClick(`#36-习题-nav`)" id="36-习题-nav">
+									3.6 习题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac-3-%e7%ab%a0-%e5%9c%b0%e5%9d%80%e6%97%8f%e4%b8%8e%e6%95%b0%e6%8d%ae%e5%ba%8f%e5%88%97" onclick="onNavClick(`#第-3-章-地址族与数据序列-nav`)" id="第-3-章-地址族与数据序列-nav">
+									第 3 章 地址族与数据序列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#31-%e5%88%86%e9%85%8d%e7%bb%99%e5%a5%97%e6%8e%a5%e5%ad%97%e7%9a%84-ip-%e5%9c%b0%e5%9d%80%e4%b8%8e%e7%ab%af%e5%8f%a3%e5%8f%b7" onclick="onNavClick(`#31-分配给套接字的-ip-地址与端口号-nav`)" id="31-分配给套接字的-ip-地址与端口号-nav">
+									3.1 分配给套接字的 IP 地址与端口号
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#311-%e7%bd%91%e7%bb%9c%e5%9c%b0%e5%9d%80internet-address" onclick="onNavClick(`#311-网络地址internet-address-nav`)" id="311-网络地址internet-address-nav">
+									3.1.1 网络地址（Internet Address）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#312-%e7%bd%91%e7%bb%9c%e5%9c%b0%e5%9d%80%e5%88%86%e7%b1%bb%e4%b8%8e%e4%b8%bb%e6%9c%ba%e5%9c%b0%e5%9d%80%e8%be%b9%e7%95%8c" onclick="onNavClick(`#312-网络地址分类与主机地址边界-nav`)" id="312-网络地址分类与主机地址边界-nav">
+									3.1.2 网络地址分类与主机地址边界
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#313-%e7%94%a8%e4%ba%8e%e5%8c%ba%e5%88%86%e5%a5%97%e6%8e%a5%e5%ad%97%e7%9a%84%e7%ab%af%e5%8f%a3%e5%8f%b7" onclick="onNavClick(`#313-用于区分套接字的端口号-nav`)" id="313-用于区分套接字的端口号-nav">
+									3.1.3 用于区分套接字的端口号
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#32-%e5%9c%b0%e5%9d%80%e4%bf%a1%e6%81%af%e7%9a%84%e8%a1%a8%e7%a4%ba" onclick="onNavClick(`#32-地址信息的表示-nav`)" id="32-地址信息的表示-nav">
+									3.2 地址信息的表示
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#321-%e8%a1%a8%e7%a4%ba-ipv4-%e5%9c%b0%e5%9d%80%e7%9a%84%e7%bb%93%e6%9e%84%e4%bd%93" onclick="onNavClick(`#321-表示-ipv4-地址的结构体-nav`)" id="321-表示-ipv4-地址的结构体-nav">
+									3.2.1 表示 IPV4 地址的结构体
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#322-%e7%bb%93%e6%9e%84%e4%bd%93-sockaddr_in-%e7%9a%84%e6%88%90%e5%91%98%e5%88%86%e6%9e%90" onclick="onNavClick(`#322-结构体-sockaddr_in-的成员分析-nav`)" id="322-结构体-sockaddr_in-的成员分析-nav">
+									3.2.2 结构体 sockaddr_in 的成员分析
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#33-%e7%bd%91%e7%bb%9c%e5%ad%97%e8%8a%82%e5%ba%8f%e4%b8%8e%e5%9c%b0%e5%9d%80%e5%8f%98%e6%8d%a2" onclick="onNavClick(`#33-网络字节序与地址变换-nav`)" id="33-网络字节序与地址变换-nav">
+									3.3 网络字节序与地址变换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#331-%e5%ad%97%e8%8a%82%e5%ba%8forder%e4%b8%8e%e7%bd%91%e7%bb%9c%e5%ad%97%e8%8a%82%e5%ba%8f" onclick="onNavClick(`#331-字节序order与网络字节序-nav`)" id="331-字节序order与网络字节序-nav">
+									3.3.1 字节序（Order）与网络字节序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#332-%e5%ad%97%e8%8a%82%e5%ba%8f%e8%bd%ac%e6%8d%a2" onclick="onNavClick(`#332-字节序转换-nav`)" id="332-字节序转换-nav">
+									3.3.2 字节序转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#34-%e7%bd%91%e7%bb%9c%e5%9c%b0%e5%9d%80%e7%9a%84%e5%88%9d%e5%a7%8b%e5%8c%96%e4%b8%8e%e5%88%86%e9%85%8d" onclick="onNavClick(`#34-网络地址的初始化与分配-nav`)" id="34-网络地址的初始化与分配-nav">
+									3.4 网络地址的初始化与分配
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#341-%e5%b0%86%e5%ad%97%e7%ac%a6%e4%b8%b2%e4%bf%a1%e6%81%af%e8%bd%ac%e6%8d%a2%e4%b8%ba%e7%bd%91%e7%bb%9c%e5%ad%97%e8%8a%82%e5%ba%8f%e7%9a%84%e6%95%b4%e6%95%b0%e5%9e%8b" onclick="onNavClick(`#341-将字符串信息转换为网络字节序的整数型-nav`)" id="341-将字符串信息转换为网络字节序的整数型-nav">
+									3.4.1 将字符串信息转换为网络字节序的整数型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#342-%e7%bd%91%e7%bb%9c%e5%9c%b0%e5%9d%80%e5%88%9d%e5%a7%8b%e5%8c%96" onclick="onNavClick(`#342-网络地址初始化-nav`)" id="342-网络地址初始化-nav">
+									3.4.2 网络地址初始化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#35-%e5%9f%ba%e4%ba%8e-windows-%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#35-基于-windows-的实现-nav`)" id="35-基于-windows-的实现-nav">
+									3.5 基于 Windows 的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#36-%e4%b9%a0%e9%a2%98" onclick="onNavClick(`#36-习题-nav`)" id="36-习题-nav">
+									3.6 习题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://blog.riba2534.cn/">
+            🌀riba2534&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://blog.riba2534.cn/">
+        <div class="single-column-header-title">🌀riba2534&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">凡事有交代，件件有着落，事事有回音</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508201518.png')"
+                    
+                
+            >
+                <div class="post-title">
+                    《TCP/IP网络编程》第 3 章 网络地址的初始化与分配 笔记
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2019-01-14 13:13
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/tcp/ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0">《TCP/IP网络编程》学习笔记</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/tcp/ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B">《TCP/IP网络编程》</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            20 min
+                            
+                            43 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h2 id="第-3-章-地址族与数据序列">第 3 章 地址族与数据序列</h2>
+<p>本章代码，在<a href="https://github.com/riba2534/TCP-IP-NetworkNote">TCP-IP-NetworkNote</a>中可以找到。</p>
+<p>把套接字比喻成电话，那么目前只安装了电话机，本章讲解给电话机分配号码的方法，即给套接字分配 IP 地址和端口号。</p>
+<h3 id="31-分配给套接字的-ip-地址与端口号">3.1 分配给套接字的 IP 地址与端口号</h3>
+<p>IP 是 Internet Protocol（网络协议）的简写，是为手法网络数据而分配给计算机的值。端口号并非赋予计算机的值，而是为了区分程序中创建的套接字而分配给套接字的端口号。</p>
+<h4 id="311-网络地址internet-address">3.1.1 网络地址（Internet Address）</h4>
+<p>为使计算机连接到网络并收发数据，必须为其分配 IP 地址。IP 地址分为两类。</p>
+<ul>
+<li>IPV4（Internet Protocol version 4）4 字节地址族</li>
+<li>IPV6（Internet Protocol version 6）6 字节地址族</li>
+</ul>
+<p>两者之间的主要差别是 IP 地址所用的字节数，目前通用的是 IPV4 , IPV6 的普及还需要时间。</p>
+<p>IPV4 标准的 4 字节 IP 地址分为网络地址和主机（指计算机）地址，且分为 A、B、C、D、E 等类型。</p>
+<p><img src="https://i.loli.net/2019/01/13/5c3ab0eb17bbe.png" alt=""></p>
+<p>数据传输过程：</p>
+<p><img src="https://i.loli.net/2019/01/13/5c3ab19174fa4.png" alt=""></p>
+<p>某主机向 203.211.172.103 和 203.211.217.202 传递数据，其中 203.211.172 和 203.211.217 为该网络的网络地址，所以「向相应网络传输数据」实际上是向构成网络的路由器或者交换机传输数据，然后又路由器或者交换机根据数据中的主机地址向目标主机传递数据。</p>
+<h4 id="312-网络地址分类与主机地址边界">3.1.2 网络地址分类与主机地址边界</h4>
+<p>只需通过IP地址的第一个字节即可判断网络地址占用的总字节数，因为我们根据IP地址的边界区分网络地址，如下所示：</p>
+<ul>
+<li>A 类地址的首字节范围为：0~127</li>
+<li>B 类地址的首字节范围为：128~191</li>
+<li>C 类地址的首字节范围为：192~223</li>
+</ul>
+<p>还有如下这种表示方式：</p>
+<ul>
+<li>A 类地址的首位以 0 开始</li>
+<li>B 类地址的前2位以 10 开始</li>
+<li>C 类地址的前3位以 110 开始</li>
+</ul>
+<p>因此套接字手法数据时，数据传到网络后即可轻松找到主机。</p>
+<h4 id="313-用于区分套接字的端口号">3.1.3 用于区分套接字的端口号</h4>
+<p>IP地址用于区分计算机，只要有IP地址就能向目标主机传输数据，但是只有这些还不够，我们需要把信息传输给具体的应用程序。</p>
+<p>所以计算机一般有 NIC（网络接口卡）数据传输设备。通过 NIC 接受的数据内有端口号，操作系统参考端口号把信息传给相应的应用程序。</p>
+<p>端口号由 16 位构成，可分配的端口号范围是 0~65535 。但是 0~1023 是知名端口，一般分配给特定的应用程序，所以应当分配给此范围之外的值。</p>
+<p>虽然端口号不能重复，但是 TCP 套接字和 UDP 套接字不会共用端接口号，所以允许重复。如果某 TCP 套接字使用了 9190 端口号，其他 TCP 套接字就无法使用该端口号，但是 UDP 套接字可以使用。</p>
+<p>总之，数据传输目标地址同时包含IP地址和端口号，只有这样，数据才会被传输到最终的目的应用程序。</p>
+<h3 id="32-地址信息的表示">3.2 地址信息的表示</h3>
+<p>应用程序中使用的IP地址和端口号以结构体的形式给出了定义。本节围绕结构体讨论目标地址的表示方法。</p>
+<h4 id="321-表示-ipv4-地址的结构体">3.2.1 表示 IPV4 地址的结构体</h4>
+<p>结构体的定义如下</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">struct</span> sockaddr_in
+{
+    sa_family_t sin_family;  <span style="color:#228b22">//地址族（Address Family）
+</span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">uint16_t</span> sin_port;       <span style="color:#228b22">//16 位 TCP/UDP 端口号
+</span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">struct</span> in_addr sin_addr; <span style="color:#228b22">//32位 IP 地址
+</span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">char</span> sin_zero[<span style="color:#b452cd">8</span>];        <span style="color:#228b22">//不使用
+</span><span style="color:#228b22"></span>};
+</code></pre></td></tr></table>
+</div>
+</div><p>该结构体中提到的另一个结构体 in_addr 定义如下，它用来存放 32 位IP地址</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">struct</span> in_addr
+{
+    in_addr_t s_addr; <span style="color:#228b22">//32位IPV4地址
+</span><span style="color:#228b22"></span>}
+</code></pre></td></tr></table>
+</div>
+</div><p>关于以上两个结构体的一些数据类型。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">数据类型名称</th>
+<th style="text-align:center">数据类型说明</th>
+<th style="text-align:center">声明的头文件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">int 8_t</td>
+<td style="text-align:center">signed 8-bit int</td>
+<td style="text-align:center">sys/types.h</td>
+</tr>
+<tr>
+<td style="text-align:center">uint8_t</td>
+<td style="text-align:center">unsigned 8-bit int (unsigned char)</td>
+<td style="text-align:center">sys/types.h</td>
+</tr>
+<tr>
+<td style="text-align:center">int16_t</td>
+<td style="text-align:center">signed 16-bit int</td>
+<td style="text-align:center">sys/types.h</td>
+</tr>
+<tr>
+<td style="text-align:center">uint16_t</td>
+<td style="text-align:center">unsigned 16-bit int (unsigned short)</td>
+<td style="text-align:center">sys/types.h</td>
+</tr>
+<tr>
+<td style="text-align:center">int32_t</td>
+<td style="text-align:center">signed 32-bit int</td>
+<td style="text-align:center">sys/types.h</td>
+</tr>
+<tr>
+<td style="text-align:center">uint32_t</td>
+<td style="text-align:center">unsigned 32-bit int (unsigned long)</td>
+<td style="text-align:center">sys/types.h</td>
+</tr>
+<tr>
+<td style="text-align:center">sa_family_t</td>
+<td style="text-align:center">地址族（address family）</td>
+<td style="text-align:center">sys/socket.h</td>
+</tr>
+<tr>
+<td style="text-align:center">socklen_t</td>
+<td style="text-align:center">长度（length of struct）</td>
+<td style="text-align:center">sys/socket.h</td>
+</tr>
+<tr>
+<td style="text-align:center">in_addr_t</td>
+<td style="text-align:center">IP地址，声明为 uint_32_t</td>
+<td style="text-align:center">netinet/in.h</td>
+</tr>
+<tr>
+<td style="text-align:center">in_port_t</td>
+<td style="text-align:center">端口号，声明为 uint_16_t</td>
+<td style="text-align:center">netinet/in.h</td>
+</tr>
+</tbody>
+</table>
+<p>为什么要额外定义这些数据类型呢？这是考虑扩展性的结果</p>
+<h4 id="322-结构体-sockaddr_in-的成员分析">3.2.2 结构体 sockaddr_in 的成员分析</h4>
+<ul>
+<li>成员 sin_family</li>
+</ul>
+<p>每种协议适用的地址族不同，比如，IPV4 使用 4 字节的地址族，IPV6 使用 16 字节的地址族。</p>
+<blockquote>
+<p>地址族</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>地址族（Address Family）</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AF_INET</td>
+<td>IPV4用的地址族</td>
+</tr>
+<tr>
+<td>AF_INET6</td>
+<td>IPV6用的地址族</td>
+</tr>
+<tr>
+<td>AF_LOCAL</td>
+<td>本地通信中采用的 Unix 协议的地址族</td>
+</tr>
+</tbody>
+</table>
+<p>AF_LOACL 只是为了说明具有多种地址族而添加的。</p>
+<ul>
+<li>
+<p>成员 sin_port</p>
+<p>该成员保存 16 位端口号，重点在于，它以网络字节序保存。</p>
+</li>
+<li>
+<p>成员 sin_addr</p>
+<p>该成员保存 32 为IP地址信息，且也以网络字节序保存</p>
+</li>
+<li>
+<p>成员 sin_zero</p>
+<p>无特殊含义。只是为结构体 sockaddr_in 结构体变量地址值将以如下方式传递给 bind 函数。</p>
+<p>在之前的代码中</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">if</span> (bind(serv_sock, (<span style="color:#8b008b;font-weight:bold">struct</span> sockaddr *)&amp;serv_addr, <span style="color:#8b008b;font-weight:bold">sizeof</span>(serv_addr)) == -<span style="color:#b452cd">1</span>)
+    error_handling(<span style="color:#cd5555">&#34;bind() error&#34;</span>);
+</code></pre></td></tr></table>
+</div>
+</div><p>此处 bind 第二个参数期望得到的是 sockaddr 结构体变量的地址值，包括地址族、端口号、IP地址等。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">struct</span> sockaddr
+{
+    sa_family_t sin_family; <span style="color:#228b22">//地址族
+</span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">char</span> sa_data[<span style="color:#b452cd">14</span>];       <span style="color:#228b22">//地址信息
+</span><span style="color:#228b22"></span>}
+</code></pre></td></tr></table>
+</div>
+</div><p>此结构体 sa_data 保存的地址信息中需要包含IP地址和端口号，剩余部分应该填充 0 ，但是这样对于包含地址的信息非常麻烦，所以出现了 sockaddr_in 结构体，然后强制转换成 sockaddr 类型，则生成符合 bind 条件的参数。</p>
+</li>
+</ul>
+<h3 id="33-网络字节序与地址变换">3.3 网络字节序与地址变换</h3>
+<p>不同的 CPU 中，4 字节整数值1在内存空间保存方式是不同的。</p>
+<p>有些 CPU 这样保存：</p>
+<pre tabindex="0"><code>00000000 00000000 00000000 00000001
+</code></pre><p>有些 CPU 这样保存：</p>
+<pre tabindex="0"><code>00000001 00000000 00000000 00000000
+</code></pre><p>两种一种是顺序保存，一种是倒序保存 。</p>
+<h4 id="331-字节序order与网络字节序">3.3.1 字节序（Order）与网络字节序</h4>
+<p>CPU 保存数据的方式有两种，这意味着 CPU 解析数据的方式也有 2 种：</p>
+<ul>
+<li>大端序（Big Endian）：高位字节存放到低位地址</li>
+<li>小端序（Little Endian）：高位字节存放到高位地址</li>
+</ul>
+<p><img src="https://i.loli.net/2019/01/13/5c3ac9c1b2550.png" alt="big.png">
+<img src="https://i.loli.net/2019/01/13/5c3ac9c1c3348.png" alt="small.png"></p>
+<p>两台字节序不同的计算机在数据传递的过程中可能出现的问题：</p>
+<p><img src="https://i.loli.net/2019/01/13/5c3aca956c8e9.png" alt="zijiexu.png"></p>
+<p>因为这种原因，所以在通过网络传输数据时必须约定统一的方式，这种约定被称为网络字节序，非常简单，统一为大端序。即，先把数据数组转化成大端序格式再进行网络传输。</p>
+<h4 id="332-字节序转换">3.3.2 字节序转换</h4>
+<p>帮助转换字节序的函数：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">short</span> <span style="color:#008b45">htons</span>(<span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">short</span>);
+<span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">short</span> <span style="color:#008b45">ntohs</span>(<span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">short</span>);
+<span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span> <span style="color:#008b45">htonl</span>(<span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span>);
+<span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span> <span style="color:#008b45">ntohl</span>(<span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span>);
+</code></pre></td></tr></table>
+</div>
+</div><p>通过函数名称掌握其功能，只需要了解：</p>
+<ul>
+<li>htons 的 h 代表主机（host）字节序。</li>
+<li>htons 的 n 代表网络（network）字节序。</li>
+<li>s 代表 short</li>
+<li>l 代表 long</li>
+</ul>
+<p>下面的代码是示例，说明以上函数调用过程：</p>
+<p><a href="https://github.com/riba2534/TCP-IP-NetworkNote/blob/master/ch03/endian_conv.c">endian_conv.c</a></p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;arpa/inet.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+{
+    <span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">short</span> host_port = <span style="color:#b452cd">0x1234</span>;
+    <span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">short</span> net_port;
+    <span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span> host_addr = <span style="color:#b452cd">0x12345678</span>;
+    <span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span> net_addr;
+
+    net_port = htons(host_port); <span style="color:#228b22">//转换为网络字节序
+</span><span style="color:#228b22"></span>    net_addr = htonl(host_addr);
+
+    printf(<span style="color:#cd5555">&#34;Host ordered port: %#x </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, host_port);
+    printf(<span style="color:#cd5555">&#34;Network ordered port: %#x </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, net_port);
+    printf(<span style="color:#cd5555">&#34;Host ordered address: %#lx </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, host_addr);
+    printf(<span style="color:#cd5555">&#34;Network ordered address: %#lx </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, net_addr);
+
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc endian_conv.c -o conv
+./conv
+</code></pre></td></tr></table>
+</div>
+</div><p>结果：</p>
+<pre tabindex="0"><code>Host ordered port: 0x1234
+Network ordered port: 0x3412
+Host ordered address: 0x12345678
+Network ordered address: 0x78563412
+</code></pre><p>这是在小端 CPU 的运行结果。大部分人会得到相同的结果，因为 Intel 和 AMD 的 CPU 都是小端序为标准。</p>
+<h3 id="34-网络地址的初始化与分配">3.4 网络地址的初始化与分配</h3>
+<h4 id="341-将字符串信息转换为网络字节序的整数型">3.4.1 将字符串信息转换为网络字节序的整数型</h4>
+<p>sockaddr_in 中需要的是 32 位整数型，但是我们只熟悉点分十进制表示法，那么改如何把类似于 201.211.214.36 转换为 4 字节的整数类型数据呢 ?幸运的是，有一个函数可以帮助我们完成它。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;arpa/inet.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span>in_addr_t <span style="color:#008b45">inet_addr</span>(<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">char</span> *string);
+</code></pre></td></tr></table>
+</div>
+</div><p>具体示例：</p>
+<p><a href="https://github.com/riba2534/TCP-IP-NetworkNote/blob/master/ch03/inet_addr.c">inet_addr.c</a></p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;arpa/inet.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+{
+    <span style="color:#00688b;font-weight:bold">char</span> *addr1 = <span style="color:#cd5555">&#34;1.2.3.4&#34;</span>;
+    <span style="color:#00688b;font-weight:bold">char</span> *addr2 = <span style="color:#cd5555">&#34;1.2.3.256&#34;</span>;
+
+    <span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span> conv_addr = inet_addr(addr1);
+    <span style="color:#8b008b;font-weight:bold">if</span> (conv_addr == INADDR_NONE)
+        printf(<span style="color:#cd5555">&#34;Error occured! </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>);
+    <span style="color:#8b008b;font-weight:bold">else</span>
+        printf(<span style="color:#cd5555">&#34;Network ordered integer addr: %#lx </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, conv_addr);
+
+    conv_addr = inet_addr(addr2);
+    <span style="color:#8b008b;font-weight:bold">if</span> (conv_addr == INADDR_NONE)
+        printf(<span style="color:#cd5555">&#34;Error occured! </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>);
+    <span style="color:#8b008b;font-weight:bold">else</span>
+        printf(<span style="color:#cd5555">&#34;Network ordered integer addr: %#lx </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, conv_addr);
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc inet_addr.c -o addr
+./addr
+</code></pre></td></tr></table>
+</div>
+</div><p>输出：</p>
+<pre tabindex="0"><code>Network ordered integer addr: 0x4030201
+Error occured!
+</code></pre><p>1个字节能表示的最大整数是255，所以代码中 addr2 是错误的IP地址。从运行结果看，inet_addr 不仅可以转换地址，还可以检测有效性。</p>
+<p>inet_aton 函数与 inet_addr 函数在功能上完全相同，也是将字符串形式的IP地址转换成整数型的IP地址。只不过该函数用了 in_addr 结构体，且使用频率更高。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;arpa/inet.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">inet_aton</span>(<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">char</span> *string, <span style="color:#8b008b;font-weight:bold">struct</span> in_addr *addr);
+<span style="color:#228b22">/*
+</span><span style="color:#228b22">成功时返回 1 ，失败时返回 0
+</span><span style="color:#228b22">string: 含有需要转换的IP地址信息的字符串地址值
+</span><span style="color:#228b22">addr: 将保存转换结果的 in_addr 结构体变量的地址值
+</span><span style="color:#228b22">*/</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>函数调用示例：</p>
+<p><a href="https://github.com/riba2534/TCP-IP-NetworkNote/blob/master/ch03/inet_aton.c">inet_aton.c</a></p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdlib.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;arpa/inet.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">error_handling</span>(<span style="color:#00688b;font-weight:bold">char</span> *message);
+
+<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+{
+    <span style="color:#00688b;font-weight:bold">char</span> *addr = <span style="color:#cd5555">&#34;127.232.124.79&#34;</span>;
+    <span style="color:#8b008b;font-weight:bold">struct</span> sockaddr_in addr_inet;
+
+    <span style="color:#8b008b;font-weight:bold">if</span> (!inet_aton(addr, &amp;addr_inet.sin_addr))
+        error_handling(<span style="color:#cd5555">&#34;Conversion error&#34;</span>);
+    <span style="color:#8b008b;font-weight:bold">else</span>
+        printf(<span style="color:#cd5555">&#34;Network ordered integer addr: %#x </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, addr_inet.sin_addr.s_addr);
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+
+<span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">error_handling</span>(<span style="color:#00688b;font-weight:bold">char</span> *message)
+{
+    fputs(message, stderr);
+    fputc(<span style="color:#cd5555">&#39;\n&#39;</span>, stderr);
+    exit(<span style="color:#b452cd">1</span>);
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">gcc inet_aton.c -o aton
+./aton
+</code></pre></td></tr></table>
+</div>
+</div><p>运行结果：</p>
+<pre tabindex="0"><code>Network ordered integer addr: 0x4f7ce87f
+</code></pre><p>可以看出，已经成功的把转换后的地址放进了 addr_inet.sin_addr.s_addr 中。</p>
+<p>还有一个函数，与 inet_aton() 正好相反，它可以把网络字节序整数型IP地址转换成我们熟悉的字符串形式，函数原型如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;arpa/inet.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">char</span> *<span style="color:#008b45">inet_ntoa</span>(<span style="color:#8b008b;font-weight:bold">struct</span> in_addr adr);
+</code></pre></td></tr></table>
+</div>
+</div><p>该函数将通过参数传入的整数型IP地址转换为字符串格式并返回。但要小心，返回值为 char 指针，返回字符串地址意味着字符串已经保存在内存空间，但是该函数未向程序员要求分配内存，而是再内部申请了内存保存了字符串。也就是说调用了该函数候要立即把信息复制到其他内存空间。因此，若再次调用 inet_ntoa 函数，则有可能覆盖之前保存的字符串信息。总之，再次调用 inet_ntoa 函数前返回的字符串地址是有效的。若需要长期保存，则应该将字符串复制到其他内存空间。</p>
+<p>示例：</p>
+<p><a href="https://github.com/riba2534/TCP-IP-NetworkNote/blob/master/ch03/inet_ntoa.c">inet_ntoa.c</a></p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;string.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;arpa/inet.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span>
+<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+{
+    <span style="color:#8b008b;font-weight:bold">struct</span> sockaddr_in addr1, addr2;
+    <span style="color:#00688b;font-weight:bold">char</span> *str_ptr;
+    <span style="color:#00688b;font-weight:bold">char</span> str_arr[<span style="color:#b452cd">20</span>];
+
+    addr1.sin_addr.s_addr = htonl(<span style="color:#b452cd">0x1020304</span>);
+    addr2.sin_addr.s_addr = htonl(<span style="color:#b452cd">0x1010101</span>);
+    <span style="color:#228b22">//把addr1中的结构体信息转换为字符串的IP地址形式
+</span><span style="color:#228b22"></span>    str_ptr = inet_ntoa(addr1.sin_addr);
+    strcpy(str_arr, str_ptr);
+    printf(<span style="color:#cd5555">&#34;Dotted-Decimal notation1: %s </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, str_ptr);
+
+    inet_ntoa(addr2.sin_addr);
+    printf(<span style="color:#cd5555">&#34;Dotted-Decimal notation2: %s </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, str_ptr);
+    printf(<span style="color:#cd5555">&#34;Dotted-Decimal notation3: %s </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, str_arr);
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc inet_ntoa.c -o ntoa
+./ntoa
+</code></pre></td></tr></table>
+</div>
+</div><p>输出:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">Dotted-Decimal notation1: <span style="color:#b452cd">1.2.3.4</span>
+Dotted-Decimal notation2: <span style="color:#b452cd">1.1.1.1</span>
+Dotted-Decimal notation3: <span style="color:#b452cd">1.2.3.4</span>
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="342-网络地址初始化">3.4.2 网络地址初始化</h4>
+<p>结合前面的内容，介绍套接字创建过程中，常见的网络信息初始化方法：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">struct</span> sockaddr_in addr;
+<span style="color:#00688b;font-weight:bold">char</span> *serv_ip = <span style="color:#cd5555">&#34;211.217,168.13&#34;</span>;          <span style="color:#228b22">//声明IP地址族
+</span><span style="color:#228b22"></span><span style="color:#00688b;font-weight:bold">char</span> *serv_port = <span style="color:#cd5555">&#34;9190&#34;</span>;                  <span style="color:#228b22">//声明端口号字符串
+</span><span style="color:#228b22"></span>memset(&amp;addr, <span style="color:#b452cd">0</span>, <span style="color:#8b008b;font-weight:bold">sizeof</span>(addr));            <span style="color:#228b22">//结构体变量 addr 的所有成员初始化为0
+</span><span style="color:#228b22"></span>addr.sin_family = AF_INET;                 <span style="color:#228b22">//制定地址族
+</span><span style="color:#228b22"></span>addr.sin_addr.s_addr = inet_addr(serv_ip); <span style="color:#228b22">//基于字符串的IP地址初始化
+</span><span style="color:#228b22"></span>addr.sin_port = htons(atoi(serv_port));    <span style="color:#228b22">//基于字符串的IP地址端口号初始化
+</span></code></pre></td></tr></table>
+</div>
+</div><h3 id="35-基于-windows-的实现">3.5 基于 Windows 的实现</h3>
+<p>略</p>
+<h3 id="36-习题">3.6 习题</h3>
+<blockquote>
+<p>答案仅代表本人个人观点，不一定正确</p>
+</blockquote>
+<ol>
+<li>
+<p><strong>IP地址族 IPV4 与 IPV6 有什么区别？在何种背景下诞生了 IPV6?</strong></p>
+<p>答：主要差别是IP地址所用的字节数，目前通用的是IPV4，目前IPV4的资源已耗尽，所以诞生了IPV6，它具有更大的地址空间。</p>
+</li>
+<li>
+<p><strong>通过 IPV4 网络 ID 、主机 ID 及路由器的关系说明公司局域网的计算机传输数据的过程</strong></p>
+<p>答：网络ID是为了区分网络而设置的一部分IP地址，假设向<code>www.baidu.com</code>公司传输数据，该公司内部构建了局域网。因为首先要向<code>baidu.com</code>传输数据，也就是说并非一开始就浏览所有四字节IP地址，首先找到网络地址，进而由<code>baidu.com</code>（构成网络的路由器）接收到数据后，传输到主机地址。比如向 203.211.712.103 传输数据，那就先找到 203.211.172 然后由这个网络的网关找主机号为 172 的机器传输数据。</p>
+</li>
+<li>
+<p><strong>套接字地址分为IP地址和端口号，为什么需要IP地址和端口号？或者说，通过IP地址可以区分哪些对象？通过端口号可以区分哪些对象？</strong></p>
+<p>答：有了IP地址和端口号，才能把数据准确的传送到某个应用程序中。通过IP地址可以区分具体的主机，通过端口号可以区分主机上的应用程序。</p>
+</li>
+<li>
+<p><strong>请说明IP地址的分类方法，并据此说出下面这些IP的分类。</strong></p>
+<ul>
+<li>214.121.212.102（C类）</li>
+<li>120.101.122.89（A类）</li>
+<li>129.78.102.211（B类）</li>
+</ul>
+<p>分类方法：A 类地址的首字节范围为：0~127、B 类地址的首字节范围为：128~191、C 类地址的首字节范围为：192~223</p>
+</li>
+<li>
+<p><strong>计算机通过路由器和交换机连接到互联网，请说出路由器和交换机的作用。</strong></p>
+<p>答：路由器和交换机完成外网和本网主机之间的数据交换。</p>
+</li>
+<li>
+<p><strong>什么是知名端口？其范围是多少？知名端口中具有代表性的 HTTP 和 FTP 的端口号各是多少？</strong></p>
+<p>答：知名端口是要把该端口分配给特定的应用程序，范围是 0~1023 ，HTTP 的端口号是 80 ，FTP 的端口号是20和21</p>
+</li>
+<li>
+<p><strong>向套接字分配地址的 bind 函数原型如下：</strong></p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">bind</span>(<span style="color:#00688b;font-weight:bold">int</span> sockfd, <span style="color:#8b008b;font-weight:bold">struct</span> sockaddr *myaddr, socklen_t addrlen);
+</code></pre></td></tr></table>
+</div>
+</div><p><strong>而调用时则用：</strong></p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">bind(serv_sock, (<span style="color:#8b008b;font-weight:bold">struct</span> sockaddr *)&amp;serv_addr, <span style="color:#8b008b;font-weight:bold">sizeof</span>(serv_addr)
+</code></pre></td></tr></table>
+</div>
+</div><p><strong>此处 serv_addr 为 sockaddr_in 结构体变量。与函数原型不同，传入的是 sockaddr_in 结构体变量，请说明原因。</strong></p>
+<p>答：因为对于详细的地址信息使用 sockaddr 类型传递特别麻烦，进而有了 sockaddr_in 类型，其中基本与前面的类型保持一致，还有 sa_sata[4] 来保存地址信息，剩余全部填 0，所以强制转换后，不影响程序运行。</p>
+</li>
+<li>
+<p><strong>请解释大端序，小端序、网络字节序，并说明为何需要网络字节序。</strong></p>
+<p>答：CPU 向内存保存数据有两种方式，大端序是高位字节存放低位地址，小端序是高位字节存放高位地址，网络字节序是为了方便传输的信息统一性，统一成了大端序。</p>
+</li>
+<li>
+<p><strong>大端序计算机希望把 4 字节整数型 12 传递到小端序计算机。请说出数据传输过程中发生的字节序变换过程。</strong></p>
+<p>答：0x12-&gt;0x21</p>
+</li>
+<li>
+<p><strong>怎样表示回送地址？其含义是什么？如果向会送地址处传输数据将会发生什么情况？</strong></p>
+<p>答：127.0.0.1 表示回送地址，指的是计算机自身的IP地址，无论什么程序，一旦使用回送地址发送数据，协议软件立即返回，不进行任何网络传输。</p>
+</li>
+</ol>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2019-01-18</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-4-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-tcp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF1-%E7%AC%94%E8%AE%B0/">
+			下回<br>《TCP/IP网络编程》第 4 章 基于 TCP 的服务端/客户端（1） 笔记
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-2-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%8D%8F%E8%AE%AE%E8%AE%BE%E7%BD%AE-%E7%AC%94%E8%AE%B0/">
+			上回<br>《TCP/IP网络编程》第 2 章 套接字类型与协议设置 笔记
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "blog-9g6ht92ca9c564c6",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

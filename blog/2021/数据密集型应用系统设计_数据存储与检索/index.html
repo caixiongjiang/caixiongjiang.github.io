@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html><head>
+<title>数据密集型应用系统设计_数据存储与检索</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="数据密集型应用系统设计_数据存储与检索" />
+<meta property="og:description" content="数据存储与检索 从最基本的层面看，数据库只需要做两件事：
+ 向它插入数据时，它就保存数据 查询数据时，它就返回数据  本章主要从数据库的角度来探讨：
+ 如何存储输入的数据 收到查询请求时，如何重新找到数据  作为一名普通的开发人员，我们不太可能从头实现一个自己的存储引擎，但是我们在做技术选型的时候，需要从众多的存储引擎中选一个最适合自己应用的，就需要对各种存储引擎底层机制有一个大概的了解。
+我们将研究两个存储引擎家族：
+ 日志结构的存储引擎 面向页的存储引擎（如 B-Tree）  数据库的核心：数据结构 一个简单的例子： 1 2 3 4 5 6 7 8 9  #!/bin/bash  de_set() { echo &#34;$1,$2&#34; &gt;&gt;database } db_get() { grep &#34;^$1,&#34; database | sed -e &#34;s/^$1,//&#34; | tail -n 1 }   我们实现了一个简单的 kv 存储的数据库，key 可以是任意值，value可以是一个 json，我们每次查找，都会获取key的最新值返回。
+我们来看一下这样做的特点
+ 每次对数据进行追加，且旧值不会被覆盖，最后一次的值就是最新的值 这种追加到文件末尾的方式通常足够高效，许多数据库内部也是使用日志（log），日志是一个仅支持追加式更新的数据文件，但是一个真正的数据库需要考虑的更多（并发控制、回收磁盘、控制日志文件大小） 虽然写入的时候高效，但是如果日志文件产生了大量记录， do_get 性能会非常差，他只能进行 O(n) 扫描全表  那如何快速查找我们想要找的 key 的值呢，那就需要一个数据结构来索引它，最基本的想法就是存一些额外的数据，作为这些元数据的路标，帮助我们定位，但是引入额外的数据结构来维护索引，也是有开销的，每次写入数据不仅仅是简单的追加数据，还需要更新索引，因此任何类型的索引都会降低写入速度。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.riba2534.cn/blog/2021/%E6%95%B0%E6%8D%AE%E5%AF%86%E9%9B%86%E5%9E%8B%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1_%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E4%B8%8E%E6%A3%80%E7%B4%A2/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2021-07-09T21:32:17+08:00" />
+<meta property="article:modified_time" content="2021-07-09T21:32:17+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210427152737.jpeg">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.3.1/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://blog.riba2534.cn/">
+    
+        <div class="nav-title">
+            🌀riba2534&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            凡事有交代，件件有着落，事事有回音
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://blog.csdn.net/riba2534">
+    CSDN
+</a>
+<br>
+
+<a href="https://github.com/riba2534">
+    GitHub
+</a>
+<br>
+
+<a href="https://www.zhihu.com/people/riba2534">
+    Zhihu
+</a>
+<br>
+
+<a href="mailto:riba2534@qq.com">
+    Email
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e5%ad%98%e5%82%a8%e4%b8%8e%e6%a3%80%e7%b4%a2" onclick="onNavClick(`#数据存储与检索-nav`)" id="数据存储与检索-nav">
+									数据存储与检索
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e5%ba%93%e7%9a%84%e6%a0%b8%e5%bf%83%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84" onclick="onNavClick(`#数据库的核心数据结构-nav`)" id="数据库的核心数据结构-nav">
+									数据库的核心：数据结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%80%e4%b8%aa%e7%ae%80%e5%8d%95%e7%9a%84%e4%be%8b%e5%ad%90" onclick="onNavClick(`#一个简单的例子-nav`)" id="一个简单的例子-nav">
+									一个简单的例子：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%93%88%e5%b8%8c%e7%b4%a2%e5%bc%95" onclick="onNavClick(`#哈希索引-nav`)" id="哈希索引-nav">
+									哈希索引：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#sstables-%e5%92%8c-lsm-tree" onclick="onNavClick(`#sstables-和-lsm-tree-nav`)" id="sstables-和-lsm-tree-nav">
+									SSTables 和 LSM-Tree
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%9e%84%e5%bb%ba%e5%92%8c%e7%bb%b4%e6%8a%a4-sstables" onclick="onNavClick(`#构建和维护-sstables-nav`)" id="构建和维护-sstables-nav">
+									构建和维护 SSTables
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8e-sstables-%e5%88%b0-lsm-tree" onclick="onNavClick(`#从-sstables-到-lsm-tree-nav`)" id="从-sstables-到-lsm-tree-nav">
+									从 SSTables 到 LSM-Tree
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%a7%e8%83%bd%e4%bc%98%e5%8c%96" onclick="onNavClick(`#性能优化-nav`)" id="性能优化-nav">
+									性能优化：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#b-tree" onclick="onNavClick(`#b-tree-nav`)" id="b-tree-nav">
+									B-Tree
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%bfb-tree%e5%8f%af%e9%9d%a0" onclick="onNavClick(`#使b-tree可靠-nav`)" id="使b-tree可靠-nav">
+									使B-Tree可靠
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%98%e5%8c%96b-tree" onclick="onNavClick(`#优化b-tree-nav`)" id="优化b-tree-nav">
+									优化B-Tree
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%85%b6%e4%bb%96%e7%b4%a2%e5%bc%95" onclick="onNavClick(`#其他索引-nav`)" id="其他索引-nav">
+									其他索引
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%9c%a8%e7%b4%a2%e5%bc%95%e4%b8%ad%e5%ad%98%e5%80%bc" onclick="onNavClick(`#在索引中存值-nav`)" id="在索引中存值-nav">
+									在索引中存值
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%9a%e5%88%97%e7%b4%a2%e5%bc%95" onclick="onNavClick(`#多列索引-nav`)" id="多列索引-nav">
+									多列索引
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%a8%e6%96%87%e6%90%9c%e7%b4%a2%e5%92%8c%e6%a8%a1%e7%b3%8a%e7%b4%a2%e5%bc%95" onclick="onNavClick(`#全文搜索和模糊索引-nav`)" id="全文搜索和模糊索引-nav">
+									全文搜索和模糊索引
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9c%a8%e5%86%85%e5%ad%98%e4%b8%ad%e4%bf%9d%e5%ad%98%e6%89%80%e6%9c%89%e6%95%b0%e6%8d%ae" onclick="onNavClick(`#在内存中保存所有数据-nav`)" id="在内存中保存所有数据-nav">
+									在内存中保存所有数据
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%8b%e5%8a%a1%e5%a4%84%e7%90%86%e4%b8%8e%e5%88%86%e6%9e%90%e5%a4%84%e7%90%86" onclick="onNavClick(`#事务处理与分析处理-nav`)" id="事务处理与分析处理-nav">
+									事务处理与分析处理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%97%e5%bc%8f%e5%ad%98%e5%82%a8" onclick="onNavClick(`#列式存储-nav`)" id="列式存储-nav">
+									列式存储
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bb%80%e4%b9%88%e6%98%afclickhouse" onclick="onNavClick(`#什么是clickhouse-nav`)" id="什么是clickhouse-nav">
+									什么是ClickHouse?
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#olap%e5%9c%ba%e6%99%af%e7%9a%84%e5%85%b3%e9%94%ae%e7%89%b9%e5%be%81" onclick="onNavClick(`#olap场景的关键特征-nav`)" id="olap场景的关键特征-nav">
+									OLAP场景的关键特征
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%97%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93%e6%9b%b4%e9%80%82%e5%90%88olap%e5%9c%ba%e6%99%af%e7%9a%84%e5%8e%9f%e5%9b%a0" onclick="onNavClick(`#列式数据库更适合olap场景的原因-nav`)" id="列式数据库更适合olap场景的原因-nav">
+									列式数据库更适合OLAP场景的原因
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93" onclick="onNavClick(`#总结-nav`)" id="总结-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e5%ad%98%e5%82%a8%e4%b8%8e%e6%a3%80%e7%b4%a2" onclick="onNavClick(`#数据存储与检索-nav`)" id="数据存储与检索-nav">
+									数据存储与检索
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e5%ba%93%e7%9a%84%e6%a0%b8%e5%bf%83%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84" onclick="onNavClick(`#数据库的核心数据结构-nav`)" id="数据库的核心数据结构-nav">
+									数据库的核心：数据结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%80%e4%b8%aa%e7%ae%80%e5%8d%95%e7%9a%84%e4%be%8b%e5%ad%90" onclick="onNavClick(`#一个简单的例子-nav`)" id="一个简单的例子-nav">
+									一个简单的例子：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%93%88%e5%b8%8c%e7%b4%a2%e5%bc%95" onclick="onNavClick(`#哈希索引-nav`)" id="哈希索引-nav">
+									哈希索引：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#sstables-%e5%92%8c-lsm-tree" onclick="onNavClick(`#sstables-和-lsm-tree-nav`)" id="sstables-和-lsm-tree-nav">
+									SSTables 和 LSM-Tree
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%9e%84%e5%bb%ba%e5%92%8c%e7%bb%b4%e6%8a%a4-sstables" onclick="onNavClick(`#构建和维护-sstables-nav`)" id="构建和维护-sstables-nav">
+									构建和维护 SSTables
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8e-sstables-%e5%88%b0-lsm-tree" onclick="onNavClick(`#从-sstables-到-lsm-tree-nav`)" id="从-sstables-到-lsm-tree-nav">
+									从 SSTables 到 LSM-Tree
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%a7%e8%83%bd%e4%bc%98%e5%8c%96" onclick="onNavClick(`#性能优化-nav`)" id="性能优化-nav">
+									性能优化：
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#b-tree" onclick="onNavClick(`#b-tree-nav`)" id="b-tree-nav">
+									B-Tree
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%bfb-tree%e5%8f%af%e9%9d%a0" onclick="onNavClick(`#使b-tree可靠-nav`)" id="使b-tree可靠-nav">
+									使B-Tree可靠
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%98%e5%8c%96b-tree" onclick="onNavClick(`#优化b-tree-nav`)" id="优化b-tree-nav">
+									优化B-Tree
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%85%b6%e4%bb%96%e7%b4%a2%e5%bc%95" onclick="onNavClick(`#其他索引-nav`)" id="其他索引-nav">
+									其他索引
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%9c%a8%e7%b4%a2%e5%bc%95%e4%b8%ad%e5%ad%98%e5%80%bc" onclick="onNavClick(`#在索引中存值-nav`)" id="在索引中存值-nav">
+									在索引中存值
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%9a%e5%88%97%e7%b4%a2%e5%bc%95" onclick="onNavClick(`#多列索引-nav`)" id="多列索引-nav">
+									多列索引
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%a8%e6%96%87%e6%90%9c%e7%b4%a2%e5%92%8c%e6%a8%a1%e7%b3%8a%e7%b4%a2%e5%bc%95" onclick="onNavClick(`#全文搜索和模糊索引-nav`)" id="全文搜索和模糊索引-nav">
+									全文搜索和模糊索引
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9c%a8%e5%86%85%e5%ad%98%e4%b8%ad%e4%bf%9d%e5%ad%98%e6%89%80%e6%9c%89%e6%95%b0%e6%8d%ae" onclick="onNavClick(`#在内存中保存所有数据-nav`)" id="在内存中保存所有数据-nav">
+									在内存中保存所有数据
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%8b%e5%8a%a1%e5%a4%84%e7%90%86%e4%b8%8e%e5%88%86%e6%9e%90%e5%a4%84%e7%90%86" onclick="onNavClick(`#事务处理与分析处理-nav`)" id="事务处理与分析处理-nav">
+									事务处理与分析处理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%97%e5%bc%8f%e5%ad%98%e5%82%a8" onclick="onNavClick(`#列式存储-nav`)" id="列式存储-nav">
+									列式存储
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bb%80%e4%b9%88%e6%98%afclickhouse" onclick="onNavClick(`#什么是clickhouse-nav`)" id="什么是clickhouse-nav">
+									什么是ClickHouse?
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#olap%e5%9c%ba%e6%99%af%e7%9a%84%e5%85%b3%e9%94%ae%e7%89%b9%e5%be%81" onclick="onNavClick(`#olap场景的关键特征-nav`)" id="olap场景的关键特征-nav">
+									OLAP场景的关键特征
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%97%e5%bc%8f%e6%95%b0%e6%8d%ae%e5%ba%93%e6%9b%b4%e9%80%82%e5%90%88olap%e5%9c%ba%e6%99%af%e7%9a%84%e5%8e%9f%e5%9b%a0" onclick="onNavClick(`#列式数据库更适合olap场景的原因-nav`)" id="列式数据库更适合olap场景的原因-nav">
+									列式数据库更适合OLAP场景的原因
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93" onclick="onNavClick(`#总结-nav`)" id="总结-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://blog.riba2534.cn/">
+            🌀riba2534&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://blog.riba2534.cn/">
+        <div class="single-column-header-title">🌀riba2534&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">凡事有交代，件件有着落，事事有回音</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210709215517.png')"
+                    
+                
+            >
+                <div class="post-title">
+                    数据密集型应用系统设计_数据存储与检索
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2021-07-09 21:32
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/">[数据密集型应用系统设计]</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93">数据库</a>
+                                &nbsp;
+                            
+                                <a href="/tags/%E6%95%B0%E6%8D%AE%E5%AF%86%E9%9B%86%E5%9E%8B%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1">数据密集型应用系统设计</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            37 min
+                            
+                            31 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h1 id="数据存储与检索">数据存储与检索</h1>
+<p>从最基本的层面看，数据库只需要做两件事：</p>
+<ul>
+<li>向它插入数据时，它就保存数据</li>
+<li>查询数据时，它就返回数据</li>
+</ul>
+<p>本章主要从数据库的角度来探讨：</p>
+<ol>
+<li>如何存储输入的数据</li>
+<li>收到查询请求时，如何重新找到数据</li>
+</ol>
+<p>作为一名普通的开发人员，我们不太可能从头实现一个自己的存储引擎，但是我们在做技术选型的时候，需要从众多的存储引擎中选一个最适合自己应用的，就需要对各种存储引擎底层机制有一个大概的了解。</p>
+<p>我们将研究两个存储引擎家族：</p>
+<ul>
+<li>日志结构的存储引擎</li>
+<li>面向页的存储引擎（如 B-Tree）</li>
+</ul>
+<h1 id="数据库的核心数据结构">数据库的核心：数据结构</h1>
+<h2 id="一个简单的例子">一个简单的例子：</h2>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#1e889b">#!/bin/bash
+</span><span style="color:#1e889b"></span>
+de_set() {
+    <span style="color:#658b00">echo</span> <span style="color:#cd5555">&#34;</span><span style="color:#00688b">$1</span><span style="color:#cd5555">,</span><span style="color:#00688b">$2</span><span style="color:#cd5555">&#34;</span> &gt;&gt;database
+}
+
+db_get() {
+    grep <span style="color:#cd5555">&#34;^</span><span style="color:#00688b">$1</span><span style="color:#cd5555">,&#34;</span> database | sed -e <span style="color:#cd5555">&#34;s/^</span><span style="color:#00688b">$1</span><span style="color:#cd5555">,//&#34;</span> | tail -n <span style="color:#b452cd">1</span>
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>我们实现了一个简单的 kv 存储的数据库，key 可以是任意值，value可以是一个 json，我们每次查找，都会获取key的最新值返回。</p>
+<p>我们来看一下这样做的特点</p>
+<ol>
+<li>每次对数据进行追加，且旧值不会被覆盖，最后一次的值就是最新的值</li>
+<li>这种追加到文件末尾的方式通常足够高效，许多数据库内部也是使用日志（log），日志是一个仅支持追加式更新的数据文件，但是一个真正的数据库需要考虑的更多（并发控制、回收磁盘、控制日志文件大小）</li>
+<li>虽然写入的时候高效，但是如果日志文件产生了大量记录， do_get 性能会非常差，他只能进行 O(n) 扫描全表</li>
+</ol>
+<p>那如何快速查找我们想要找的 key 的值呢，那就需要一个数据结构来索引它，最基本的想法就是存一些额外的数据，作为这些元数据的路标，帮助我们定位，但是引入额外的数据结构来维护索引，也是有开销的，每次写入数据<strong>不仅仅是简单的追加数据，还需要更新索引，因此任何类型的索引都会降低写入速度</strong>。</p>
+<p>这里需要提一下存储引擎最终要的权衡设计：</p>
+<ol>
+<li>适量的索引可以提高查询速度</li>
+<li>每个索引都会减慢写入速度</li>
+<li>所以这里需要做一个权衡，通常来说，就是我们加索引不能随心所欲的乱加</li>
+</ol>
+<h2 id="哈希索引">哈希索引：</h2>
+<p>先从简单的哈希索引开始介绍，通常为 kv ，是其他更复杂的索引的基础构造模块。</p>
+<p>KV大家已经很了解了，就理解成一个 map 就行。</p>
+<p>假设我们现在需要设计一个kv的存储引擎，数据采用追加文件的做法，如果我们要给数据加索引，一个最直观的做法是：</p>
+<p><strong>map中的 key 值为键名，value 为字段在文件的偏移量。查找数据时，直接找到偏移量，就可以直接读取出文件。</strong></p>
+<p><img src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210709215730.png" alt=""></p>
+<p>这是一个可行的做法，且是 Bitcask 存储引擎的默认做法。用 hash_map 在内存中存 key，占用内存小，且 value 可以存一个比较大的值。但是缺点是，需要把所有的key存在内存中，要保证内存大小。</p>
+<p>我们考虑一下优化方案，如果只追加到一个文件，如何避免磁盘空间被用尽呢？</p>
+<p>一个好的方案是：</p>
+<ul>
+<li>将日志分为一定大小的段</li>
+<li>文件到达一定大小时就关闭它，后面的数据写入新的日志文件中</li>
+<li>这些日志的段可以被压缩，在日志中丢弃重复的键</li>
+<li>压缩会使段减少，如果压缩后非常小，可以将段之间进行合并</li>
+</ul>
+<p><img src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210709215806.png" alt=""></p>
+<p><img src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210709215826.png" alt=""></p>
+<p>经过这样操作后，每个段都有自己的哈希表，将键映射到文件的偏移量。查找的时候，先检查新的段的 hash_map，不存在的话， 再找第二新的段，以此类推。</p>
+<p>我们刚刚口糊了一个简单的kv存储引擎的实现方案，但是有些地方并不全面，我们还需要考虑：</p>
+<ul>
+<li>文件格式：日志格式采用二进制格式会更省空间</li>
+<li>删除记录：如果要删除键和关联的值，可以在数据文件中给这个数据打一个标记（称为墓碑）。在合并的时候，如果发现这段数据有墓碑标记，就丢弃这些数据</li>
+<li>崩溃恢复：我们的数据都存在内存中，如果数据库突然崩溃，我们重启数据库的时候，只能重新读取日志文件重建一个哈希索引。但是如果日志文件特别大，那么就得扫描很长时间，则这个数据库很长时间才能启动起来。所以我们考虑给内存中存储的数据加快照，重启后直接读就行，快速重建</li>
+<li>部分写入的记录：数据库可能随时崩溃，包括将记录追加到日志的过程中。我们需要给数据增加校验值，如果数据不对，就丢弃。</li>
+<li>并发控制：文件的写入是有严格的先后顺序的，通常的实现是只有一个写线程，数据文件段是追加的，并且不可变，他们可以被其他多个线程读取。</li>
+</ul>
+<p>追加写的方式是不是很浪费空间，为什么不采用不断更新原文件来实现呢？</p>
+<ol>
+<li>在旋转式磁盘上，顺序写比随机写入速度快得多</li>
+<li>如果段文件是追加的或不可改变的，那并发和数据恢复则要简单的多。不必担心重写值会发生崩溃的情况，留下一个新值和部分旧值混在一起的文件。</li>
+</ol>
+<p>哈希表索引也有局限性：</p>
+<ul>
+<li>哈希表需要存储在内存中，内存的大小有限。如果放入磁盘中维护哈希表是一件很困难的事.</li>
+<li>区间查询效率不高，不能查某个区间范围所有键，只能逐个查找的方式查询键。</li>
+</ul>
+<h2 id="sstables-和-lsm-tree">SSTables 和 LSM-Tree</h2>
+<p>我们改变上述文件格式：要求哈希表的 key-value 需要按照键的顺序排序。</p>
+<p>这种格式被称为排序字符串表，也叫  SSTable，要求每个键在每个合并的段文件中只能出现一次（压缩过程中已经确保了）。SSTable有以下优点：</p>
+<ul>
+<li>合并段更加简单高效，即使文件大于可用内存。方法类似于合并排序，并发读多个文件，比较每个文件的第一个键，拷贝到输出文件。这样就可以完成排序（相同的键出现在多个输入段时，保留新新值，删除旧值）</li>
+<li>在文件中查找特定键时，不需要在内存中保存所有键索引，保存一些稀疏的范围索引即可。（假设我们要查 handiwork，我们不知道他的偏移量，但是我们知道 handbag 和 handsome 的偏移量，可以确定要查的字段一定位于两者之间，那我们就可以在一小段内顺序查找了）</li>
+</ul>
+<blockquote>
+<p>如果所有的键和值都能保持固定的大小，我们可以考虑采用二分查找。</p>
+</blockquote>
+<h3 id="构建和维护-sstables">构建和维护 SSTables</h3>
+<p>数据的写入是随机的，我们首先要保证如何让数据按键排序。在磁盘上维护排序结构是可行的，不过，将其保存在内存中更加容易，那么现在的问题就转化成了一个数据结构问题，而内存排序有很多广为人知的数据结构，各种平衡树，比如：</p>
+<ul>
+<li>红黑树（在 C++ STL 中 std::map 就是默认key有序，底层是用红黑树来实现）</li>
+<li>AVL树</li>
+</ul>
+<p>他们插入、删除、更新数据时间复杂度都是 log 级别。</p>
+<p>那这时我们的存储引擎基本流程如下：</p>
+<ol>
+<li>在内存中维护一棵平衡树</li>
+<li>当这棵树的大小超过某个阈值，将其作为 SSTable 文件落盘，继续维护一棵新的树</li>
+<li>后台进程周期性的执行压缩合并过程，合并多个段文件。</li>
+</ol>
+<p>上述还存在一个问题，如果数据库崩溃（即写在了内存中但是还未落盘），最近的写入就会丢失，为了避免该问题，我们可以在磁盘上保留惨淡，这个日志不需要对键进行排序，唯一的作用就是在崩溃后恢复内存表，每当内存表写入 SSTable 后，则相应的日志可以丢弃。</p>
+<h3 id="从-sstables-到-lsm-tree">从 SSTables 到 LSM-Tree</h3>
+<p><a href="https://cloud.tencent.com/developer/article/1441835">深入理解什么是LSM-Tree</a></p>
+<p>以上算法的本质是 LevelDB 和 RocksDB 使用的，主要用于嵌入到其他应用程序的 KV 存储引擎库。</p>
+<blockquote>
+<p>字节内部自研的 Abase 实质上就是基于 RocksDB 实现的</p>
+</blockquote>
+<p>收到 Google <a href="https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/bigtable-osdi06.pdf">Bigtable原版论文</a>  <a href="https://arthurchiao.art/blog/google-bigtable-zh/">Bigtable中文翻译</a> <a href="https://www.bysocket.com/wp-content/uploads/2018/08/Google-Bigtable%E4%B8%AD%E6%96%87%E7%89%88_1.0.pdf">Bigtable中文</a> 这篇论文启发，引入了 SSTable 这个术语。这个索引结构以<strong>日志合并树</strong>（Log-Structured Merge-Tree）来命名，<strong>基于合并和压缩排序文件原理的存储引擎通常都被称为 LSM 存储引擎。</strong></p>
+<blockquote>
+<p>Lucene 是Elasticsearch和 Solr等全文搜索系统所使用的索引引擎，它采用了类似的方法来保存其词典。全文索引比 kv索引复杂的多，但是基于一些类似的想法：给定搜索查询的某个单词，找到提及该单词的所有文档。主要使用 KV 实现，其中键是单词，值是所有包含该单词的文档的ID的列表。在 Lucene 中，从词条到 posting list 的映射关系保存在类 SSTable 的排序文件中，这些文件可以后台合并。</p>
+</blockquote>
+<h3 id="性能优化">性能优化：</h3>
+<ul>
+<li>查找每个不存在的键时，LSM-tree 性能可能会很慢
+<ul>
+<li>在确定键不存在之前，必须先检查内存表，然后一直回溯到最旧的段文件。</li>
+<li>为了优化这种情况，我们一般使用 <a href="https://zh.wikipedia.org/wiki/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8">布隆过滤器 </a>（布隆过滤器可以用于检索一个元素是否在一个集合中，速度较快）</li>
+</ul>
+</li>
+<li>不同策略会影响甚至决定 SSTables 压缩和合并具体顺序的实际，最常见的方式是大小分级和层级压缩.
+<ul>
+<li>LevelDB 和 RocksDB 使用分层压缩</li>
+<li>HBase 使用大小分级</li>
+</ul>
+</li>
+</ul>
+<p>LSM-Tree 的基本思想（保存在后台合并的一系列 SSTable）足够简单有效。技术数据集远远大于内存，仍然能够正常工作。由于数据按顺序存储，因此可以有效进行区间查询，由于磁盘是顺序写入的，所以 LSM-Tree 可以支持非常搞的吞吐量</p>
+<h2 id="b-tree">B-Tree</h2>
+<blockquote>
+<p>B树我们应该都很熟悉了，在这里我们主要关注一下和之前日志结构索引的不同和一些特性即可。</p>
+</blockquote>
+<blockquote>
+<p>关于具体数据结构的学习，可以看:https://segmentfault.com/a/1190000020416577</p>
+</blockquote>
+<p>虽然日志结构索引正在逐渐受到更多的认可，但是它还不是最常见的索引类型。</p>
+<p>BTree应该是我们最常见的索引结构了。时至今日，它仍然是几乎所有关系型数据库的标准索引实现。许多非关系型数据库也经常使用。</p>
+<p>和 SSTable 思路差不多，BTree 保留按键排序的 kv 对，这样可以实现高效的 kv 查询和区间查询，但是相似的地方仅此而已，Btree 本质上具有非常不同的设计理念。</p>
+<ul>
+<li>日志结构索引将数据库分解为大小可变的段，通常为几兆字节或者更大，并且按顺序写入</li>
+<li>BTree 将数据库分解成固定大小的块或页，传统大小为 4KB ，页是内部读写的最小单元，这种设计更接近底层硬件，因为磁盘也是按照固定大小的块排列</li>
+<li>每个页面都可以使用地址或者位置进行标识，这样可以让一个页面引用另一个页面，类似于指针，它指向磁盘的地址，而不是内存。用这些页面引用来构造一个树，就是 B 树。</li>
+</ul>
+<p><img src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210709215956.png" alt=""></p>
+<p>上面的例子可以看出，我们要查找 251 ，我们沿着根节点往下找，每个节点存储的都是一个范围的页的磁盘地址，只有叶子节点才存储具体的值。</p>
+<p>在 B 树中，一个节点有几个儿子节点，这个数量称为 分支因子，在实际中分支因子取决于存储页面 引用和范围边界所需的空间总量，通常为几百个</p>
+<p>如果需要对 B 树进行更新，搜索包含这个键的叶子页，更改页的值，并将页写回磁盘，如果要添加新键，就需要找到其范围内包含新键的页，并将其添加到页。如果此页中没有足够的空间，就把这个页分裂成两个页，并且其父页也需要包含分裂之后的新的键范围。</p>
+<p><img src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210709220015.png" alt=""></p>
+<p>这个算法确保了树的平衡，具有n个键的 B-tree 总是具有 O(logn) 的深度，大多数数据库可以适合 3-4 层的 btree，因此不需要遍历非常深的页面层次即可找到所需的页（分支因子为500的4kb页的四级树存储高达 256TB）</p>
+<h3 id="使b-tree可靠">使B-Tree可靠</h3>
+<p>B树写操作是新数据覆盖旧数据，它假设覆盖不会改变页的磁盘的存储位置。这与 LSM 形成鲜明对比，LSM-Tree 仅追加更新文件，不会修改文件。</p>
+<p>在具体的实体磁盘执行这个操作， 首先要移动磁头，然后旋转盘面，然后用新数据覆盖旧数据。SSD的话更加复杂。所以很可能会出问题，为了能使数据库快速恢复，我们支持一个数据结构，叫：预写日志 WAL 。这是一个仅能追加的文件，在数据库崩溃时，可以将数据库恢复到最近一致的状态。</p>
+<p>多个线程访问B树时，需要注意并发控制，通常使用锁存器保护树的数据结构正常完成。这方面，日志结构化的方式比较简单，因为他们在后台执行合并操作，不会干扰前台。</p>
+<h3 id="优化b-tree">优化B-Tree</h3>
+<p>B-tree已经存在了很长时间，这里列举一些优化措施：</p>
+<ol>
+<li>一些数据库，比如 LMDB，不使用覆盖页和维护 WAL 来进行崩溃恢复，而是使用写时复制方案。修改的页被写入不同的位置。这种方案对并发控制也很有帮助。</li>
+<li>保存键的缩略信息，而不是完整的键，这样可以节省页空间。特别是树中间的页，只需要提供足够的信息来描述键的起止范围，这样就可以让更多的键压入到页中，从而减少层数。</li>
+</ol>
+<blockquote>
+<p>这个变种有时候称为 B+ 树，然而优化是如此常见，以至于不能和其他 B-tree 变种区分开来。</p>
+</blockquote>
+<ol>
+<li>一般来说，页可以存放在磁盘的任何位置，没有要求相邻的页需要存放在相邻磁盘位置。但是随机放比较低效，所以，许多B-Tree实现尝试将树进行布局，以便相邻叶子页可以按顺序保存在磁盘上。但是随着树增长，保持这个顺序会变得越来越困难。相比之下 LSM-Tree 则完全没有这个问题。</li>
+<li>添加额外指针到树中。例如，每个叶子页面会向左和向右引用其他兄弟页，这样可以顺序扫描键，不用跳回到父页面</li>
+<li>B-tree 的变种如分行树，借鉴了一些日志结构的想法来减少磁盘寻道。对比 B-Tree 和 LSM-Tree</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>B-Tree</th>
+<th>LSM-Tree</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>代码实现</td>
+<td>更加成熟</td>
+<td>发展阶段</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>读取更快</td>
+<td>写入更快，读取较慢（需要在不同的压缩阶段检查不同数据结构和SSTable）</td>
+</tr>
+<tr>
+<td>写入速度</td>
+<td>比较慢，因为写入是随机在磁盘中的位置</td>
+<td>比较快，顺序加日志，磁头顺序转动，写入速度快得多</td>
+</tr>
+<tr>
+<td>擦写次数</td>
+<td>一般</td>
+<td>反复压缩和SSTable合并，日志结构数据会重写数据多次，这种影响被称为放大，对于 SSD，由于只能承受有限次擦写磁盘，更关注放大指标</td>
+</tr>
+<tr>
+<td>占用空间大小</td>
+<td>一般</td>
+<td>占用空间更小，比较好的压缩</td>
+</tr>
+<tr>
+<td>并发性能</td>
+<td>响应延迟比较有确定性</td>
+<td>压缩过程中可能会干扰正在进行的读写操作，及时存储引擎尝试增量的进行压缩，并且不影响并发访问，由于磁盘并发资源有限，当执行昂贵的并发操作时，容易发生读写请求等待的情况</td>
+</tr>
+<tr>
+<td>数据结构</td>
+<td>每个键都恰好对应索引中的某个位置，而日志结构的存储引擎可能在不同段中具有相同键的多个副本 如果希望提供强大的事务，B-Tree更有吸引力 在许多关系数据库中吗，事务隔离是通过键范围锁来实现，并且在 B-Tree 索引中，这些锁可以直接定义到树中</td>
+<td>比较新颖，以后会越来越多使用</td>
+</tr>
+</tbody>
+</table>
+<h2 id="其他索引">其他索引</h2>
+<p>到目前为止，我们说的都是 KV 索引，对应于关系模型中的主键索引，主键唯一标识关系表中的一行，或者文档数据库的一个文档，或者图数据库的一个点。数据库的其他记录通过其主键来引用该行/文档/顶点，该索引用于解析此类引用。</p>
+<p>二级索引很常见，在关系数据库中，可以使用 <code>CREATE INDEX</code> 命令来创建二级索引，很容易通过 KV 索引来构建，它的键不是唯一的，即可能有很多行具有相同键。这样可以通过两种方式解决：</p>
+<ol>
+<li>使索引每个值成为匹配行标识的列表</li>
+<li>增加一些行标识使每个键变得唯一</li>
+</ol>
+<h3 id="在索引中存值">在索引中存值</h3>
+<p>我们已经有了主键索引，那么在额外假的索引中就不用直接存储元数据，只存储一个引用就可以，存储行的具体位置被称为堆文件。这样存在多个二级索引时，可以避免复制数据，实际数据只保存在一个位置.</p>
+<p>在 MySQL InnoDB 引擎中，表的主键始终是聚集索引，二级索引引用主键位置。</p>
+<h3 id="多列索引">多列索引</h3>
+<p>现在讨论的仍然是将一个键映射到一个值，如果我们的需求是同时查询表的多个列，如文档中的多个字段。</p>
+<p>最常见的多列索引称为 <strong>级联索引</strong>，通过将几个字段连接组成一个键，进行排序</p>
+<h3 id="全文搜索和模糊索引">全文搜索和模糊索引</h3>
+<p>目前，我们讨论的都是有确切数据。还有一些其他索引，如:</p>
+<ol>
+<li>全文搜索引擎通常支持对一个单词的所有同义词进行查询，忽略语法上的变体</li>
+<li>其他模糊搜索则沿着文档和机器学习方向发展。</li>
+</ol>
+<h3 id="在内存中保存所有数据">在内存中保存所有数据</h3>
+<p>现在内存价格逐渐便宜，数据集不那么大，用内存可以更好的服务。</p>
+<p>比如我们常用的 redis ，这部分就不说了.</p>
+<h1 id="事务处理与分析处理">事务处理与分析处理</h1>
+<blockquote>
+<p>主要了解 OLTP 与 PLAP</p>
+</blockquote>
+<p>事务指一个逻辑单元的一组读写操作</p>
+<blockquote>
+<p><strong>ACID</strong>，是指<a href="https://baike.baidu.com/item/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F">数据库管理系统</a>（<a href="https://baike.baidu.com/item/DBMS">DBMS</a>）在写入或更新资料的过程中，为保证<a href="https://baike.baidu.com/item/%E4%BA%8B%E5%8A%A1">事务</a>（transaction）是正确可靠的，所必须具备的四个特性：<a href="https://baike.baidu.com/item/%E5%8E%9F%E5%AD%90%E6%80%A7">原子性</a>（atomicity，或称不可分割性）、<a href="https://baike.baidu.com/item/%E4%B8%80%E8%87%B4%E6%80%A7">一致性</a>（consistency）、<a href="https://baike.baidu.com/item/%E9%9A%94%E7%A6%BB%E6%80%A7">隔离性</a>（isolation，又称独立性）、<a href="https://baike.baidu.com/item/%E6%8C%81%E4%B9%85%E6%80%A7">持久性</a>（durability）。</p>
+</blockquote>
+<p><strong>数据处理大致可以分成两大类：</strong></p>
+<p>联机事务处理OLTP（on-line transaction processing）、联机分析处理OLAP（On-Line Analytical Processing）。</p>
+<p>OLTP是传统的关系型数据库的主要应用，主要是基本的、日常的事务处理，例如银行交易。</p>
+<p>OLAP是数据仓库系统的主要应用，支持复杂的分析操作，侧重决策支持，并且提供直观易懂的查询结果。</p>
+<p>OLTP 系统强调数据库内存效率，强调内存各种指标的命令率，强调绑定变量，强调并发操作；</p>
+<p>OLAP 系统则强调数据分析，强调SQL执行市场，强调磁盘I/O，强调分区等。</p>
+<p>OLTP与OLAP之间的比较：</p>
+<p><img src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210709220104.png" alt=""></p>
+<p><img src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210709220116.png" alt=""></p>
+<p>在我们实际应用中：</p>
+<p>常见的 OLTP 数据库例如 MySQL，常见的 OLAP 系统，比如 Hive，clickHouse</p>
+<h1 id="列式存储">列式存储</h1>
+<p>在大多数 OLTP 数据库中，存储以行的方式来进行布局：来自表的一行的所有值彼此相邻存储。文档数据库也类似。</p>
+<p>那相对的，列式存储的想法也很简单：不要将一行中的所有值存在一起，而是将每列中的所有值存在一起。</p>
+<p>在列式存储中比较著名的，有 ClickHouse.</p>
+<h3 id="什么是clickhouse">什么是ClickHouse?</h3>
+<p><a href="https://clickhouse.tech/docs/zh/">https://clickhouse.tech/docs/zh/</a> ClickHouse中文官网，讲的比较详细</p>
+<p>ClickHouse是一个用于联机分析(OLAP)的列式数据库管理系统(DBMS)。在传统的行式数据库系统中，数据总是按照行来存储，同一行的数据总是被物理的存储在一起，常见的行式数据库有：<code>MySQL</code>、<code>Postgres</code>和<code>MS SQL Server</code>。</p>
+<p>比如：</p>
+<table>
+<thead>
+<tr>
+<th>行</th>
+<th>学生</th>
+<th>学号</th>
+<th>Other</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>#0</td>
+<td>张三</td>
+<td>11</td>
+<td>&hellip;</td>
+</tr>
+<tr>
+<td>#1</td>
+<td>李四</td>
+<td>22</td>
+<td>&hellip;</td>
+</tr>
+<tr>
+<td>#2</td>
+<td>王五</td>
+<td>33</td>
+<td>&hellip;</td>
+</tr>
+</tbody>
+</table>
+<p>在列式存储数据库中，数据按照如下方式存储：</p>
+<table>
+<thead>
+<tr>
+<th>列号</th>
+<th>#0</th>
+<th>#1</th>
+<th>#2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>学生</td>
+<td>张三</td>
+<td>李四</td>
+<td>王五</td>
+</tr>
+<tr>
+<td>学号</td>
+<td>11</td>
+<td>22</td>
+<td>33</td>
+</tr>
+<tr>
+<td>Other</td>
+<td>&hellip;</td>
+<td>&hellip;</td>
+<td>&hellip;</td>
+</tr>
+</tbody>
+</table>
+<p>我们很容易看出两种存储方式的区别。不同的数据存储方式适用不同的业务场景，数据访问的场景包括：</p>
+<ul>
+<li>进行了何种查询、多久查询一次以及各类查询的比例；</li>
+<li>每种类型的查询(行、列和字节)读取多少数据；</li>
+<li>读取数据和更新之间的关系；</li>
+<li>使用的数据集大小以及如何使用本地的数据集；</li>
+<li>是否使用事务,以及它们是如何进行隔离的；</li>
+<li>数据的复制机制与数据的完整性要求；</li>
+<li>每种类型的查询要求的延迟与吞吐量等等。</li>
+</ul>
+<p>系统负载越高，依据使用场景进行定制化就越重要，并且定制将会变的越精细。没有一个系统能够同时适用所有不同的业务场景。如果系统适用于广泛的场景，在负载高的情况下，要兼顾所有的场景，那么将不得不做出选择。是要平衡还是要效率？</p>
+<h3 id="olap场景的关键特征">OLAP场景的关键特征</h3>
+<ul>
+<li>
+<p>绝大多数是读请求</p>
+</li>
+<li>
+<p>数据以相当大的批次(&gt; 1000行)更新，而不是单行更新;或者根本没有更新。</p>
+</li>
+<li>
+<p>已添加到数据库的数据不能修改。</p>
+</li>
+<li>
+<p>对于读取，从数据库中提取相当多的行，但只提取列的一小部分。</p>
+</li>
+<li>
+<p>宽表，即每个表包含着大量的列</p>
+</li>
+<li>
+<p>查询相对较少(通常每台服务器每秒查询数百次或更少)</p>
+</li>
+<li>
+<p>对于简单查询，允许延迟大约50毫秒</p>
+</li>
+<li>
+<p>列中的数据相对较小：数字和短字符串(例如，每个URL 60个字节)</p>
+</li>
+<li>
+<p>处理单个查询时需要高吞吐量(每台服务器每秒可达数十亿行)</p>
+</li>
+<li>
+<p>事务不是必须的</p>
+</li>
+<li>
+<p>对数据一致性要求低</p>
+</li>
+<li>
+<p>每个查询有一个大表。除了他以外，其他的都很小。</p>
+</li>
+<li>
+<p>查询结果明显小于源数据。换句话说，数据经过过滤或聚合，因此结果适合于单个服务器的RAM中</p>
+</li>
+</ul>
+<h3 id="列式数据库更适合olap场景的原因">列式数据库更适合OLAP场景的原因</h3>
+<p><strong>行式</strong></p>
+<p><img src="https://clickhouse.tech/docs/zh/images/row-oriented.gif" alt="Row oriented"></p>
+<p><strong>列式</strong></p>
+<p><img src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/column-oriented.gif" alt="Column oriented"></p>
+<p>很容易看出其中的差别，我们考虑一下为什么会发生这种情况：</p>
+<ol>
+<li>针对分析类查询，通常只需要读取表的一小部分列。在列式数据库中你可以只读取你需要的数据。例如，如果只需要读取100列中的5列，这将帮助你最少减少20倍的I/O消耗。</li>
+<li>由于数据总是打包成批量读取的，所以压缩是非常容易的。同时数据按列分别存储这也更容易压缩。这进一步降低了I/O的体积。</li>
+<li>由于I/O的降低，这将帮助更多的数据被系统缓存。</li>
+</ol>
+<p>由于执行一个查询需要处理大量的行，因此在整个向量上执行所有操作将比在每一行上执行所有操作更加高效。同时这将有助于实现一个几乎没有调用成本的查询引擎。如果你不这样做，使用任何一个机械硬盘，查询引擎都不可避免的停止CPU进行等待。所以，在数据按列存储并且按列执行是很有意义的。</p>
+<p>有两种方法可以做到这一点：</p>
+<ol>
+<li>向量引擎：所有的操作都是为向量而不是为单个值编写的。这意味着多个操作之间的不再需要频繁的调用，并且调用的成本基本可以忽略不计。操作代码包含一个优化的内部循环。</li>
+<li>代码生成：生成一段代码，包含查询中的所有操作。</li>
+</ol>
+<p>这是不应该在一个通用数据库中实现的，因为这在运行简单查询时是没有意义的。但是也有例外，例如，MemSQL使用代码生成来减少处理SQL查询的延迟(只是为了比较，分析型数据库通常需要优化的是吞吐而不是延迟)。</p>
+<h1 id="总结">总结</h1>
+<p>概括来讲，存储引擎分为两大类:</p>
+<ul>
+<li>针对事务处理( OLTP )优化的架构</li>
+<li>针对分析型(OLAP)的优化架构。</li>
+</ul>
+<p>它们典型的访问模式存在很大差异 :</p>
+<ul>
+<li>OLTP系统通常面向用 户，这意味着他们可能收到大量的请求。为了处理负载，应用程序通常在每个查询中只涉及少量的记录。应用程序基于某种键来请求记录 ，而存储引擎使用索引来查找所请求键的数据。磁盘寻道时间往往是瓶颈 。</li>
+<li>由于不是直接面对最终用户 ，数据仓库和类似的分析型系统相对并不太广为人知，它们主要由业务分析师使用。 处理的查询请求数目远低于OLTP系统， 但每 个查询通常要求非常苛刻，需要在短时间 内扫描数百万条记录。 磁盘带宽(不是 寻道时间)通常是瓶颈，而面向列的存储对于这种工作负载成为日益流行的解决 方案。</li>
+</ul>
+<p>在OLTP方面，由两个主要流派的存储引擎 :</p>
+<ul>
+<li>日志结构流派，它只允许追加式更新文件和删除过时的文件，但不会修改 已写入的文件 。 BitCask、 SSTables、 LSM-tree、 LeveIDB、 Cassandra、 HBase、 Lucene 等属于此类。</li>
+<li>原地更新流派，将磁盘视为可以覆盖的一组固定大小的页。 B-tree是这一哲学的最典型代表，它已用于所有主要的关系数据库，以及大量的非关系数据库。</li>
+</ul>
+<p>日志结构的存储引擎是一个相对较新的方案。其关键思想是系统地将磁盘上随机访问写入转为顺序写入，由于硬盘驱动器和SSD的性能特性，可以实现更高的写入吞吐量。作为应用开发人员，掌握更多有关存储引擎内部的知识，可以更好地了解哪种工具最适合你的具体应用。</p>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2021-07-09</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="https://blog.riba2534.cn/blog/2021/%E6%95%B0%E5%AD%97%E8%B4%A7%E5%B8%81%E6%9C%9F%E7%8E%B0%E5%A5%97%E5%88%A9%E5%85%A5%E9%97%A8/">
+			下回<br>数字货币期现套利入门
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://blog.riba2534.cn/blog/2021/go-linq%E4%BD%BF%E7%94%A8/">
+			上回<br>Go Linq 使用
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "blog-9g6ht92ca9c564c6",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>《TCP/IP网络编程》 on 🌀riba2534&#39;s Blog</title>
+    <link>https://blog.riba2534.cn/tags/tcp/ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/</link>
+    <description>Recent content in 《TCP/IP网络编程》 on 🌀riba2534&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language><atom:link href="https://blog.riba2534.cn/tags/tcp/ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>《TCP/IP网络编程》第 24 章 制作 HTTP 服务器端 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-24-%E7%AB%A0-%E5%88%B6%E4%BD%9C-http-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Thu, 07 Feb 2019 20:16:48 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-24-%E7%AB%A0-%E5%88%B6%E4%BD%9C-http-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 24 章 制作 HTTP 服务器端 本章代码，在TCP-IP-NetworkNote中可以找到。
+24.1 HTTP 概要 本章将编写 HTTP（HyperText Transfer Protocol，超文本传输协议）服务器端，即 Web 服务器端。
+24.1.1 理解 Web 服务器端 web服务器端就是要基于 HTTP 协议，将网页对应文件传输给客户端的服务器端。
+24.1.2 HTTP 无状态的 Stateless 协议
+从上图可以看出，服务器端相应客户端请求后立即断开连接。换言之，服务器端不会维持客户端状态。即使同一客户端再次发送请求，服务器端也无法辨认出是原先那个，而会以相同方式处理新请求。因此，HTTP 又称「无状态的 Stateless 协议」
+24.1.3 请求消息（Request Message）的结构 下面是客户端向服务端发起请求消息的结构：
+从图中可以看出，请求消息可以分为请求头、消息头、消息体 3 个部分。其中，请求行含有请求方式（请求目的）信息。典型的请求方式有 GET 和 POST ，GET 主要用于请求数据，POST 主要用于传输数据。为了降低复杂度，我们实现只能响应 GET 请求的 Web 服务器端，下面解释图中的请求行信息。其中「GET/index.html HTTP/1.1」 具有如下含义：
+ 请求（GET）index.html 文件，通常以 1.1 版本的 HTTP 协议进行通信。
+ 请求行只能通过 1 行（line）发送，因此，服务器端很容易从 HTTP 请求中提取第一行，并分别分析请求行中的信息。
+请求行下面的消息头中包含发送请求的浏览器信息、用户认证信息等关于 HTTP 消息的附加信息。最后的消息体中装有客户端向服务端传输的数据，为了装入数据，需要以 POST 方式发送请求。但是我们的目标是实现 GET 方式的服务器端，所以可以忽略这部分内容。另外，消息体和消息头与之间以空行隔开，因此不会发生边界问题</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 18 章 多线程服务器端的实现 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-18-%E7%AB%A0-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF%E7%9A%84%E5%AE%9E%E7%8E%B0-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Sun, 03 Feb 2019 16:05:00 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-18-%E7%AB%A0-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF%E7%9A%84%E5%AE%9E%E7%8E%B0-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 18 章 多线程服务器端的实现 本章代码，在TCP-IP-NetworkNote中可以找到。
+18.1 理解线程的概念 18.1.1 引入线程背景 第 10 章介绍了多进程服务端的实现方法。多进程模型与 select 和 epoll 相比的确有自身的优点，但同时也有问题。如前所述，创建（复制）进程的工作本身会给操作系统带来相当沉重的负担。而且，每个进程都具有独立的内存空间，所以进程间通信的实现难度也会随之提高。换言之，多进程的缺点可概括为：
+ 创建进程的过程会带来一定的开销 为了完成进程间数据交换，需要特殊的 IPC 技术。  但是更大的缺点是下面的：
+ 每秒少则 10 次，多则千次的「上下文切换」是创建进程的最大开销  只有一个 CPU 的系统是将时间分成多个微小的块后分配给了多个进程。为了分时使用 CPU ，需要「上下文切换」的过程。「上下文切换」是指运行程序前需要将相应进程信息读入内存，如果运行进程 A 后紧接着需要运行进程 B ，就应该将进程 A 相关信息移出内存，并读入进程 B 相关信息。这就是上下文切换。但是此时进程 A 的数据将被移动到硬盘，所以上下文切换要很长时间，即使通过优化加快速度，也会存在一定的局限。
+为了保持多进程的优点，同时在一定程度上克服其缺点，人们引入的线程（Thread）的概念。这是为了将进程的各种劣势降至最低程度（不是直接消除）而设立的一种「轻量级进程」。线程比进程具有如下优点：
+ 线程的创建和上下文切换比进程的创建和上下文切换更快 线程间交换数据无需特殊技术  18.1.2 线程和进程的差异 线程是为了解决：为了得到多条代码执行流而复制整个内存区域的负担太重。
+每个进程的内存空间都由保存全局变量的「数据区」、向 malloc 等函数动态分配提供空间的堆（Heap）、函数运行时间使用的栈（Stack）构成。每个进程都有独立的这种空间，多个进程的内存结构如图所示：
+但如果以获得多个代码执行流为目的，则不应该像上图那样完全分离内存结构，而只需分离栈区域。通过这种方式可以获得如下优势：
+ 上下文切换时不需要切换数据区和堆 可以利用数据区和堆交换数据  实际上这就是线程。线程为了保持多条代码执行流而隔开了栈区域，因此具有如下图所示的内存结构：
+如图所示，多个线程共享数据区和堆。为了保持这种结构，线程将在进程内创建并运行。也就是说，进程和线程可以定义为如下形式：
+ 进程：在操作系统构成单独执行流的单位 线程：在进程构成单独执行流的单位  如果说进程在操作系统内部生成多个执行流，那么线程就在同一进程内部创建多条执行流。因此，操作系统、进程、线程之间的关系可以表示为下图：
+18.2 线程创建及运行 可移植操作系统接口（英语：Portable Operating System Interface，缩写为POSIX）是IEEE为要在各种UNIX操作系统上运行软件，而定义API的一系列互相关联的标准的总称，其正式称呼为IEEE Std 1003，而国际标准名称为ISO/IEC 9945。此标准源于一个大约开始于1985年的项目。POSIX这个名称是由理查德·斯托曼（RMS）应IEEE的要求而提议的一个易于记忆的名称。它基本上是Portable Operating System Interface（可移植操作系统接口）的缩写，而X则表明其对Unix API的传承。</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 17 章 优于 select 的 epoll 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-17-%E7%AB%A0-%E4%BC%98%E4%BA%8E-select-%E7%9A%84-epoll-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Fri, 01 Feb 2019 19:06:05 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-17-%E7%AB%A0-%E4%BC%98%E4%BA%8E-select-%E7%9A%84-epoll-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 17 章 优于 select 的 epoll 本章代码，在TCP-IP-NetworkNote中可以找到。
+17.1 epoll 理解及应用 select 复用方法由来已久，因此，利用该技术后，无论如何优化程序性能也无法同时介入上百个客户端。这种 select 方式并不适合以 web 服务器端开发为主流的现代开发环境，所以需要学习 Linux 环境下的 epoll
+17.1.1 基于 select 的 I/O 复用技术速度慢的原因 第 12 章实现了基于 select 的 I/O 复用技术服务端，其中有不合理的设计如下：
+ 调用 select 函数后常见的针对所有文件描述符的循环语句 每次调用 select 函数时都需要向该函数传递监视对象信息  上述两点可以从 echo_selectserv.c 得到确认，调用 select 函数后，并不是把发生变化的文件描述符单独集中在一起，而是通过作为监视对象的 fd_set 变量的变化，找出发生变化的文件描述符（54,56行），因此无法避免针对所有监视对象的循环语句。而且，作为监视对象的 fd_set 会发生变化，所以调用 select 函数前应该复制并保存原有信息，并在每次调用 select 函数时传递新的监视对象信息。
+select 性能上最大的弱点是：每次传递监视对象信息，准确的说，select 是监视套接字变化的函数。而套接字是操作系统管理的，所以 select 函数要借助操作系统才能完成功能。select 函数的这一缺点可以通过如下方式弥补：
+ 仅向操作系统传递一次监视对象，监视范围或内容发生变化时只通知发生变化的事项
+ 这样就无需每次调用 select 函数时都想操作系统传递监视对象信息，但是前提操作系统支持这种处理方式。Linux 的支持方式是 epoll ，Windows 的支持方式是 IOCP。</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 16 章 关于 I/O 流分离的其他内容 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-16-%E7%AB%A0-%E5%85%B3%E4%BA%8E-i-o-%E6%B5%81%E5%88%86%E7%A6%BB%E7%9A%84%E5%85%B6%E4%BB%96%E5%86%85%E5%AE%B9-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Wed, 30 Jan 2019 14:38:38 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-16-%E7%AB%A0-%E5%85%B3%E4%BA%8E-i-o-%E6%B5%81%E5%88%86%E7%A6%BB%E7%9A%84%E5%85%B6%E4%BB%96%E5%86%85%E5%AE%B9-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 16 章 关于 I/O 流分离的其他内容 本章代码，在TCP-IP-NetworkNote中可以找到。
+16.1 分离 I/O 流 「分离 I/O 流」是一种常用表达。有 I/O 工具可区分二者，无论采用哪种方法，都可以认为是分离了 I/O 流。
+16.1.1 2次 I/O 流分离 之前有两种分离方法：
+ 第一种是第 10 章的「TCP I/O 过程」分离。通过调用 fork 函数复制出一个文件描述符，以区分输入和输出中使用的文件描述符。虽然文件描述符本身不会根据输入和输出进行区分，但我们分开了 2 个文件描述符的用途，因此，这也属于「流」的分离。 第二种分离是在第 15 章。通过 2 次 fdopen 函数的调用，创建读模式 FILE 指针（FILE 结构体指针）和写模式 FILE 指针。换言之，我们分离了输入工具和输出工具，因此也可视为「流」的分离。下面是分离的理由。  16.1.2 分离「流」的好处 首先是第 10 章「流」的分离目的：
+ 通过分开输入过程（代码）和输出过程降低实现难度 与输入无关的输出操作可以提高速度  下面是第 15 章「流」分离的目的：
+ 为了将 FILE 指针按读模式和写模式加以区分 可以通过区分读写模式降低实现难度 通过区分 I/O 缓冲提高缓冲性能  16.1.3 「流」分离带来的 EOF 问题 第 7 章介绍过 EOF 的传递方法和半关闭的必要性。有一个语句：</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 15 章 套接字和标准I/O 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-15-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E5%92%8C%E6%A0%87%E5%87%86i-o-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Tue, 29 Jan 2019 17:53:25 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-15-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E5%92%8C%E6%A0%87%E5%87%86i-o-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 15 章 套接字和标准I/O 本章代码，在TCP-IP-NetworkNote中可以找到。
+15.1 标准 I/O 的优点 15.1.1 标准 I/O 函数的两个优点 下面是标准 I/O 函数的两个优点：
+ 标准 I/O 函数具有良好的移植性 标准 I/O 函数可以利用缓冲提高性能  创建套接字时，操作系统会准备 I/O 缓冲。此缓冲在执行 TCP 协议时发挥着非常重要的作用。此时若使用标准 I/O 函数，将得到额外的缓冲支持。如下图：
+假设使用 fputs 函数进行传输字符串 「Hello」时，首先将数据传递到标准 I/O 缓冲，然后将数据移动到套接字输出缓冲，最后将字符串发送到对方主机。
+设置缓冲的主要目的是为了提高性能。从以下两点可以说明性能的提高：
+ 传输的数据量 数据向输出缓冲移动的次数。  比较 1 个字节的数据发送 10 次的情况和 10 个数据包发送 1 次的情况。发送数据时，数据包中含有头信息。头信与数据大小无关，是按照一定的格式填入的。假设头信息占 40 个字节，需要传输的数据量也存在较大区别：
+ 1 个字节 10 次：40*10=400 字节 10个字节 1 次：40*1=40 字节。  15.1.2 标准 I/O 函数和系统函数之间的性能对比 下面是利用系统函数的示例：
+ syscpy.</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 14 章 多播与广播 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-14-%E7%AB%A0-%E5%A4%9A%E6%92%AD%E4%B8%8E%E5%B9%BF%E6%92%AD-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Mon, 28 Jan 2019 13:54:59 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-14-%E7%AB%A0-%E5%A4%9A%E6%92%AD%E4%B8%8E%E5%B9%BF%E6%92%AD-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 14 章 多播与广播 本章代码，在TCP-IP-NetworkNote中可以找到。
+14.1 多播 多播（Multicast）方式的数据传输是基于 UDP 完成的。因此 ，与 UDP 服务器端/客户端的实现方式非常接近。区别在于，UDP 数据传输以单一目标进行，而多播数据同时传递到加入（注册）特定组的大量主机。换言之，采用多播方式时，可以同时向多个主机传递数据。
+14.1.1 多播的数据传输方式以及流量方面的优点 多播的数据传输特点可整理如下：
+ 多播服务器端针对特定多播组，只发送 1 次数据。 即使只发送 1 次数据，但该组内的所有客户端都会接收数据 多播组数可以在 IP 地址范围内任意增加  多播组是 D 类IP地址（224.0.0.0~239.255.255.255），「加入多播组」可以理解为通过程序完成如下声明：
+ 在 D 类IP地址中，我希望接收发往目标 239.234.218.234 的多播数据
+ 多播是基于 UDP 完成的，也就是说，多播数据包的格式与 UDP 数据包相同。只是与一般的 UDP 数据包不同。向网络传递 1 个多播数据包时，路由器将复制该数据包并传递到多个主机。像这样，多播需要借助路由器完成。如图所示：
+若通过 TCP 或 UDP 向 1000 个主机发送文件，则共需要传递 1000 次。但是此时如果用多播网络传输文件，则只需要发送一次。这时由 1000 台主机构成的网络中的路由器负责复制文件并传递到主机。就因为这种特性，多播主要用于「多媒体数据实时传输」。
+另外，理论上可以完成多播通信，但是不少路由器并不支持多播，或即便支持也因网络拥堵问题故意阻断多播。因此，为了在不支持多播的路由器中完成多播通信，也会使用隧道（Tunneling）技术。
+14.1.2 路由（Routing）和 TTL（Time to Live,生存时间），以及加入组的办法 为了传递多播数据包，必须设置 TTL 。TTL 是 Time to Live的简写，是决定「数据包传递距离」的主要因素。TTL 用整数表示，并且每经过一个路由器就减一。TTL 变为 0 时，该数据包就无法再被传递，只能销毁。因此，TTL 的值设置过大将影响网络流量。当然，设置过小，也无法传递到目标。</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 13 章 多种 I/O 函数 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-13-%E7%AB%A0-%E5%A4%9A%E7%A7%8D-i-o-%E5%87%BD%E6%95%B0-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Sat, 26 Jan 2019 23:08:00 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-13-%E7%AB%A0-%E5%A4%9A%E7%A7%8D-i-o-%E5%87%BD%E6%95%B0-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 13 章 多种 I/O 函数 本章代码，在TCP-IP-NetworkNote中可以找到。
+13.1 send &amp;amp; recv 函数 13.1.1 Linux 中的 send &amp;amp; recv 首先看 sned 函数定义：
+1 2 3 4 5 6 7 8 9  #include &amp;lt;sys/socket.h&amp;gt;ssize_t send(int sockfd, const void *buf, size_t nbytes, int flags); /* 成功时返回发送的字节数，失败时返回 -1 sockfd: 表示与数据传输对象的连接的套接字和文件描述符 buf: 保存带传输数据的缓冲地址值 nbytes: 待传输字节数 flags: 传输数据时指定的可选项信息 */   下面是 recv 函数的定义：
+1 2 3 4 5 6 7 8 9  #include &amp;lt;sys/socket.</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 12 章 I/O 复用 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-12-%E7%AB%A0-i-o-%E5%A4%8D%E7%94%A8-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Wed, 23 Jan 2019 17:38:29 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-12-%E7%AB%A0-i-o-%E5%A4%8D%E7%94%A8-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 12 章 I/O 复用 本章代码，在TCP-IP-NetworkNote中可以找到。
+12.1 基于 I/O 复用的服务器端 12.1.1 多进程服务端的缺点和解决方法 为了构建并发服务器，只要有客户端连接请求就会创建新进程。这的确是实际操作中采用的一种方案，但并非十全十美，因为创建进程要付出很大的代价。这需要大量的运算和内存空间，由于每个进程都具有独立的内存空间，所以相互间的数据交换也要采用相对复杂的方法（IPC 属于相对复杂的通信方法）
+I/O 复用技术可以解决这个问题。
+12.1.2 理解复用 「复用」在电子及通信工程领域很常见，向这些领域的专家询问其概念，可能会得到如下答复：
+ 在 1 个通信频道中传递多个数据（信号）的技术
+ 「复用」的含义：
+ 为了提高物理设备的效率，只用最少的物理要素传递最多数据时使用的技术
+ 上述两种方法的内容完全一致。可以用纸电话模型做一个类比：
+上图是一个纸杯电话系统，为了使得三人同时通话，说话时要同事对着两个纸杯，接听时也需要耳朵同时对准两个纸杯。为了完成 3 人通话，可以进行如下图的改进：
+如图做出改进，就是引入了复用技术。
+复用技术的优点：
+ 减少连线长度 减少纸杯个数  即使减少了连线和纸杯的量仍然可以进行三人同时说话，但是如果碰到以下情况：
+ 「好像不能同时说话？」
+ 实际上，因为是在进行对话，所以很少发生同时说话的情况。也就是说，上述系统采用的是**「时分复用」**技术。因为说话人声频率不同，即使在同时说话也能进行一定程度上的区分（杂音也随之增多）。因此，也可以说是「频分复用技术」。
+12.1.3 复用技术在服务器端的应用 纸杯电话系统引入复用技术之后可以减少纸杯数量和连线长度。服务器端引入复用技术可以减少所需进程数。下图是多进程服务端的模型：
+下图是引入复用技术之后的模型：
+从图上可以看出，引入复用技术之后，可以减少进程数。重要的是，无论连接多少客户端，提供服务的进程只有一个。
+12.2 理解 select 函数并实现服务端 select 函数是最具代表性的实现复用服务器的方法。在 Windows 平台下也有同名函数，所以具有很好的移植性。
+12.2.1 select 函数的功能和调用顺序 使用 select 函数时可以将多个文件描述符集中到一起统一监视，项目如下：
+ 是否存在套接字接收数据？ 无需阻塞传输数据的套接字有哪些？ 哪些套接字发生了异常？   术语：「事件」。当发生监视项对应情况时，称「发生了事件」。
+ select 函数的使用方法与一般函数的区别并不大，更准确的说，他很难使用。但是为了实现 I/O 复用服务器端，我们应该掌握 select 函数，并运用于套接字编程当中。认为「select 函数是 I/O 复用的全部内容」也并不为过。select 函数的调用过程如下图所示：</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 11 章 进程间通信 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-11-%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Tue, 22 Jan 2019 11:40:18 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-11-%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 11 章 进程间通信 本章代码，在TCP-IP-NetworkNote中可以找到。
+进程间通信，意味着两个不同的进程中可以交换数据
+11.1 进程间通信的基本概念 11.1.1 通过管道实现进程间通信 下图是基于管道（PIPE）的进程间通信的模型：
+可以看出，为了完成进程间通信，需要创建进程。管道并非属于进程的资源，而是和套接字一样，属于操作系统（也就不是 fork 函数的复制对象）。所以，两个进程通过操作系统提供的内存空间进行通信。下面是创建管道的函数。
+1 2 3 4 5 6 7  #include &amp;lt;unistd.h&amp;gt;int pipe(int filedes[2]); /* 成功时返回 0 ，失败时返回 -1 filedes[0]: 通过管道接收数据时使用的文件描述符，即管道出口 filedes[1]: 通过管道传输数据时使用的文件描述符，即管道入口 */   父进程创建函数时将创建管道，同时获取对应于出入口的文件描述符，此时父进程可以读写同一管道。但父进程的目的是与子进程进行数据交换，因此需要将入口或出口中的 1 个文件描述符传递给子进程。下面的例子是关于该函数的使用方法：
+ pipe1.c  1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24  #include &amp;lt;stdio.</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 10 章 多进程服务器端 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-10-%E7%AB%A0-%E5%A4%9A%E8%BF%9B%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Mon, 21 Jan 2019 15:59:25 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-10-%E7%AB%A0-%E5%A4%9A%E8%BF%9B%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 10 章 多进程服务器端 本章代码，在TCP-IP-NetworkNote中可以找到。
+10.1 进程概念及应用 10.1.1 并发服务端的实现方法 通过改进服务端，使其同时向所有发起请求的客户端提供服务，以提高平均满意度。而且，网络程序中数据通信时间比 CPU 运算时间占比更大，因此，向多个客户端提供服务是一种有效的利用 CPU 的方式。接下来讨论同时向多个客户端提供服务的并发服务器端。下面列出的是具有代表性的并发服务端的实现模型和方法：
+ 多进程服务器：通过创建多个进程提供服务 多路复用服务器：通过捆绑并统一管理 I/O 对象提供服务 多线程服务器：通过生成与客户端等量的线程提供服务  先是第一种方法：多进程服务器
+10.1.2 理解进程 进程的定义如下：
+ 占用内存空间的正在运行的程序
+ 假如你下载了一个游戏到电脑上，此时的游戏不是进程，而是程序。只有当游戏被加载到主内存并进入运行状态，这是才可称为进程。
+10.1.3 进程 ID 在说进程创建方法之前，先要简要说明进程 ID。无论进程是如何创建的，所有的进程都会被操作系统分配一个 ID。此 ID 被称为「进程ID」，其值为大于 2 的证书。1 要分配给操作系统启动后的（用于协助操作系统）首个进程，因此用户无法得到 ID 值为 1 。接下来观察在 Linux 中运行的进程。
+1  ps au   通过上面的命令可查看当前运行的所有进程。需要注意的是，该命令同时列出了 PID（进程ID）。参数 a 和 u列出了所有进程的详细信息。
+10.1.4 通过调用 fork 函数创建进程 创建进程的方式很多，此处只介绍用于创建多进程服务端的 fork 函数。
+1 2 3  #include &amp;lt;unistd.h&amp;gt;pid_t fork(void); // 成功时返回进程ID,失败时返回 -1   fork 函数将创建调用的进程副本。也就是说，并非根据完全不同的程序创建进程，而是复制正在运行的、调用 fork 函数的进程。另外，两个进程都执行 fork 函数调用后的语句（准确的说是在 fork 函数返回后）。但因为是通过同一个进程、复制相同的内存空间，之后的程序流要根据 fork 函数的返回值加以区分。即利用 fork 函数的如下特点区分程序执行流程。</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 9 章 套接字的多种可选项 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-9-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E5%A4%9A%E7%A7%8D%E5%8F%AF%E9%80%89%E9%A1%B9-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Sat, 19 Jan 2019 17:37:05 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-9-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E5%A4%9A%E7%A7%8D%E5%8F%AF%E9%80%89%E9%A1%B9-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 9 章 套接字的多种可选项 本章代码，在TCP-IP-NetworkNote中可以找到。
+9.1 套接字可选项和 I/O 缓冲大小 我们进行套接字编程时往往只关注数据通信，而忽略了套接字具有的不同特性。但是，理解这些特性并根据实际需要进行更改也很重要
+9.1.1 套接字多种可选项 我们之前写得程序都是创建好套接字之后直接使用的，此时通过默认的套接字特性进行数据通信，这里列出了一些套接字可选项。
+   协议层 选项名 读取 设置     SOL_SOCKET SO_SNDBUF O O   SOL_SOCKET SO_RCVBUF O O   SOL_SOCKET SO_REUSEADDR O O   SOL_SOCKET SO_KEEPALIVE O O   SOL_SOCKET SO_BROADCAST O O   SOL_SOCKET SO_DONTROUTE O O   SOL_SOCKET SO_OOBINLINE O O   SOL_SOCKET SO_ERROR O X   SOL_SOCKET SO_TYPE O X   IPPROTO_IP IP_TOS O O   IPPROTO_IP IP_TTL O O   IPPROTO_IP IP_MULTICAST_TTL O O   IPPROTO_IP IP_MULTICAST_LOOP O O   IPPROTO_IP IP_MULTICAST_IF O O   IPPROTO_TCP TCP_KEEPALIVE O O   IPPROTO_TCP TCP_NODELAY O O   IPPROTO_TCP TCP_MAXSEG O O    从表中可以看出，套接字可选项是分层的。</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 8 章 域名及网络地址 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-8-%E7%AB%A0-%E5%9F%9F%E5%90%8D%E5%8F%8A%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Fri, 18 Jan 2019 18:09:27 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-8-%E7%AB%A0-%E5%9F%9F%E5%90%8D%E5%8F%8A%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 8 章 域名及网络地址 本章代码，在TCP-IP-NetworkNote中可以找到。
+8.1 域名系统 DNS 是对IP地址和域名进行相互转换的系统，其核心是 DNS 服务器
+8.1.1 什么是域名 域名就是我们常常在地址栏里面输入的地址，将比较难记忆的IP地址变成人类容易理解的信息。
+8.1.2 DNS 服务器 相当于一个字典，可以查询出某一个域名对应的IP地址
+如图所示，显示了 DNS 服务器的查询路径。
+8.2 IP地址和域名之间的转换 8.2.1 程序中有必要使用域名吗？ 一句话，需要，因为IP地址可能经常改变，而且也不容易记忆，通过域名可以随时更改解析，达到更换IP的目的
+8.2.2 利用域名获取IP地址 使用以下函数可以通过传递字符串格式的域名获取IP地址
+1 2 3 4 5  #include &amp;lt;netdb.h&amp;gt;struct hostent *gethostbyname(const char *hostname); /* 成功时返回 hostent 结构体地址，失败时返回 NULL 指针 */   这个函数使用方便，只要传递字符串，就可以返回域名对应的IP地址。只是返回时，地址信息装入 hostent 结构体。此结构体的定义如下：
+1 2 3 4 5 6 7 8  struct hostent { char *h_name; /* Official name of host.</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 7 章 优雅的断开套接字的连接 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-7-%E7%AB%A0-%E4%BC%98%E9%9B%85%E7%9A%84%E6%96%AD%E5%BC%80%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E8%BF%9E%E6%8E%A5-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Fri, 18 Jan 2019 11:25:41 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-7-%E7%AB%A0-%E4%BC%98%E9%9B%85%E7%9A%84%E6%96%AD%E5%BC%80%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E8%BF%9E%E6%8E%A5-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 7 章 优雅的断开套接字的连接 本章代码，在TCP-IP-NetworkNote中可以找到。
+本章讨论如何优雅的断开套接字的连接，之前用的方法不够优雅是因为，我们是调用 close 函数或 closesocket 函数单方面断开连接的。
+7.1 基于 TCP 的半关闭 TCP 的断开连接过程比建立连接更重要，因为连接过程中一般不会出现大问题，但是断开过程可能发生预想不到的情况。因此应该准确掌控。所以要掌握半关闭（Half-close），才能明确断开过程。
+7.1.1 单方面断开连接带来的问题 Linux 和 Windows 的 closesocket 函数意味着完全断开连接。完全断开不仅指无法传输数据，而且也不能接收数据。因此在某些情况下，通信一方单方面的断开套接字连接，显得不太优雅。如图所示：
+图中描述的是 2 台主机正在进行双向通信，主机 A 发送完最后的数据后，调用 close 函数断开了最后的连接，之后主机 A 无法再接受主机 B 传输的数据。实际上，是完全无法调用与接受数据相关的函数。最终，由主机 B 传输的、主机 A 必须要接受的数据也销毁了。
+为了解决这类问题，「只关闭一部分数据交换中使用的流」的方法应运而生。断开一部分连接是指，可以传输数据但是无法接收，或可以接受数据但无法传输。顾名思义就是只关闭流的一半。
+7.1.2 套接字和流（Stream） 两台主机通过套接字建立连接后进入可交换数据的状态，又称「流形成的状态」。也就是把建立套接字后可交换数据的状态看作一种流。
+此处的流可以比作水流。水朝着一个方向流动，同样，在套接字的流中，数据也止呕能向一个方向流动。因此，为了进行双向通信，需要如图所示的两个流：
+一旦两台主机之间建立了套接字连接，每个主机就会拥有单独的输入流和输出流。当然，其中一个主机的输入流与另一个主机的输出流相连，而输出流则与另一个主机的输入流相连。另外，本章讨论的「优雅的断开连接方式」只断开其中 1 个流，而非同时断开两个流。Linux 和 Windows 的 closesocket 函数将同时断开这两个流，因此与「优雅」二字还有一段距离。
+7.1.3 针对优雅断开的 shutdown 函数 shutdown 用来关闭其中一个流：
+1 2 3 4 5 6 7  #include &amp;lt;sys/socket.h&amp;gt;int shutdown(int sock, int howto); /* 成功时返回 0 ，失败时返回 -1 sock: 需要断开套接字文件描述符 howto: 传递断开方式信息 */   调用上述函数时，第二个参数决定断开连接的方式，其值如下所示：</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 6 章 基于 UDP 的服务端/客户端 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-6-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-udp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Thu, 17 Jan 2019 16:10:00 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-6-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-udp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 6 章 基于 UDP 的服务端/客户端 本章代码，在TCP-IP-NetworkNote中可以找到。
+TCP 是内容较多的一个协议，而本章中的 UDP 内容较少，但是也很重要。
+6.1 理解 UDP 6.1.1 UDP 套接字的特点 通过寄信来说明 UDP 的工作原理，这是讲解 UDP 时使用的传统示例，它与 UDP 的特点完全相同。寄信前应现在信封上填好寄信人和收信人的地址，之后贴上邮票放进邮筒即可。当然，信件的特点使我们无法确认信件是否被收到。邮寄过程中也可能发生信件丢失的情况。也就是说，信件是一种不可靠的传输方式，UDP 也是一种不可靠的数据传输方式。
+因为 UDP 没有 TCP 那么复杂，所以编程难度比较小，性能也比 TCP 高。在更重视性能的情况下可以选择 UDP 的传输方式。
+TCP 与 UDP 的区别很大一部分来源于流控制。也就是说 TCP 的生命在于流控制。
+6.1.2 UDP 的工作原理 如图所示：
+从图中可以看出，IP 的作用就是让离开主机 B 的 UDP 数据包准确传递到主机 A 。但是把 UDP 数据包最终交给主机 A 的某一 UDP 套接字的过程是由 UDP 完成的。UDP 的最重要的作用就是根据端口号将传到主机的数据包交付给最终的 UDP 套接字。
+6.1.3 UDP 的高效使用 UDP 也具有一定的可靠性。对于通过网络实时传递的视频或者音频时情况有所不同。对于多媒体数据而言，丢失一部分数据也没有太大问题，这只是会暂时引起画面抖动，或者出现细微的杂音。但是要提供实时服务，速度就成为了一个很重要的因素。因此流控制就显得有一点多余，这时就要考虑使用 UDP 。TCP 比 UDP 慢的原因主要有以下两点：</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 5 章 基于 TCP 的服务端/客户端（2） 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-5-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-tcp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF2-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Wed, 16 Jan 2019 15:57:00 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-5-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-tcp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF2-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 5 章 基于 TCP 的服务端/客户端（2） 本章代码，在TCP-IP-NetworkNote中可以找到。
+上一章仅仅是从编程角度学习实现方法，并未详细讨论 TCP 的工作原理。因此，本章将想次讲解 TCP 中必要的理论知识，还将给出第 4 章客户端问题的解决方案。
+5.1 回声客户端的完美实现 5.1.1 回声服务器没有问题，只有回声客户端有问题？ 问题不在服务器端，而在客户端，只看代码可能不好理解，因为 I/O 中使用了相同的函数。先回顾一下服务器端的 I/O 相关代码：
+1 2  while ((str_len = read(clnt_sock, message, BUF_SIZE)) != 0) write(clnt_sock, message, str_len);   接着是客户端代码:
+1 2  write(sock, message, strlen(message)); str_len = read(sock, message, BUF_SIZE - 1);   二者都在村换调用 read 和 write 函数。实际上之前的回声客户端将 100% 接受字节传输的数据，只不过接受数据时的单位有些问题。扩展客户端代码回顾范围，下面是，客户端的代码:
+1 2 3 4 5 6 7 8 9 10 11 12 13  while (1) { fputs(&amp;#34;Input message(Q to quit): &amp;#34;, stdout); fgets(message, BUF_SIZE, stdin); if (!</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 4 章 基于 TCP 的服务端/客户端（1） 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-4-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-tcp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF1-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Tue, 15 Jan 2019 13:10:00 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-4-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-tcp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF1-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 4 章 基于 TCP 的服务端/客户端（1） 本章代码，在TCP-IP-NetworkNote中可以找到。
+4.1 理解 TCP 和 UDP 根据数据传输方式的不同，基于网络协议的套接字一般分为 TCP 套接字和 UDP 套接字。因为 TCP 套接字是面向连接的，因此又被称为基于流（stream）的套接字。
+TCP 是 Transmission Control Protocol （传输控制协议）的简写，意为「对数据传输过程的控制」。因此，学习控制方法及范围有助于正确理解 TCP 套接字。
+4.1.1 TCP/IP 协议栈 TCP/IP 协议栈共分为 4 层，可以理解为数据收发分成了 4 个层次化过程，通过层次化的方式来解决问题
+4.1.2 链路层 链路层是物理链接领域标准化的结果，也是最基本的领域，专门定义LAN、WAN、MAN等网络标准。若两台主机通过网络进行数据交换，则需要物理连接，链路层就负责这些标准。
+4.1.3 IP 层 转备好物理连接候就要传输数据。为了再复杂网络中传输数据，首先要考虑路径的选择。向目标传输数据需要经过哪条路径？解决此问题的就是IP层，该层使用的协议就是IP。
+IP 是面向消息的、不可靠的协议。每次传输数据时会帮我们选择路径，但并不一致。如果传输过程中发生错误，则选择其他路径，但是如果发生数据丢失或错误，则无法解决。换言之，IP协议无法应对数据错误。
+4.1.4 TCP/UDP 层 IP 层解决数据传输中的路径选择问题，秩序照此路径传输数据即可。TCP 和 UDP 层以 IP 层提供的路径信息为基础完成实际的数据传输，故该层又称为传输层。UDP 比 TCP 简单，现在我们只解释 TCP 。 TCP 可以保证数据的可靠传输，但是它发送数据时以 IP 层为基础（这也是协议栈层次化的原因）
+IP 层只关注一个数据包（数据传输基本单位）的传输过程。因此，即使传输多个数据包，每个数据包也是由 IP 层实际传输的，也就是说传输顺序及传输本身是不可靠的。若只利用IP层传输数据，则可能导致后传输的数据包B比先传输的数据包A提早到达。另外，传输的数据包A、B、C中可能只收到A和C，甚至收到的C可能已经损毁 。反之，若添加 TCP 协议则按照如下对话方式进行数据交换。</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 3 章 网络地址的初始化与分配 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-3-%E7%AB%A0-%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%88%86%E9%85%8D-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Mon, 14 Jan 2019 13:13:00 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-3-%E7%AB%A0-%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%88%86%E9%85%8D-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第 3 章 地址族与数据序列 本章代码，在TCP-IP-NetworkNote中可以找到。
+把套接字比喻成电话，那么目前只安装了电话机，本章讲解给电话机分配号码的方法，即给套接字分配 IP 地址和端口号。
+3.1 分配给套接字的 IP 地址与端口号 IP 是 Internet Protocol（网络协议）的简写，是为手法网络数据而分配给计算机的值。端口号并非赋予计算机的值，而是为了区分程序中创建的套接字而分配给套接字的端口号。
+3.1.1 网络地址（Internet Address） 为使计算机连接到网络并收发数据，必须为其分配 IP 地址。IP 地址分为两类。
+ IPV4（Internet Protocol version 4）4 字节地址族 IPV6（Internet Protocol version 6）6 字节地址族  两者之间的主要差别是 IP 地址所用的字节数，目前通用的是 IPV4 , IPV6 的普及还需要时间。
+IPV4 标准的 4 字节 IP 地址分为网络地址和主机（指计算机）地址，且分为 A、B、C、D、E 等类型。
+数据传输过程：
+某主机向 203.211.172.103 和 203.211.217.202 传递数据，其中 203.211.172 和 203.211.217 为该网络的网络地址，所以「向相应网络传输数据」实际上是向构成网络的路由器或者交换机传输数据，然后又路由器或者交换机根据数据中的主机地址向目标主机传递数据。
+3.1.2 网络地址分类与主机地址边界 只需通过IP地址的第一个字节即可判断网络地址占用的总字节数，因为我们根据IP地址的边界区分网络地址，如下所示：
+ A 类地址的首字节范围为：0~127 B 类地址的首字节范围为：128~191 C 类地址的首字节范围为：192~223  还有如下这种表示方式：</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 2 章 套接字类型与协议设置 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-2-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%8D%8F%E8%AE%AE%E8%AE%BE%E7%BD%AE-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Sun, 13 Jan 2019 11:15:00 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-2-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%8D%8F%E8%AE%AE%E8%AE%BE%E7%BD%AE-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第二章 套接字类型与协议设置 本章代码，在TCP-IP-NetworkNote中可以找到，直接点连接可能进不去。
+本章仅需了解创建套接字时调用的 socket 函数。
+2.1 套接字协议及数据传输特性 2.1.1 创建套接字 1 2 3 4 5 6 7 8  #include &amp;lt;sys/socket.h&amp;gt;int socket(int domain, int type, int protocol); /* 成功时返回文件描述符，失败时返回-1 domain: 套接字中使用的协议族（Protocol Family） type: 套接字数据传输的类型信息 protocol: 计算机间通信中使用的协议信息 */   2.1.2 协议族（Protocol Family） 通过 socket 函数的第一个参数传递套接字中使用的协议分类信息。此协议分类信息称为协议族，可分成如下几类：
+ 头文件 sys/socket.h 中声明的协议族
+    名称 协议族     PF_INET IPV4 互联网协议族   PF_INET6 IPV6 互联网协议族   PF_LOCAL 本地通信 Unix 协议族   PF_PACKET 底层套接字的协议族   PF_IPX IPX Novel 协议族    本书着重讲 PF_INET 对应的 IPV4 互联网协议族。其他协议并不常用，或并未普及。另外，套接字中采用的最终的协议信息是通过 socket 函数的第三个参数传递的。在指定的协议族范围内通过第一个参数决定第三个参数。</description>
+    </item>
+    
+    <item>
+      <title>《TCP/IP网络编程》第 1 章 理解网络编程和套接字 笔记</title>
+      <link>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-1-%E7%AB%A0-%E7%90%86%E8%A7%A3%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E5%92%8C%E5%A5%97%E6%8E%A5%E5%AD%97-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Sat, 12 Jan 2019 13:12:00 +0800</pubDate>
+      
+      <guid>https://blog.riba2534.cn/blog/2019/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-1-%E7%AB%A0-%E7%90%86%E8%A7%A3%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E5%92%8C%E5%A5%97%E6%8E%A5%E5%AD%97-%E7%AC%94%E8%AE%B0/</guid>
+      <description>第一章：理解网络编程和套接字 本章代码，在TCP-IP-NetworkNote中可以找到。
+1.1 理解网络编程和套接字 1.1.1构建打电话套接字 以电话机打电话的方式来理解套接字。
+调用 socket 函数（安装电话机）时进行的对话：
+ 问：接电话需要准备什么？
+答：当然是电话机。
+ 有了电话机才能安装电话，于是就要准备一个电话机，下面函数相当于电话机的套接字。
+1 2 3  #include &amp;lt;sys/socket.h&amp;gt;int socket(int domain, int type, int protocol); //成功时返回文件描述符，失败时返回-1   调用 bind 函数（分配电话号码）时进行的对话：
+ 问：请问我的电话号码是多少
+答：我的电话号码是123-1234
+ 套接字同样如此。就想给电话机分配电话号码一样，利用以下函数给创建好的套接字分配地址信息（IP地址和端口号）：
+1 2 3  #include &amp;lt;sys/socket.h&amp;gt;int bind(int sockfd, struct sockaddr *myaddr, socklen_t addrlen); //成功时返回0，失败时返回-1   调用 bind 函数给套接字分配地址之后，就基本完成了所有的准备工作。接下来是需要连接电话线并等待来电。
+调用 listen 函数（连接电话线）时进行的对话：
+ 问：已架设完电话机后是否只需链接电话线？
+答：对，只需要连接就能接听电话。
+ 一连接电话线，电话机就可以转换为可接听状态，这时其他人可以拨打电话请求连接到该机。同样，需要把套接字转化成可接受连接状态。
+1 2 3  #include &amp;lt;sys/socket.h&amp;gt;int listen(int sockfd, int backlog); //成功时返回0，失败时返回-1   连接好电话线以后，如果有人拨打电话就响铃，拿起话筒才能接听电话。</description>
+    </item>
+    
+  </channel>
+</rss>

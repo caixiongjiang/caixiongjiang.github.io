@@ -1,0 +1,2604 @@
+<!DOCTYPE html>
+<html><head>
+<title>Go Linq 使用</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="Golang中的Language Integrated Query介绍">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="Go Linq 使用" />
+<meta property="og:description" content="Golang中的Language Integrated Query介绍" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.riba2534.cn/blog/2021/go-linq%E4%BD%BF%E7%94%A8/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2021-05-25T02:35:34+08:00" />
+<meta property="article:modified_time" content="2021-05-25T02:35:34+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210427152737.jpeg">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://blog.riba2534.cn/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.3.1/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://blog.riba2534.cn/">
+    
+        <div class="nav-title">
+            🌀riba2534&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            凡事有交代，件件有着落，事事有回音
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://blog.csdn.net/riba2534">
+    CSDN
+</a>
+<br>
+
+<a href="https://github.com/riba2534">
+    GitHub
+</a>
+<br>
+
+<a href="https://www.zhihu.com/people/riba2534">
+    Zhihu
+</a>
+<br>
+
+<a href="mailto:riba2534@qq.com">
+    Email
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%89%8d%e8%a8%80" onclick="onNavClick(`#前言-nav`)" id="前言-nav">
+									前言
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#go-linq-%e4%bb%8b%e7%bb%8d" onclick="onNavClick(`#go-linq-介绍-nav`)" id="go-linq-介绍-nav">
+									Go-linq 介绍
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e4%bd%bf%e7%94%a8" onclick="onNavClick(`#基本使用-nav`)" id="基本使用-nav">
+									基本使用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%89%9b%e5%88%80%e5%b0%8f%e8%af%95" onclick="onNavClick(`#牛刀小试-nav`)" id="牛刀小试-nav">
+									牛刀小试
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%8e%b7%e5%8f%96%e6%95%b0%e6%8d%ae%e6%ba%90" onclick="onNavClick(`#获取数据源-nav`)" id="获取数据源-nav">
+									获取数据源
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ad%9b%e9%80%89%e6%95%b0%e6%8d%ae-where" onclick="onNavClick(`#筛选数据-where-nav`)" id="筛选数据-where-nav">
+									筛选数据 where
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%8e%92%e5%ba%8f%e6%95%b0%e6%8d%ae-order-by" onclick="onNavClick(`#排序数据-order-by-nav`)" id="排序数据-order-by-nav">
+									排序数据 order by
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8d%87%e5%ba%8f%e6%8e%92%e5%ba%8f" onclick="onNavClick(`#升序排序-nav`)" id="升序排序-nav">
+									升序排序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%99%8d%e5%ba%8f%e6%8e%92%e5%ba%8f" onclick="onNavClick(`#降序排序-nav`)" id="降序排序-nav">
+									降序排序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%ae%9a%e4%b9%89%e6%af%94%e8%be%83%e5%87%bd%e6%95%b0" onclick="onNavClick(`#自定义比较函数-nav`)" id="自定义比较函数-nav">
+									自定义比较函数
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e9%80%89%e6%8b%a9-select" onclick="onNavClick(`#选择-select-nav`)" id="选择-select-nav">
+									选择 select
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e7%bb%84-group-by" onclick="onNavClick(`#分组-group-by-nav`)" id="分组-group-by-nav">
+									分组 group by
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e5%90%88%e6%93%8d%e4%bd%9c" onclick="onNavClick(`#集合操作-nav`)" id="集合操作-nav">
+									集合操作
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%b1%82%e5%b7%ae%e9%9b%86-except" onclick="onNavClick(`#求差集-except-nav`)" id="求差集-except-nav">
+									求差集 Except
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b1%82%e4%ba%a4%e9%9b%86-intersect" onclick="onNavClick(`#求交集-intersect-nav`)" id="求交集-intersect-nav">
+									求交集 Intersect
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b1%82%e5%b9%b6%e9%9b%86-union" onclick="onNavClick(`#求并集-union-nav`)" id="求并集-union-nav">
+									求并集 Union
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#all-%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e6%89%80%e6%9c%89%e5%85%83%e7%b4%a0%e9%83%bd%e6%bb%a1%e8%b6%b3%e6%9d%a1%e4%bb%b6" onclick="onNavClick(`#all-判断是否所有元素都满足条件-nav`)" id="all-判断是否所有元素都满足条件-nav">
+									All 判断是否所有元素都满足条件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#any-%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e6%9c%89%e4%bb%bb%e6%84%8f%e4%b8%aa%e5%85%83%e7%b4%a0%e6%bb%a1%e8%b6%b3%e6%9d%a1%e4%bb%b6" onclick="onNavClick(`#any-判断是否有任意个元素满足条件-nav`)" id="any-判断是否有任意个元素满足条件-nav">
+									Any 判断是否有任意个元素满足条件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#tomap-%e8%bd%ac%e6%8d%a2%e4%b8%bamap" onclick="onNavClick(`#tomap-转换为map-nav`)" id="tomap-转换为map-nav">
+									ToMap 转换为Map
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#contains-%e5%88%a4%e6%96%ad%e5%85%83%e7%b4%a0%e6%98%af%e5%90%a6%e5%9c%a8query%e4%b8%ad" onclick="onNavClick(`#contains-判断元素是否在query中-nav`)" id="contains-判断元素是否在query中-nav">
+									Contains 判断元素是否在Query中
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e8%af%ad" onclick="onNavClick(`#结语-nav`)" id="结语-nav">
+									结语
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%82%e8%80%83%e9%93%be%e6%8e%a5" onclick="onNavClick(`#参考链接-nav`)" id="参考链接-nav">
+									参考链接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%89%8d%e8%a8%80" onclick="onNavClick(`#前言-nav`)" id="前言-nav">
+									前言
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#go-linq-%e4%bb%8b%e7%bb%8d" onclick="onNavClick(`#go-linq-介绍-nav`)" id="go-linq-介绍-nav">
+									Go-linq 介绍
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e4%bd%bf%e7%94%a8" onclick="onNavClick(`#基本使用-nav`)" id="基本使用-nav">
+									基本使用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%89%9b%e5%88%80%e5%b0%8f%e8%af%95" onclick="onNavClick(`#牛刀小试-nav`)" id="牛刀小试-nav">
+									牛刀小试
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%8e%b7%e5%8f%96%e6%95%b0%e6%8d%ae%e6%ba%90" onclick="onNavClick(`#获取数据源-nav`)" id="获取数据源-nav">
+									获取数据源
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ad%9b%e9%80%89%e6%95%b0%e6%8d%ae-where" onclick="onNavClick(`#筛选数据-where-nav`)" id="筛选数据-where-nav">
+									筛选数据 where
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%8e%92%e5%ba%8f%e6%95%b0%e6%8d%ae-order-by" onclick="onNavClick(`#排序数据-order-by-nav`)" id="排序数据-order-by-nav">
+									排序数据 order by
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8d%87%e5%ba%8f%e6%8e%92%e5%ba%8f" onclick="onNavClick(`#升序排序-nav`)" id="升序排序-nav">
+									升序排序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%99%8d%e5%ba%8f%e6%8e%92%e5%ba%8f" onclick="onNavClick(`#降序排序-nav`)" id="降序排序-nav">
+									降序排序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%ae%9a%e4%b9%89%e6%af%94%e8%be%83%e5%87%bd%e6%95%b0" onclick="onNavClick(`#自定义比较函数-nav`)" id="自定义比较函数-nav">
+									自定义比较函数
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e9%80%89%e6%8b%a9-select" onclick="onNavClick(`#选择-select-nav`)" id="选择-select-nav">
+									选择 select
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e7%bb%84-group-by" onclick="onNavClick(`#分组-group-by-nav`)" id="分组-group-by-nav">
+									分组 group by
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e5%90%88%e6%93%8d%e4%bd%9c" onclick="onNavClick(`#集合操作-nav`)" id="集合操作-nav">
+									集合操作
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%b1%82%e5%b7%ae%e9%9b%86-except" onclick="onNavClick(`#求差集-except-nav`)" id="求差集-except-nav">
+									求差集 Except
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b1%82%e4%ba%a4%e9%9b%86-intersect" onclick="onNavClick(`#求交集-intersect-nav`)" id="求交集-intersect-nav">
+									求交集 Intersect
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b1%82%e5%b9%b6%e9%9b%86-union" onclick="onNavClick(`#求并集-union-nav`)" id="求并集-union-nav">
+									求并集 Union
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#all-%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e6%89%80%e6%9c%89%e5%85%83%e7%b4%a0%e9%83%bd%e6%bb%a1%e8%b6%b3%e6%9d%a1%e4%bb%b6" onclick="onNavClick(`#all-判断是否所有元素都满足条件-nav`)" id="all-判断是否所有元素都满足条件-nav">
+									All 判断是否所有元素都满足条件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#any-%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e6%9c%89%e4%bb%bb%e6%84%8f%e4%b8%aa%e5%85%83%e7%b4%a0%e6%bb%a1%e8%b6%b3%e6%9d%a1%e4%bb%b6" onclick="onNavClick(`#any-判断是否有任意个元素满足条件-nav`)" id="any-判断是否有任意个元素满足条件-nav">
+									Any 判断是否有任意个元素满足条件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#tomap-%e8%bd%ac%e6%8d%a2%e4%b8%bamap" onclick="onNavClick(`#tomap-转换为map-nav`)" id="tomap-转换为map-nav">
+									ToMap 转换为Map
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#contains-%e5%88%a4%e6%96%ad%e5%85%83%e7%b4%a0%e6%98%af%e5%90%a6%e5%9c%a8query%e4%b8%ad" onclick="onNavClick(`#contains-判断元素是否在query中-nav`)" id="contains-判断元素是否在query中-nav">
+									Contains 判断元素是否在Query中
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e8%af%ad" onclick="onNavClick(`#结语-nav`)" id="结语-nav">
+									结语
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%82%e8%80%83%e9%93%be%e6%8e%a5" onclick="onNavClick(`#参考链接-nav`)" id="参考链接-nav">
+									参考链接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://blog.riba2534.cn/">
+            🌀riba2534&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://blog.riba2534.cn/">
+        <div class="single-column-header-title">🌀riba2534&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">凡事有交代，件件有着落，事事有回音</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508221223.png')"
+                    
+                
+            >
+                <div class="post-title">
+                    Go Linq 使用
+                    
+                    <div class="post-subtitle">
+                        Golang中的Language Integrated Query介绍
+                    </div>
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2021-05-25 02:35
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/">[Golang]</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/go-linq">go-linq</a>
+                                &nbsp;
+                            
+                                <a href="/tags/linq">linq</a>
+                                &nbsp;
+                            
+                                <a href="/tags/golang">golang</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            18 min
+                            
+                            32 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h1 id="前言">前言</h1>
+<p>最近我负责了一个新项目，大概流程是从 DB 里拿出一堆数据之后，得到一个包含字段很多的结构体的 <code>List</code>，然后需要对这个 <code>List</code> 进行一系列的过滤，包括但不限于类似 sql 中的  <code>where</code>、<code>group by</code>、<code>select</code> 、按照某个字段排序、求并补交集之类的操作。</p>
+<p>如果让我自己写，我肯定是一个一个条件慢慢写，但是代码库我是接手的别人的，我看了下现有的实现，大呼牛逼，原来目前对于这种操作已经有了成熟的解决方案了。</p>
+<p>那就是：<strong>LINQ</strong></p>
+<h1 id="go-linq-介绍"><code>Go-linq</code> 介绍</h1>
+<p>语言集成查询（Language Integrated Query），缩写为 <code>LINQ</code>，是微软的一项技术，并且被应用在了 C# 中，它直接将一些列的查询操作集成在了编程语言中，使得开发者筛选数据的时候可以大大加快速度。详见：<a href="https://zh.wikipedia.org/wiki/%E8%AF%AD%E8%A8%80%E9%9B%86%E6%88%90%E6%9F%A5%E8%AF%A2">语言集成查询</a></p>
+<p>在 Golang 中，语言本身并没有内置这种操作，不过好在有开源社区帮助我们实现了一个库 <a href="https://github.com/ahmetb/go-linq/tree/v3.2.0">ahmetb/go-linq</a> ，详细的支持的函数列表和操作可以看这里： <a href="https://pkg.go.dev/github.com/ahmetb/go-linq/v3">https://pkg.go.dev/github.com/ahmetb/go-linq/v3</a></p>
+<p>特性如下：</p>
+<ul>
+<li>没有使用任何第三方依赖，只使用了go 原生库</li>
+<li>通过迭代器模式实现了惰性求值</li>
+<li>并发安全</li>
+<li>支持泛型方法</li>
+<li>支持 array、slice、map、string、channel 和自定义集合类</li>
+</ul>
+<p>go-linq 提供的方法可以按照是否支持泛型分为两大类。泛型方法都以 <code>T</code> 结尾。非泛型方法需要将函数的入参类型限制为 <code>interface{}</code> 并做类型断言。</p>
+<h1 id="基本使用">基本使用</h1>
+<h2 id="牛刀小试">牛刀小试</h2>
+<p>首先，肯定是先引入包：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">go get github.com/ahmetb/go-linq/v3
+</code></pre></td></tr></table>
+</div>
+</div><p>引入之后，就可以在项目里面用起来了。</p>
+<p>我们找个例子先试一试，假设我要筛选出一个数组中的所有偶数，可以对比一下自己写和使用库的写法的区别：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">package</span> main
+
+<span style="color:#8b008b;font-weight:bold">import</span> (
+	<span style="color:#cd5555">&#34;fmt&#34;</span>
+
+	<span style="color:#cd5555">&#34;github.com/ahmetb/go-linq/v3&#34;</span>
+)
+
+<span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">main</span>() {
+	<span style="color:#228b22">// 定义数据
+</span><span style="color:#228b22"></span>	a := []<span style="color:#00688b;font-weight:bold">int</span>{<span style="color:#b452cd">1</span>, <span style="color:#b452cd">2</span>, <span style="color:#b452cd">3</span>, <span style="color:#b452cd">4</span>, <span style="color:#b452cd">5</span>, <span style="color:#b452cd">6</span>, <span style="color:#b452cd">7</span>, <span style="color:#b452cd">8</span>, <span style="color:#b452cd">9</span>}
+	<span style="color:#228b22">// 普通过滤
+</span><span style="color:#228b22"></span>	a1 := []<span style="color:#00688b;font-weight:bold">int</span>{}
+	<span style="color:#8b008b;font-weight:bold">for</span> _, v := <span style="color:#8b008b;font-weight:bold">range</span> a {
+		<span style="color:#8b008b;font-weight:bold">if</span> v%<span style="color:#b452cd">2</span> == <span style="color:#b452cd">0</span> {
+			a1 = <span style="color:#658b00">append</span>(a1, v)
+		}
+	}
+	fmt.<span style="color:#008b45">Println</span>(a1) <span style="color:#228b22">// output: [2 4 6 8]
+</span><span style="color:#228b22"></span>    <span style="color:#228b22">// 使用 go-linq
+</span><span style="color:#228b22"></span>	a2 := []<span style="color:#00688b;font-weight:bold">int</span>{}
+	linq.<span style="color:#008b45">From</span>(a).<span style="color:#008b45">Where</span>(<span style="color:#8b008b;font-weight:bold">func</span>(i <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span> { <span style="color:#8b008b;font-weight:bold">return</span> i.(<span style="color:#00688b;font-weight:bold">int</span>)%<span style="color:#b452cd">2</span> == <span style="color:#b452cd">0</span> }).<span style="color:#008b45">ToSlice</span>(&amp;a2)
+	fmt.<span style="color:#008b45">Println</span>(a2) <span style="color:#228b22">// output: [2 4 6 8]
+</span><span style="color:#228b22"></span>}
+</code></pre></td></tr></table>
+</div>
+</div><p>可以看出，使用了 go-linq 之后，只用了一行代码，就很方便的完成了过滤，当然这只是一个简单的例子，接下来，我们详细看看具体怎么用</p>
+<h2 id="获取数据源">获取数据源</h2>
+<p>我们的目的是进行查询，那么在查询之前首先要获取数据，go-linq 支持将 <code>slice</code>、<code>map</code>、<code>channel</code>、<code>string</code> 和自定义的集合作为数据源，并且提供了以下获取数据的方法：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">From</span>(source <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">FromChannel</span>(source &lt;-<span style="color:#8b008b;font-weight:bold">chan</span> <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">FromChannelT</span>(source <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">FromIterable</span>(source Iterable) Query
+<span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">FromString</span>(source <span style="color:#00688b;font-weight:bold">string</span>) Query
+<span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">Range</span>(start, count <span style="color:#00688b;font-weight:bold">int</span>) Query <span style="color:#228b22">// 生成一个连续的数字list，起始是start，数量为 count 个
+</span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">Repeat</span>(value <span style="color:#8b008b;font-weight:bold">interface</span>{}, count <span style="color:#00688b;font-weight:bold">int</span>) Query
+</code></pre></td></tr></table>
+</div>
+</div><p><code>From</code> 方法支持上面的所有类型进行初始化，<code>slice</code>、<code>map</code> 等只能通过 <code>From</code> 方法进行初始化</p>
+<p><code>From</code> 函数会将传入的集合类型转换成内部的 <code>Query</code> 类型，而 <code>Query</code> 中只包含一个方法 <code>Iterate</code> ，这个方法的返回值是一个迭代器函数。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#228b22">// Iterator is an alias for function to iterate over data.
+</span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">type</span> Iterator <span style="color:#8b008b;font-weight:bold">func</span>() (item <span style="color:#8b008b;font-weight:bold">interface</span>{}, ok <span style="color:#00688b;font-weight:bold">bool</span>)
+
+<span style="color:#228b22">// Query is the type returned from query functions. It can be iterated manually
+</span><span style="color:#228b22">// as shown in the example.
+</span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">type</span> Query <span style="color:#8b008b;font-weight:bold">struct</span> {
+	Iterate <span style="color:#8b008b;font-weight:bold">func</span>() Iterator
+}
+
+<span style="color:#228b22">// Iterable is an interface that has to be implemented by a custom collection in
+</span><span style="color:#228b22">// order to work with linq.
+</span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">type</span> Iterable <span style="color:#8b008b;font-weight:bold">interface</span> {
+	<span style="color:#008b45">Iterate</span>() Iterator
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>为了描述方便，我们定义如下结构体：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#228b22">// 一个学生类，里面包含学号和姓名
+</span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">type</span> Student <span style="color:#8b008b;font-weight:bold">struct</span> {
+	ID   <span style="color:#00688b;font-weight:bold">int</span>
+	Name <span style="color:#00688b;font-weight:bold">string</span>
+}
+
+<span style="color:#228b22">// 定义一个生成 100 个学生的函数
+</span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">makeStudents</span>() []Student {
+	students := []Student{}
+	<span style="color:#8b008b;font-weight:bold">for</span> i := <span style="color:#b452cd">1</span>; i &lt;= <span style="color:#b452cd">100</span>; i++ {
+		students = <span style="color:#658b00">append</span>(students, Student{i, fmt.<span style="color:#008b45">Sprintf</span>(<span style="color:#cd5555">&#34;学生%d&#34;</span>, i)})
+	}
+	<span style="color:#8b008b;font-weight:bold">return</span> students
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>那么，我们以 <code>students</code> 作为数据源，则：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">students := <span style="color:#008b45">makeStudents</span>()
+linq.<span style="color:#008b45">From</span>(students)
+</code></pre></td></tr></table>
+</div>
+</div><p>接下来我们介绍一些常用的查询操作。</p>
+<h2 id="筛选数据-where">筛选数据 <code>where</code></h2>
+<p>筛选可以说是最常见的集合操作了。go-linq 提供了以下几种方法方法来进行筛选，它们的区别在于筛选函数中是否提供索引位置。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">Where</span>(predicate <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span>) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">WhereIndexed</span>(predicate <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#00688b;font-weight:bold">int</span>, <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span>) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">WhereIndexedT</span>(predicateFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">WhereT</span>(predicateFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+</code></pre></td></tr></table>
+</div>
+</div><p>假设我们要筛选出 <code>学号 &gt; 50</code> 的学生，则可以写出如下代码：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">main</span>() {
+	result := []Student{}
+	students := <span style="color:#008b45">makeStudents</span>()
+	linq.<span style="color:#008b45">From</span>(students).<span style="color:#008b45">Where</span>(<span style="color:#8b008b;font-weight:bold">func</span>(i <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span> {
+		<span style="color:#8b008b;font-weight:bold">return</span> i.(Student).ID &gt; <span style="color:#b452cd">50</span>
+	}).<span style="color:#008b45">ToSlice</span>(&amp;result)
+	fmt.<span style="color:#008b45">Println</span>(result)
+}
+</code></pre></td></tr></table>
+</div>
+</div><p><code>where</code> 接受一个返回值为 <code>bool</code> 的函数，我们这里首先断言 <code>i</code> 的类型为 <code>Student</code> ，然后判断学号是否大于50，最后使用 <code>ToSlice</code> 函数，把结果转换成一个 <code>slice</code>，得到答案。</p>
+<blockquote>
+<p><code>Toslice</code> 函数的实现也是经过迭代器的遍历，这里相当于内部做了一个封装：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#228b22">// ToSlice iterates over a collection and saves the results in the slice pointed
+</span><span style="color:#228b22">// by v. It overwrites the existing slice, starting from index 0.
+</span><span style="color:#228b22">//
+</span><span style="color:#228b22">// If the slice pointed by v has sufficient capacity, v will be pointed to a
+</span><span style="color:#228b22">// resliced slice. If it does not, a new underlying array will be allocated and
+</span><span style="color:#228b22">// v will point to it.
+</span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">ToSlice</span>(v <span style="color:#8b008b;font-weight:bold">interface</span>{}) {
+	res := reflect.<span style="color:#008b45">ValueOf</span>(v)
+	slice := reflect.<span style="color:#008b45">Indirect</span>(res)
+
+	cap := slice.<span style="color:#008b45">Cap</span>()
+	res.<span style="color:#008b45">Elem</span>().<span style="color:#008b45">Set</span>(slice.<span style="color:#008b45">Slice</span>(<span style="color:#b452cd">0</span>, cap)) <span style="color:#228b22">// make len(slice)==cap(slice) from now on
+</span><span style="color:#228b22"></span>
+	next := q.<span style="color:#008b45">Iterate</span>()
+	index := <span style="color:#b452cd">0</span>
+	<span style="color:#8b008b;font-weight:bold">for</span> item, ok := <span style="color:#008b45">next</span>(); ok; item, ok = <span style="color:#008b45">next</span>() {
+		<span style="color:#8b008b;font-weight:bold">if</span> index &gt;= cap {
+			slice, cap = <span style="color:#008b45">grow</span>(slice)
+		}
+		slice.<span style="color:#008b45">Index</span>(index).<span style="color:#008b45">Set</span>(reflect.<span style="color:#008b45">ValueOf</span>(item))
+		index++
+	}
+
+	<span style="color:#228b22">// reslice the len(res)==cap(res) actual res size
+</span><span style="color:#228b22"></span>	res.<span style="color:#008b45">Elem</span>().<span style="color:#008b45">Set</span>(slice.<span style="color:#008b45">Slice</span>(<span style="color:#b452cd">0</span>, index))
+}
+</code></pre></td></tr></table>
+</div>
+</div></blockquote>
+<h2 id="排序数据-order-by">排序数据 <code>order by</code></h2>
+<p>go-linq 支持升序排序，降序排序，自定义排序，函数签名如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">OrderBy</span>(selector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{}) OrderedQuery
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">OrderByDescending</span>(selector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{}) OrderedQuery
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">OrderByDescendingT</span>(selectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) OrderedQuery
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">OrderByT</span>(selectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) OrderedQuery
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">Sort</span>(less <span style="color:#8b008b;font-weight:bold">func</span>(i, j <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span>) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SortT</span>(lessFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="升序排序">升序排序</h3>
+<p>还是上面的例子，假设我们要对学生的学号从小到大排序（虽然本身就是升序的，这里只作为一个例子）：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">main</span>() {
+	result := []Student{}
+	students := <span style="color:#008b45">makeStudents</span>()
+	linq.<span style="color:#008b45">From</span>(students).<span style="color:#008b45">OrderBy</span>(<span style="color:#8b008b;font-weight:bold">func</span>(i <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{} {
+		<span style="color:#8b008b;font-weight:bold">return</span> i.(Student).ID
+	}).<span style="color:#008b45">ToSlice</span>(&amp;result)
+	fmt.<span style="color:#008b45">Println</span>(result)
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>OrderBy 接收的是要排序的具体字段，这里取出结构体的序号.</p>
+<h3 id="降序排序">降序排序</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">main</span>() {
+	result := []Student{}
+	students := <span style="color:#008b45">makeStudents</span>()
+	linq.<span style="color:#008b45">From</span>(students).<span style="color:#008b45">OrderByDescending</span>(<span style="color:#8b008b;font-weight:bold">func</span>(i <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{} {
+		<span style="color:#8b008b;font-weight:bold">return</span> i.(Student).ID
+	}).<span style="color:#008b45">ToSlice</span>(&amp;result)
+	fmt.<span style="color:#008b45">Println</span>(result)
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>跟上面一样，我们只是把调用方法换成了 OrderByDescending</p>
+<h3 id="自定义比较函数">自定义比较函数</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">main</span>() {
+	result := []Student{}
+	students := <span style="color:#008b45">makeStudents</span>()
+	linq.<span style="color:#008b45">From</span>(students).<span style="color:#008b45">Sort</span>(<span style="color:#8b008b;font-weight:bold">func</span>(i <span style="color:#8b008b;font-weight:bold">interface</span>{}, j <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span> {
+		<span style="color:#8b008b;font-weight:bold">return</span> i.(Student).ID &gt; j.(Student).ID
+	}).<span style="color:#008b45">ToSlice</span>(&amp;result)
+	fmt.<span style="color:#008b45">Println</span>(result)
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>如果用过 <code>C++</code> 的 <code>sort</code> 的同学肯定很熟悉这个操作，就是自定义一个比较函数，我这里只是简单的从大到小排个序，但是实际使用中，你可以任意做一些骚操作。</p>
+<h2 id="选择-select">选择 <code>select</code></h2>
+<p>select 主要用来对结构体字段进行处理筛选</p>
+<ul>
+<li><code>Select</code>、<code>SelectT</code>:筛选对应的字段。</li>
+<li><code>SelectIndexd</code>、<code>SelectIndexdT</code>:筛选对应字段，这边可以拿到对应结构体的下标信息</li>
+</ul>
+<p>函数签名如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">Select</span>(selector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SelectIndexed</span>(selector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#00688b;font-weight:bold">int</span>, <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SelectIndexedT</span>(selectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SelectMany</span>(selector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) Query) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SelectManyBy</span>(selector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) Query, ...) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SelectManyByIndexed</span>(selector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#00688b;font-weight:bold">int</span>, <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query, ...) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SelectManyByIndexedT</span>(selectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}, resultSelectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SelectManyByT</span>(selectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}, resultSelectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SelectManyIndexed</span>(selector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#00688b;font-weight:bold">int</span>, <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SelectManyIndexedT</span>(selectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SelectManyT</span>(selectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">SelectT</span>(selectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+</code></pre></td></tr></table>
+</div>
+</div><p>假设我要获取这些学生的姓名列表，可以这么做：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">main</span>() {
+	students := <span style="color:#008b45">makeStudents</span>()
+	linq.<span style="color:#008b45">From</span>(students).<span style="color:#008b45">Select</span>(<span style="color:#8b008b;font-weight:bold">func</span>(i <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{} {
+		<span style="color:#8b008b;font-weight:bold">return</span> i.(Student).Name
+	}).<span style="color:#008b45">ForEachT</span>(<span style="color:#8b008b;font-weight:bold">func</span>(s <span style="color:#00688b;font-weight:bold">string</span>) {
+		fmt.<span style="color:#008b45">Println</span>(s)
+	})
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>我们从 <code>[]Students</code> 中只把 <code>Name</code> 字段提取出来了，并且变成了一个 <code>List</code>，这里使用的 <code>ForEachT</code> 底层也是使用迭代器遍历得到的。</p>
+<p>函数签名中带有 <code>SelectMany</code> 的函数作用是把多维数组扁平化，对多维度数组进行处理，传入一个返回 <code>linq.Query</code> 对象的方法，一次之后把二维数组扁平化为一维数组</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">main</span>() {
+	input := [][]<span style="color:#00688b;font-weight:bold">int</span>{{<span style="color:#b452cd">1</span>, <span style="color:#b452cd">2</span>, <span style="color:#b452cd">3</span>}, {<span style="color:#b452cd">4</span>, <span style="color:#b452cd">5</span>, <span style="color:#b452cd">6</span>, <span style="color:#b452cd">7</span>}}
+	<span style="color:#228b22">//二位数组进行合并
+</span><span style="color:#228b22"></span>	r := linq.<span style="color:#008b45">From</span>(input).<span style="color:#008b45">SelectManyT</span>(
+		<span style="color:#8b008b;font-weight:bold">func</span>(i []<span style="color:#00688b;font-weight:bold">int</span>) linq.Query {
+			<span style="color:#8b008b;font-weight:bold">return</span> linq.<span style="color:#008b45">From</span>(i)
+		},
+	).<span style="color:#008b45">Results</span>()
+	fmt.<span style="color:#008b45">Println</span>(r)
+	<span style="color:#228b22">//三维数组进行合并
+</span><span style="color:#228b22"></span>	input1 := [][][]<span style="color:#00688b;font-weight:bold">int</span>{{{<span style="color:#b452cd">1</span>, <span style="color:#b452cd">2</span>, <span style="color:#b452cd">3</span>}}, {{<span style="color:#b452cd">4</span>, <span style="color:#b452cd">5</span>, <span style="color:#b452cd">6</span>, <span style="color:#b452cd">7</span>}, {<span style="color:#b452cd">8</span>, <span style="color:#b452cd">9</span>, <span style="color:#b452cd">10</span>}}}
+	r = linq.<span style="color:#008b45">From</span>(input1).<span style="color:#008b45">SelectManyT</span>(
+		<span style="color:#8b008b;font-weight:bold">func</span>(i [][]<span style="color:#00688b;font-weight:bold">int</span>) linq.Query {
+			<span style="color:#8b008b;font-weight:bold">return</span> linq.<span style="color:#008b45">From</span>(i)
+		},
+	).<span style="color:#008b45">SelectManyT</span>(
+		<span style="color:#8b008b;font-weight:bold">func</span>(i []<span style="color:#00688b;font-weight:bold">int</span>) linq.Query {
+			<span style="color:#8b008b;font-weight:bold">return</span> linq.<span style="color:#008b45">From</span>(i)
+		},
+	).<span style="color:#008b45">Results</span>()
+	fmt.<span style="color:#008b45">Println</span>(r)
+}
+
+<span style="color:#228b22">/*
+</span><span style="color:#228b22">output:
+</span><span style="color:#228b22">[1 2 3 4 5 6 7]
+</span><span style="color:#228b22">[1 2 3 4 5 6 7 8 9 10]
+</span><span style="color:#228b22">*/</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>从例子可以看出，我们把一个二维数组打平成了一个一位数组，三维数组打平了两次，这里使用了 <code>.Results()</code> 来获取结果，其实底层实现也是迭代器。</p>
+<h2 id="分组-group-by">分组 <code>group by</code></h2>
+<p>关于分组的函数签名定义有：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">GroupBy</span>(keySelector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{}, ...) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">GroupByT</span>(keySelectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}, elementSelectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">GroupJoin</span>(inner Query, outerKeySelector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{}, ...) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">GroupJoinT</span>(inner Query, outerKeySelectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}, innerKeySelectorFn
+</code></pre></td></tr></table>
+</div>
+</div><p>假设我们要按照学号的奇偶性把学生分成两组，则可以：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">main</span>() {
+	students := <span style="color:#008b45">makeStudents</span>()
+	<span style="color:#8b008b;font-weight:bold">var</span> res []linq.Group
+	linq.<span style="color:#008b45">From</span>(students).<span style="color:#008b45">GroupBy</span>(
+		<span style="color:#8b008b;font-weight:bold">func</span>(key <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{} { <span style="color:#8b008b;font-weight:bold">return</span> key.(Student).ID % <span style="color:#b452cd">2</span> },
+		<span style="color:#8b008b;font-weight:bold">func</span>(value <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{} { <span style="color:#8b008b;font-weight:bold">return</span> value.(Student) },
+	).<span style="color:#008b45">ToSlice</span>(&amp;res)
+	<span style="color:#8b008b;font-weight:bold">for</span> _, item := <span style="color:#8b008b;font-weight:bold">range</span> res {
+		fmt.<span style="color:#008b45">Println</span>(item.Key)
+		<span style="color:#8b008b;font-weight:bold">for</span> _, v := <span style="color:#8b008b;font-weight:bold">range</span> item.Group {
+			fmt.<span style="color:#008b45">Printf</span>(<span style="color:#cd5555">&#34;%+v &#34;</span>, v.(Student))
+		}
+		fmt.<span style="color:#008b45">Println</span>()
+	}
+}
+</code></pre></td></tr></table>
+</div>
+</div><p><code>GroupBy</code> 接收两个参数，一个是分组的名称筛选函数，一个是分组的值筛选函数，最后分组后的每一组的结构为 <code>[]linq.Group</code>，Group 结构为：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#228b22">// Group is a type that is used to store the result of GroupBy method.
+</span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">type</span> Group <span style="color:#8b008b;font-weight:bold">struct</span> {
+	Key   <span style="color:#8b008b;font-weight:bold">interface</span>{}
+	Group []<span style="color:#8b008b;font-weight:bold">interface</span>{}
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>有一个组名称 key，还有组里的元素列表。</p>
+<p>另还有 <code>GroupJoin</code> 这种函数可以连接其他的集合分组，可以查看 API 文档使用，这里不再叙述。</p>
+<h2 id="集合操作">集合操作</h2>
+<p>我们先把生成学生的函数做一点改造：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">makeStudents1</span>() []Student {
+	students := []Student{}
+	<span style="color:#8b008b;font-weight:bold">for</span> i := <span style="color:#b452cd">1</span>; i &lt;= <span style="color:#b452cd">100</span>; i++ {
+		students = <span style="color:#658b00">append</span>(students, Student{i, fmt.<span style="color:#008b45">Sprintf</span>(<span style="color:#cd5555">&#34;学生%d&#34;</span>, i)})
+	}
+	<span style="color:#8b008b;font-weight:bold">return</span> students
+}
+<span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">makeStudents2</span>() []Student {
+	students := []Student{}
+	<span style="color:#8b008b;font-weight:bold">for</span> i := <span style="color:#b452cd">50</span>; i &lt;= <span style="color:#b452cd">150</span>; i++ {
+		students = <span style="color:#658b00">append</span>(students, Student{i, fmt.<span style="color:#008b45">Sprintf</span>(<span style="color:#cd5555">&#34;学生%d&#34;</span>, i)})
+	}
+	<span style="color:#8b008b;font-weight:bold">return</span> students
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>令：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">students1 := <span style="color:#008b45">makeStudents1</span>()
+students2 := <span style="color:#008b45">makeStudents2</span>()
+</code></pre></td></tr></table>
+</div>
+</div><p>这里可以生成一个学号为 <code>1-100</code> 与 <code>50-150</code> 的学生，接下来我们对他进行一些集合操作。</p>
+<h3 id="求差集-except">求差集 <code>Except</code></h3>
+<p>go-linq 支持对两个 <code>Query</code> 之间求差集，其中：</p>
+<ul>
+<li><code>Except</code> ：根据结构体筛选两个 Query 之间的差集</li>
+<li><code>ExceptBy</code> ：根据结构体的字段筛选两个 Query 之间的差集</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">Except</span>(q2 Query) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">ExceptBy</span>(q2 Query, selector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">ExceptByT</span>(q2 Query, selectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+</code></pre></td></tr></table>
+</div>
+</div><p>我们先求一下 <code>students1-students2</code> 的结果：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">res := []Student{}
+linq.<span style="color:#008b45">From</span>(students1).<span style="color:#008b45">Except</span>(linq.<span style="color:#008b45">From</span>(students2)).<span style="color:#008b45">ToSlice</span>(&amp;res)
+</code></pre></td></tr></table>
+</div>
+</div><p>最后的结果是学生学号为 <code>1-49</code> 的学生。</p>
+<p>如果使用 <code>ExceptBy</code> ，则我们就是指定了一个筛选函数，只用学生的ID作比较。最后的结果是学生学号为 <code>1-49</code> 的学生。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">res := []Student{}
+linq.<span style="color:#008b45">From</span>(students1).<span style="color:#008b45">ExceptBy</span>(linq.<span style="color:#008b45">From</span>(students2), <span style="color:#8b008b;font-weight:bold">func</span>(i <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{} {
+	<span style="color:#8b008b;font-weight:bold">return</span> i.(Student).ID
+}).<span style="color:#008b45">ToSlice</span>(&amp;res)
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="求交集-intersect">求交集 <code>Intersect</code></h3>
+<p>我们来看一下求并集的函数签名：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">Intersect</span>(q2 Query) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">IntersectBy</span>(q2 Query, selector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">IntersectByT</span>(q2 Query, selectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query
+</code></pre></td></tr></table>
+</div>
+</div><p>一看就知道，和求差集差不多，我们来尝试一下。</p>
+<p>使用 <code>Intersect</code>：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">res := []Student{}
+linq.<span style="color:#008b45">From</span>(students1).<span style="color:#008b45">Intersect</span>(linq.<span style="color:#008b45">From</span>(students2)).<span style="color:#008b45">ToSlice</span>(&amp;res)
+</code></pre></td></tr></table>
+</div>
+</div><p>使用 <code>IntersectBy</code>：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">res := []Student{}
+linq.<span style="color:#008b45">From</span>(students1).<span style="color:#008b45">IntersectBy</span>(linq.<span style="color:#008b45">From</span>(students2), <span style="color:#8b008b;font-weight:bold">func</span>(i <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{} {
+	<span style="color:#8b008b;font-weight:bold">return</span> i.(Student).ID
+}).<span style="color:#008b45">ToSlice</span>(&amp;res)
+</code></pre></td></tr></table>
+</div>
+</div><p>结果都是学号为 <code>50-100</code> 的学生。</p>
+<h3 id="求并集-union">求并集 <code>Union</code></h3>
+<p>先看函数签名：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">Union</span>(q2 Query) Query  <span style="color:#228b22">// 不会排除两个Query中重复的元素，有多少个元素就组合成多少个元素的Query
+</span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">Concat</span>(q2 Query) Query <span style="color:#228b22">// 会排除掉两个Query中重复的元素
+</span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">Append</span>(item <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query <span style="color:#228b22">// 将新的元素添加到Query的最后一个位置
+</span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">Prepend</span>(item <span style="color:#8b008b;font-weight:bold">interface</span>{}) Query <span style="color:#228b22">// 将新的元素添加到Query的第一个位置
+</span></code></pre></td></tr></table>
+</div>
+</div><p>则：</p>
+<p>使用 <code>Union</code> ：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">linq.<span style="color:#008b45">From</span>(students1).<span style="color:#008b45">Union</span>(linq.<span style="color:#008b45">From</span>(students2)).<span style="color:#008b45">ToSlice</span>(&amp;res)
+<span style="color:#228b22">// 结果是学号 1-150 的学生（没去重）
+</span></code></pre></td></tr></table>
+</div>
+</div><p>去重后结果 <code>Concat</code> ：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">linq.<span style="color:#008b45">From</span>(students1).<span style="color:#008b45">Concat</span>(linq.<span style="color:#008b45">From</span>(students2)).<span style="color:#008b45">ToSlice</span>(&amp;res)
+<span style="color:#228b22">// 结果是学号 1-150 的学生（去重后）
+</span></code></pre></td></tr></table>
+</div>
+</div><p><code>Append</code> 和 <code>Prepend</code> 用法一样，此处不赘述。</p>
+<h2 id="all-判断是否所有元素都满足条件"><code>All</code> 判断是否所有元素都满足条件</h2>
+<p>函数签名：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">All</span>(predicate <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span>) <span style="color:#00688b;font-weight:bold">bool</span>
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">AllT</span>(predicateFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>使用：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">linq.<span style="color:#008b45">From</span>(students1).<span style="color:#008b45">All</span>(<span style="color:#8b008b;font-weight:bold">func</span>(i <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span> { <span style="color:#8b008b;font-weight:bold">return</span> i.(Student).ID &gt; <span style="color:#b452cd">0</span> })
+</code></pre></td></tr></table>
+</div>
+</div><p>返回一个 <code>bool</code>，判断学生的学号是否都大于0</p>
+<h2 id="any-判断是否有任意个元素满足条件"><code>Any</code> 判断是否有任意个元素满足条件</h2>
+<p>函数签名：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">Any</span>() <span style="color:#00688b;font-weight:bold">bool</span>
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">AnyWith</span>(predicate <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span>) <span style="color:#00688b;font-weight:bold">bool</span>
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">AnyWithT</span>(predicateFn <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>使用：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">linq.<span style="color:#008b45">From</span>(students1).<span style="color:#008b45">AnyWith</span>(<span style="color:#8b008b;font-weight:bold">func</span>(i <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span> { <span style="color:#8b008b;font-weight:bold">return</span> i.(Student).ID == <span style="color:#b452cd">0</span> })
+</code></pre></td></tr></table>
+</div>
+</div><p>返回一个 <code>bool</code>，判断是否存在至少一个学生的学号等于0</p>
+<h2 id="tomap-转换为map"><code>ToMap</code> 转换为Map</h2>
+<p>ToMap提供了三个方法：</p>
+<ul>
+<li>
+<p><code>ToMap</code>：需要配合 SelectT 方法去生成返回一个 linq.KeyValue 的结构，指定对应的Map的key和value</p>
+</li>
+<li>
+<p><code>ToMapBy</code>、<code>ToMapByT</code>：提供两个方法，一个方法指定key，一个方法指定value</p>
+</li>
+</ul>
+<p>如果key相同的话，前面的元素会被覆盖掉，ToMap 方法的使用需要配合Select方法.</p>
+<p>函数签名：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">ToMap</span>(result <span style="color:#8b008b;font-weight:bold">interface</span>{})
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">ToMapBy</span>(result <span style="color:#8b008b;font-weight:bold">interface</span>{}, keySelector <span style="color:#8b008b;font-weight:bold">func</span>(<span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#8b008b;font-weight:bold">interface</span>{}, ...)
+<span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">ToMapByT</span>(result <span style="color:#8b008b;font-weight:bold">interface</span>{}, keySelectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{}, valueSelectorFn <span style="color:#8b008b;font-weight:bold">interface</span>{})
+</code></pre></td></tr></table>
+</div>
+</div><p>使用：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">type</span> Product <span style="color:#8b008b;font-weight:bold">struct</span> {
+	Name <span style="color:#00688b;font-weight:bold">string</span>
+	Code <span style="color:#00688b;font-weight:bold">int</span>
+}
+
+products := []Product{
+	{Name: <span style="color:#cd5555">&#34;orange&#34;</span>, Code: <span style="color:#b452cd">4</span>},
+	{Name: <span style="color:#cd5555">&#34;apple&#34;</span>, Code: <span style="color:#b452cd">9</span>},
+	{Name: <span style="color:#cd5555">&#34;lemon&#34;</span>, Code: <span style="color:#b452cd">12</span>},
+	{Name: <span style="color:#cd5555">&#34;apple&#34;</span>, Code: <span style="color:#b452cd">9</span>},
+}
+
+map1 := <span style="color:#8b008b;font-weight:bold">map</span>[<span style="color:#00688b;font-weight:bold">int</span>]<span style="color:#00688b;font-weight:bold">string</span>{}
+<span style="color:#008b45">From</span>(products).
+	<span style="color:#008b45">SelectT</span>(
+		<span style="color:#8b008b;font-weight:bold">func</span>(item Product) KeyValue { <span style="color:#8b008b;font-weight:bold">return</span> KeyValue{Key: item.Code, Value: item.Name} },
+	).
+	<span style="color:#008b45">ToMap</span>(&amp;map1)
+
+fmt.<span style="color:#008b45">Println</span>(map1[<span style="color:#b452cd">4</span>])
+fmt.<span style="color:#008b45">Println</span>(map1[<span style="color:#b452cd">9</span>])
+fmt.<span style="color:#008b45">Println</span>(map1[<span style="color:#b452cd">12</span>])
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="contains-判断元素是否在query中"><code>Contains</code> 判断元素是否在Query中</h2>
+<p>函数签名：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8b008b;font-weight:bold">func</span> (q Query) <span style="color:#008b45">Contains</span>(value <span style="color:#8b008b;font-weight:bold">interface</span>{}) <span style="color:#00688b;font-weight:bold">bool</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>使用：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">linq.<span style="color:#008b45">From</span>(students1).<span style="color:#008b45">Contains</span>(Student{<span style="color:#b452cd">1</span>, <span style="color:#cd5555">&#34;学生1&#34;</span>})
+</code></pre></td></tr></table>
+</div>
+</div><p>返回一个 bool，判断数据源中是否存在此元素。</p>
+<h1 id="结语">结语</h1>
+<p>本文列出了 <code>go-linq</code> 的常用操作，应该可以应付很多的场景了，go-linq 还有很多方法，大家可以自行查阅官方 API 文档。</p>
+<h1 id="参考链接">参考链接</h1>
+<ol>
+<li><a href="https://github.com/ahmetb/go-linq">https://github.com/ahmetb/go-linq</a></li>
+<li><a href="https://pkg.go.dev/github.com/ahmetb/go-linq/v3">https://pkg.go.dev/github.com/ahmetb/go-linq/v3</a></li>
+<li><a href="https://blog.csdn.net/qq_34326321/article/details/110422960">https://blog.csdn.net/qq_34326321/article/details/110422960</a></li>
+</ol>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2021-05-25</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="https://blog.riba2534.cn/blog/2021/%E6%95%B0%E6%8D%AE%E5%AF%86%E9%9B%86%E5%9E%8B%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1_%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E4%B8%8E%E6%A3%80%E7%B4%A2/">
+			下回<br>数据密集型应用系统设计_数据存储与检索
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://blog.riba2534.cn/friends/">
+			上回<br>朋友们
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2021 🌀riba2534&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "blog-9g6ht92ca9c564c6",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

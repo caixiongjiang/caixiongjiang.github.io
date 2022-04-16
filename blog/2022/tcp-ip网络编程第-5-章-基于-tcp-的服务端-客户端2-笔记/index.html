@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html><head>
+<title>《TCP/IP网络编程》第 5 章 基于 TCP 的服务端/客户端（2） 笔记</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="《TCP/IP网络编程》第 5 章 基于 TCP 的服务端/客户端（2） 笔记" />
+<meta property="og:description" content="第 5 章 基于 TCP 的服务端/客户端（2） 上一章仅仅是从编程角度学习实现方法，并未详细讨论 TCP 的工作原理。因此，本章将想次讲解 TCP 中必要的理论知识，还将给出第 4 章客户端问题的解决方案。
+5.1 回声客户端的完美实现 5.1.1 回声服务器没有问题，只有回声客户端有问题？ 问题不在服务器端，而在客户端，只看代码可能不好理解，因为 I/O 中使用了相同的函数。先回顾一下服务器端的 I/O 相关代码：
+1 2  while ((str_len = read(clnt_sock, message, BUF_SIZE)) != 0) write(clnt_sock, message, str_len);   接着是客户端代码:
+1 2  write(sock, message, strlen(message)); str_len = read(sock, message, BUF_SIZE - 1);   二者都在村换调用 read 和 write 函数。实际上之前的回声客户端将 100% 接受字节传输的数据，只不过接受数据时的单位有些问题。扩展客户端代码回顾范围，下面是，客户端的代码:
+1 2 3 4 5 6 7 8 9 10 11 12 13  while (1) { fputs(&#34;Input message(Q to quit): &#34;, stdout); fgets(message, BUF_SIZE, stdin); if (!" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-5-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-tcp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF2-%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2022-03-24T15:57:00+08:00" />
+<meta property="article:modified_time" content="2022-03-24T11:29:12+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.3.1/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://caixiongjiang.github.io/">
+    
+        <div class="nav-title">
+            🌀Jarson Cai&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            头脑是日用品，不是装饰品
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://github.com/caixiongjiang">
+    GitHub
+</a>
+<br>
+
+<a href="https://jarson-cai.gitee.io/jarson-cai-blog">
+    MiFeng
+</a>
+<br>
+
+<a href="nau_cxj@163.com">
+    Email
+</a>
+<br>
+
+<a href="https://leetcode-cn.com/u/cai-xiong-jiang/">
+    LiKou
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2022 🌀Jarson Cai&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac-5-%e7%ab%a0-%e5%9f%ba%e4%ba%8e-tcp-%e7%9a%84%e6%9c%8d%e5%8a%a1%e7%ab%af%e5%ae%a2%e6%88%b7%e7%ab%af2" onclick="onNavClick(`#第-5-章-基于-tcp-的服务端客户端2-nav`)" id="第-5-章-基于-tcp-的服务端客户端2-nav">
+									第 5 章 基于 TCP 的服务端/客户端（2）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#51-%e5%9b%9e%e5%a3%b0%e5%ae%a2%e6%88%b7%e7%ab%af%e7%9a%84%e5%ae%8c%e7%be%8e%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#51-回声客户端的完美实现-nav`)" id="51-回声客户端的完美实现-nav">
+									5.1 回声客户端的完美实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#511-%e5%9b%9e%e5%a3%b0%e6%9c%8d%e5%8a%a1%e5%99%a8%e6%b2%a1%e6%9c%89%e9%97%ae%e9%a2%98%e5%8f%aa%e6%9c%89%e5%9b%9e%e5%a3%b0%e5%ae%a2%e6%88%b7%e7%ab%af%e6%9c%89%e9%97%ae%e9%a2%98" onclick="onNavClick(`#511-回声服务器没有问题只有回声客户端有问题-nav`)" id="511-回声服务器没有问题只有回声客户端有问题-nav">
+									5.1.1 回声服务器没有问题，只有回声客户端有问题？
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#512-%e5%9b%9e%e5%a3%b0%e5%ae%a2%e6%88%b7%e7%ab%af%e9%97%ae%e9%a2%98%e7%9a%84%e8%a7%a3%e5%86%b3%e5%8a%9e%e6%b3%95" onclick="onNavClick(`#512-回声客户端问题的解决办法-nav`)" id="512-回声客户端问题的解决办法-nav">
+									5.1.2 回声客户端问题的解决办法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#513-%e5%a6%82%e6%9e%9c%e9%97%ae%e9%a2%98%e4%b8%8d%e5%9c%a8%e4%ba%8e%e5%9b%9e%e5%a3%b0%e5%ae%a2%e6%88%b7%e7%ab%af%e5%ae%9a%e4%b9%89%e5%ba%94%e7%94%a8%e5%b1%82%e5%8d%8f%e8%ae%ae" onclick="onNavClick(`#513-如果问题不在于回声客户端定义应用层协议-nav`)" id="513-如果问题不在于回声客户端定义应用层协议-nav">
+									5.1.3 如果问题不在于回声客户端：定义应用层协议
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#52-tcp-%e5%8e%9f%e7%90%86" onclick="onNavClick(`#52-tcp-原理-nav`)" id="52-tcp-原理-nav">
+									5.2 TCP 原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#521-tcp-%e5%a5%97%e6%8e%a5%e5%ad%97%e4%b8%ad%e7%9a%84-io-%e7%bc%93%e5%86%b2" onclick="onNavClick(`#521-tcp-套接字中的-io-缓冲-nav`)" id="521-tcp-套接字中的-io-缓冲-nav">
+									5.2.1 TCP 套接字中的 I/O 缓冲
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#522-tcp-%e5%86%85%e9%83%a8%e5%b7%a5%e4%bd%9c%e5%8e%9f%e7%90%86-1%e4%b8%8e%e5%af%b9%e6%96%b9%e5%a5%97%e6%8e%a5%e5%ad%97%e7%9a%84%e8%bf%9e%e6%8e%a5" onclick="onNavClick(`#522-tcp-内部工作原理-1与对方套接字的连接-nav`)" id="522-tcp-内部工作原理-1与对方套接字的连接-nav">
+									5.2.2 TCP 内部工作原理 1：与对方套接字的连接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#523-tcp-%e5%86%85%e9%83%a8%e5%b7%a5%e4%bd%9c%e5%8e%9f%e7%90%86-2%e4%b8%8e%e5%af%b9%e6%96%b9%e4%b8%bb%e6%9c%ba%e7%9a%84%e6%95%b0%e6%8d%ae%e4%ba%a4%e6%8d%a2" onclick="onNavClick(`#523-tcp-内部工作原理-2与对方主机的数据交换-nav`)" id="523-tcp-内部工作原理-2与对方主机的数据交换-nav">
+									5.2.3 TCP 内部工作原理 2：与对方主机的数据交换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#524-tcp-%e5%86%85%e9%83%a8%e5%b7%a5%e4%bd%9c%e5%8e%9f%e7%90%86-3%e6%96%ad%e5%bc%80%e5%a5%97%e6%8e%a5%e5%ad%97%e7%9a%84%e8%bf%9e%e6%8e%a5" onclick="onNavClick(`#524-tcp-内部工作原理-3断开套接字的连接-nav`)" id="524-tcp-内部工作原理-3断开套接字的连接-nav">
+									5.2.4 TCP 内部工作原理 3：断开套接字的连接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#53-%e5%9f%ba%e4%ba%8e-windows-%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#53-基于-windows-的实现-nav`)" id="53-基于-windows-的实现-nav">
+									5.3 基于 Windows 的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#54-%e4%b9%a0%e9%a2%98" onclick="onNavClick(`#54-习题-nav`)" id="54-习题-nav">
+									5.4 习题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac-5-%e7%ab%a0-%e5%9f%ba%e4%ba%8e-tcp-%e7%9a%84%e6%9c%8d%e5%8a%a1%e7%ab%af%e5%ae%a2%e6%88%b7%e7%ab%af2" onclick="onNavClick(`#第-5-章-基于-tcp-的服务端客户端2-nav`)" id="第-5-章-基于-tcp-的服务端客户端2-nav">
+									第 5 章 基于 TCP 的服务端/客户端（2）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#51-%e5%9b%9e%e5%a3%b0%e5%ae%a2%e6%88%b7%e7%ab%af%e7%9a%84%e5%ae%8c%e7%be%8e%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#51-回声客户端的完美实现-nav`)" id="51-回声客户端的完美实现-nav">
+									5.1 回声客户端的完美实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#511-%e5%9b%9e%e5%a3%b0%e6%9c%8d%e5%8a%a1%e5%99%a8%e6%b2%a1%e6%9c%89%e9%97%ae%e9%a2%98%e5%8f%aa%e6%9c%89%e5%9b%9e%e5%a3%b0%e5%ae%a2%e6%88%b7%e7%ab%af%e6%9c%89%e9%97%ae%e9%a2%98" onclick="onNavClick(`#511-回声服务器没有问题只有回声客户端有问题-nav`)" id="511-回声服务器没有问题只有回声客户端有问题-nav">
+									5.1.1 回声服务器没有问题，只有回声客户端有问题？
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#512-%e5%9b%9e%e5%a3%b0%e5%ae%a2%e6%88%b7%e7%ab%af%e9%97%ae%e9%a2%98%e7%9a%84%e8%a7%a3%e5%86%b3%e5%8a%9e%e6%b3%95" onclick="onNavClick(`#512-回声客户端问题的解决办法-nav`)" id="512-回声客户端问题的解决办法-nav">
+									5.1.2 回声客户端问题的解决办法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#513-%e5%a6%82%e6%9e%9c%e9%97%ae%e9%a2%98%e4%b8%8d%e5%9c%a8%e4%ba%8e%e5%9b%9e%e5%a3%b0%e5%ae%a2%e6%88%b7%e7%ab%af%e5%ae%9a%e4%b9%89%e5%ba%94%e7%94%a8%e5%b1%82%e5%8d%8f%e8%ae%ae" onclick="onNavClick(`#513-如果问题不在于回声客户端定义应用层协议-nav`)" id="513-如果问题不在于回声客户端定义应用层协议-nav">
+									5.1.3 如果问题不在于回声客户端：定义应用层协议
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#52-tcp-%e5%8e%9f%e7%90%86" onclick="onNavClick(`#52-tcp-原理-nav`)" id="52-tcp-原理-nav">
+									5.2 TCP 原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#521-tcp-%e5%a5%97%e6%8e%a5%e5%ad%97%e4%b8%ad%e7%9a%84-io-%e7%bc%93%e5%86%b2" onclick="onNavClick(`#521-tcp-套接字中的-io-缓冲-nav`)" id="521-tcp-套接字中的-io-缓冲-nav">
+									5.2.1 TCP 套接字中的 I/O 缓冲
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#522-tcp-%e5%86%85%e9%83%a8%e5%b7%a5%e4%bd%9c%e5%8e%9f%e7%90%86-1%e4%b8%8e%e5%af%b9%e6%96%b9%e5%a5%97%e6%8e%a5%e5%ad%97%e7%9a%84%e8%bf%9e%e6%8e%a5" onclick="onNavClick(`#522-tcp-内部工作原理-1与对方套接字的连接-nav`)" id="522-tcp-内部工作原理-1与对方套接字的连接-nav">
+									5.2.2 TCP 内部工作原理 1：与对方套接字的连接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#523-tcp-%e5%86%85%e9%83%a8%e5%b7%a5%e4%bd%9c%e5%8e%9f%e7%90%86-2%e4%b8%8e%e5%af%b9%e6%96%b9%e4%b8%bb%e6%9c%ba%e7%9a%84%e6%95%b0%e6%8d%ae%e4%ba%a4%e6%8d%a2" onclick="onNavClick(`#523-tcp-内部工作原理-2与对方主机的数据交换-nav`)" id="523-tcp-内部工作原理-2与对方主机的数据交换-nav">
+									5.2.3 TCP 内部工作原理 2：与对方主机的数据交换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#524-tcp-%e5%86%85%e9%83%a8%e5%b7%a5%e4%bd%9c%e5%8e%9f%e7%90%86-3%e6%96%ad%e5%bc%80%e5%a5%97%e6%8e%a5%e5%ad%97%e7%9a%84%e8%bf%9e%e6%8e%a5" onclick="onNavClick(`#524-tcp-内部工作原理-3断开套接字的连接-nav`)" id="524-tcp-内部工作原理-3断开套接字的连接-nav">
+									5.2.4 TCP 内部工作原理 3：断开套接字的连接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#53-%e5%9f%ba%e4%ba%8e-windows-%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#53-基于-windows-的实现-nav`)" id="53-基于-windows-的实现-nav">
+									5.3 基于 Windows 的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#54-%e4%b9%a0%e9%a2%98" onclick="onNavClick(`#54-习题-nav`)" id="54-习题-nav">
+									5.4 习题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://caixiongjiang.github.io/">
+            🌀Jarson Cai&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://caixiongjiang.github.io/">
+        <div class="single-column-header-title">🌀Jarson Cai&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">头脑是日用品，不是装饰品</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    《TCP/IP网络编程》第 5 章 基于 TCP 的服务端/客户端（2） 笔记
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2022-03-24 15:57
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/tcp/ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0">《TCP/IP网络编程》学习笔记</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/tcp/ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B">《TCP/IP网络编程》</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            16 min
+                            
+                            38 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h2 id="第-5-章-基于-tcp-的服务端客户端2">第 5 章 基于 TCP 的服务端/客户端（2）</h2>
+<p>上一章仅仅是从编程角度学习实现方法，并未详细讨论 TCP 的工作原理。因此，本章将想次讲解 TCP 中必要的理论知识，还将给出第 4 章客户端问题的解决方案。</p>
+<h3 id="51-回声客户端的完美实现">5.1 回声客户端的完美实现</h3>
+<h4 id="511-回声服务器没有问题只有回声客户端有问题">5.1.1 回声服务器没有问题，只有回声客户端有问题？</h4>
+<p>问题不在服务器端，而在客户端，只看代码可能不好理解，因为 I/O 中使用了相同的函数。先回顾一下服务器端的 I/O 相关代码：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">while</span> ((str_len = read(clnt_sock, message, BUF_SIZE)) != <span style="color:#b452cd">0</span>)
+    write(clnt_sock, message, str_len);
+</code></pre></td></tr></table>
+</div>
+</div><p>接着是客户端代码:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">write(sock, message, strlen(message));
+str_len = read(sock, message, BUF_SIZE - <span style="color:#b452cd">1</span>);
+</code></pre></td></tr></table>
+</div>
+</div><p>二者都在村换调用 read 和 write 函数。实际上之前的回声客户端将 100% 接受字节传输的数据，只不过接受数据时的单位有些问题。扩展客户端代码回顾范围，下面是，客户端的代码:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">while</span> (<span style="color:#b452cd">1</span>)
+{
+    fputs(<span style="color:#cd5555">&#34;Input message(Q to quit): &#34;</span>, stdout);
+    fgets(message, BUF_SIZE, stdin);
+
+    <span style="color:#8b008b;font-weight:bold">if</span> (!strcmp(message, <span style="color:#cd5555">&#34;q</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>) || !strcmp(message, <span style="color:#cd5555">&#34;Q</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>))
+        <span style="color:#8b008b;font-weight:bold">break</span>;
+
+    write(sock, message, strlen(message));
+    str_len = read(sock, message, BUF_SIZE - <span style="color:#b452cd">1</span>);
+    message[str_len] = <span style="color:#b452cd">0</span>;
+    printf(<span style="color:#cd5555">&#34;Message from server: %s&#34;</span>, message);
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>现在应该理解了问题，回声客户端传输的是字符串，而且是通过调用 write 函数一次性发送的。之后还调用一次 read 函数，期待着接受自己传输的字符串，这就是问题所在。</p>
+<h4 id="512-回声客户端问题的解决办法">5.1.2 回声客户端问题的解决办法</h4>
+<p>这个问题其实很容易解决，因为可以提前接受数据的大小。若之前传输了20字节长的字符串，则再接收时循环调用 read 函数读取 20 个字节即可。既然有了解决办法，那么代码如下：</p>
+<ul>
+<li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch05/echo_client2.c">echo_client2.c</a></li>
+</ul>
+<p>这样修改为了接收所有传输数据而循环调用 read 函数。测试及运行结果可参考第四章。</p>
+<h4 id="513-如果问题不在于回声客户端定义应用层协议">5.1.3 如果问题不在于回声客户端：定义应用层协议</h4>
+<p>回声客户端可以提前知道接收数据的长度，这在大多数情况下是不可能的。那么此时无法预知接收数据长度时应该如何手法数据？这是需要的是<strong>应用层协议</strong>的定义。在收发过程中定好规则（协议）以表示数据边界，或者提前告知需要发送的数据的大小。服务端/客户端实现过程中逐步定义的规则集合就是应用层协议。</p>
+<p>现在写一个小程序来体验应用层协议的定义过程。要求：</p>
+<ol>
+<li>服务器从客户端获得多个数组和运算符信息。</li>
+<li>服务器接收到数字候对齐进行加减乘运算，然后把结果传回客户端。</li>
+</ol>
+<p>例：</p>
+<ol>
+<li>向服务器传递3,5,9的同事请求加法运算，服务器返回3+5+9的结果</li>
+<li>请求做乘法运算，客户端会收到<code>3*5*9</code>的结果</li>
+<li>如果向服务器传递4,3,2的同时要求做减法，则返回4-3-2的运算结果。</li>
+</ol>
+<p>请自己实现一个程序来实现功能。</p>
+<p>书上的实现：</p>
+<ul>
+<li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch05/op_client.c">op_client.c</a></li>
+<li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch05/op_server.c">op_server.c</a></li>
+</ul>
+<p>阅读代码要注意一下，<code>int*</code>与<code>char</code>之间的转换。TCP 中不存在数据边界。</p>
+<p>编译：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc op_client.c -o opclient
+gcc op_server.c -o opserver
+</code></pre></td></tr></table>
+</div>
+</div><p>运行:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">./opserver <span style="color:#b452cd">9190</span>
+./opclient 127.0.0.1 <span style="color:#b452cd">9190</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>结果：</p>
+<p><img src="https://i.loli.net/2019/01/16/5c3ea297c7649.png" alt=""></p>
+<h3 id="52-tcp-原理">5.2 TCP 原理</h3>
+<h4 id="521-tcp-套接字中的-io-缓冲">5.2.1 TCP 套接字中的 I/O 缓冲</h4>
+<p>TCP 套接字的数据收发无边界。服务器即使调用 1 次 write 函数传输 40 字节的数据，客户端也有可能通过 4 次 read 函数调用每次读取 10 字节。但此处也有一些疑问，服务器一次性传输了 40 字节，而客户端竟然可以缓慢的分批接受。客户端接受 10 字节后，剩下的 30 字节在何处等候呢？</p>
+<p>实际上，write 函数调用后并非立即传输数据， read 函数调用后也并非马上接收数据。如图所示，write 函数调用瞬间，数据将移至输出缓冲；read 函数调用瞬间，从输入缓冲读取数据。</p>
+<p><img src="https://i.loli.net/2019/01/16/5c3ea41cd93c6.png" alt=""></p>
+<p>I/O 缓冲特性可以整理如下：</p>
+<ul>
+<li>I/O 缓冲在每个 TCP 套接字中单独存在</li>
+<li>I/O 缓冲在创建套接字时自动生成</li>
+<li>即使关闭套接字也会继续传递输出缓冲中遗留的数据</li>
+<li>关闭套接字将丢失输入缓冲中的数据</li>
+</ul>
+<p>假设发生以下情况，会发生什么事呢？</p>
+<blockquote>
+<p>客户端输入缓冲为 50 字节，而服务器端传输了 100 字节。</p>
+</blockquote>
+<p>因为 TCP 不会发生超过输入缓冲大小的数据传输。也就是说，根本不会发生这类问题，因为 TCP 会控制数据流。TCP 中有滑动窗口（Sliding Window）协议，用对话方式如下：</p>
+<blockquote>
+<ul>
+<li>A：你好，最多可以向我传递 50 字节</li>
+<li>B：好的</li>
+<li>A：我腾出了 20 字节的空间，最多可以接受 70 字节</li>
+<li>B：好的</li>
+</ul>
+</blockquote>
+<p>数据收发也是如此，因此 TCP 中不会因为缓冲溢出而丢失数据。</p>
+<p><strong>write 函数在数据传输完成时返回。</strong></p>
+<h4 id="522-tcp-内部工作原理-1与对方套接字的连接">5.2.2 TCP 内部工作原理 1：与对方套接字的连接</h4>
+<p>TCP 套接字从创建到消失所经过的过程分为如下三步：</p>
+<ul>
+<li>与对方套接字建立连接</li>
+<li>与对方套接字进行数据交换</li>
+<li>断开与对方套接字的连接</li>
+</ul>
+<p>首先讲解与对方套接字建立连接的过程。连接过程中，套接字的对话如下：</p>
+<ul>
+<li>套接字A：你好，套接字 B。我这里有数据给你，建立连接吧</li>
+<li>套接字B：好的，我这边已就绪</li>
+<li>套接字A：谢谢你受理我的请求</li>
+</ul>
+<p>TCP 在实际通信中也会经过三次对话过程，因此，该过程又被称为 <strong>Three-way handshaking（三次握手）</strong>。接下来给出连接过程中实际交换的信息方式：</p>
+<p><img src="https://i.loli.net/2019/01/16/5c3ecdec9fc04.png" alt=""></p>
+<p>套接字是全双工方式工作的。也就是说，它可以双向传递数据。因此，收发数据前要做一些准备。首先请求连接的主机 A 要给主机 B 传递以下信息：</p>
+<blockquote>
+<p>[SYN] SEQ : 1000 , ACK:-</p>
+</blockquote>
+<p>该消息中的 SEQ 为 1000 ，ACK 为空，而 SEQ 为1000 的含义如下：</p>
+<blockquote>
+<p>现在传递的数据包的序号为 1000，如果接收无误，请通知我向您传递 1001 号数据包。</p>
+</blockquote>
+<p>这是首次请求连接时使用的消息，又称为 SYN。SYN 是 Synchronization 的简写，表示收发数据前传输的同步消息。接下来主机 B 向 A 传递以下信息：</p>
+<blockquote>
+<p>[SYN+ACK] SEQ: 2000, ACK: 1001</p>
+</blockquote>
+<p>此时 SEQ 为 2000，ACK 为 1001，而 SEQ 为 2000 的含义如下：</p>
+<blockquote>
+<p>现传递的数据包号为 2000 ，如果接受无误，请通知我向您传递 2001 号数据包。</p>
+</blockquote>
+<p>而 ACK 1001 的含义如下：</p>
+<blockquote>
+<p>刚才传输的 SEQ 为 1000 的数据包接受无误，现在请传递 SEQ 为 1001 的数据包。</p>
+</blockquote>
+<p>对于主机 A 首次传输的数据包的确认消息（ACK 1001）和为主机 B 传输数据做准备的同步消息（SEQ 2000）捆绑发送。因此，此种类消息又称为 SYN+ACK。</p>
+<p>收发数据前向数据包分配序号，并向对方通报此序号，这都是为了防止数据丢失做的准备。通过项数据包分配序号并确认，可以在数据包丢失时马上查看并重传丢失的数据包。因此 TCP 可以保证可靠的数据传输。</p>
+<p>通过这三个过程，这样主机 A 和主机 B 就确认了彼此已经准备就绪。</p>
+<h4 id="523-tcp-内部工作原理-2与对方主机的数据交换">5.2.3 TCP 内部工作原理 2：与对方主机的数据交换</h4>
+<p>通过第一步三次握手过程完成了数据交换准备，下面就开始正式收发数据，其默认方式如图所示：</p>
+<p><img src="https://i.loli.net/2019/01/16/5c3ed1a97ce2b.png" alt=""></p>
+<p>图上给出了主机 A 分成 2 个数据包向主机 B 传输 200 字节的过程。首先，主机 A 通过 1 个数据包发送 100 个字节的数据，数据包的 SEQ 为 1200 。主机 B 为了确认这一点，向主机 A 发送 ACK 1301 消息。</p>
+<p>此时的 ACK 号为 1301 而不是 1201，原因在于 ACK 号的增量为传输的数据字节数。假设每次 ACK 号不加传输的字节数，这样虽然可以确认数据包的传输，但无法明确 100 个字节全都正确传递还是丢失了一部分，比如只传递了 80 字节。因此按照如下公式传递 ACK 信息：</p>
+<blockquote>
+<p>ACK 号 = SEQ 号 + 传递的字节数 + 1</p>
+</blockquote>
+<p>与三次握手协议相同，最后 + 1 是为了告知对方下次要传递的 SEQ 号。下面分析传输过程中数据包丢失的情况：</p>
+<p><img src="https://i.loli.net/2019/01/16/5c3ed371187a6.png" alt="">'</p>
+<p>上图表示了通过 SEQ 1301 数据包向主机 B 传递 100 字节数据。但中间发生了错误，主机 B 未收到，经过一段时间后，主机 A 仍然未收到对于 SEQ 1301 的 ACK 的确认，因此试着重传该数据包。为了完成该数据包的重传，TCP 套接字启动计时器以等待 ACK 应答。若相应计时器发生超时（Time-out!）则重传。</p>
+<h4 id="524-tcp-内部工作原理-3断开套接字的连接">5.2.4 TCP 内部工作原理 3：断开套接字的连接</h4>
+<p>TCP 套接字的结束过程也非常优雅。如果对方还有数据需要传输时直接断掉该连接会出问题，所以断开连接时需要双方协商，断开连接时双方的对话如下：</p>
+<blockquote>
+<ul>
+<li>套接字A：我希望断开连接</li>
+<li>套接字B：哦，是吗？请稍后。</li>
+<li>套接字A：我也准备就绪，可以断开连接。</li>
+<li>套接字B：好的，谢谢合作。</li>
+</ul>
+</blockquote>
+<p>先由套接字 A 向套接字 B 传递断开连接的信息，套接字 B 发出确认收到的消息，然后向套接字 A 传递可以断开连接的消息，套接字 A 同样发出确认消息。</p>
+<p><img src="https://i.loli.net/2019/01/16/5c3ed7503c18c.png" alt=""></p>
+<p>图中数据包内的 FIN 表示断开连接。也就是说，双方各发送 1 次 FIN 消息后断开连接。此过过程经历 4 个阶段，因此又称四次握手（Four-way handshaking）。SEQ 和 ACK 的含义与之前讲解的内容一致，省略。图中，主机 A 传递了两次 ACK 5001，也许这里会有困惑。其实，第二次 FIN 数据包中的 ACK 5001 只是因为接收了 ACK 消息后未接收到的数据重传的。</p>
+<h3 id="53-基于-windows-的实现">5.3 基于 Windows 的实现</h3>
+<p>暂略</p>
+<h3 id="54-习题">5.4 习题</h3>
+<blockquote>
+<p>答案仅代表本人个人观点，可能不是正确答案。</p>
+</blockquote>
+<ol>
+<li>
+<p><strong>请说明 TCP 套接字连接设置的三次握手过程。尤其是 3 次数据交换过程每次收发的数据内容。</strong></p>
+<p>答：TCP套接字的生命周期主要可分为3个部分: ①与对方套接字建立连接 ②与对方套接字进行数据交换 ③断开与对方套接字的连接。</p>
+</li>
+</ol>
+<p>其中,在第一步建立连接的阶段,又可细分为3个步骤(即<code>三次握手</code>)：①由主机1给主机2发送初始的SEQ，首次连接请求是关键字是SYN，表示收发数据前同步传输的消息,此时报文的ACK一般为空。②主机2收到报文以后，给主机 1 传递信息，用一个新的SEQ表示自己的序号，然后ACK代表已经接受到主机1的消息，希望接受下一个消息③主机1收到主机2的确认以后，还需要给主机2给出确认，此时再发送一次SEQ和ACK。</p>
+<ol start="2">
+<li>
+<p><strong>TCP 是可靠的数据传输协议，但在通过网络通信的过程中可能丢失数据。请通过 ACK 和 SEQ 说明 TCP 通过和何种机制保证丢失数据的可靠传输。</strong></p>
+<p>答：通过超时重传机制来保证，如果报文发出去的特定时间内，发送消息的主机没有收到另一个主机的回复，那么就继续发送这条消息，直到收到回复为止。</p>
+</li>
+<li>
+<p><strong>TCP 套接字中调用 write 和 read 函数时数据如何移动？结合 I/O 缓冲进行说明。</strong></p>
+<p>答：TCP 套接字调用 write 函数时，数据将移至输出缓冲，在适当的时候，传到对方输入缓冲。这时对方将调用 read 函数从输入缓冲中读取数据。</p>
+</li>
+<li>
+<p><strong>对方主机的输入缓冲剩余 50 字节空间时，若本主机通过 write 函数请求传输 70 字节，请问 TCP 如何处理这种情况？</strong></p>
+<p>答：TCP 中有滑动窗口控制协议，所以传输的时候会保证传输的字节数小于等于自己能接受的字节数。</p>
+</li>
+</ol>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2022-03-24</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-6-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-udp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF-%E7%AC%94%E8%AE%B0/">
+			下回<br>《TCP/IP网络编程》第 6 章 基于 UDP 的服务端/客户端 笔记
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-4-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-tcp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF1-%E7%AC%94%E8%AE%B0/">
+			上回<br>《TCP/IP网络编程》第 4 章 基于 TCP 的服务端/客户端（1） 笔记
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2022 🌀Jarson Cai&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "blog-9g6ht92ca9c564c6",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

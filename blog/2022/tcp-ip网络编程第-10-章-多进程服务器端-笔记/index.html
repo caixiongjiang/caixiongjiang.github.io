@@ -1,0 +1,2833 @@
+<!DOCTYPE html>
+<html><head>
+<title>《TCP/IP网络编程》第 10 章 多进程服务器端 笔记</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="《TCP/IP网络编程》第 10 章 多进程服务器端 笔记" />
+<meta property="og:description" content="第 10 章 多进程服务器端 10.1 进程概念及应用 10.1.1 并发服务端的实现方法 通过改进服务端，使其同时向所有发起请求的客户端提供服务，以提高平均满意度。而且，网络程序中数据通信时间比 CPU 运算时间占比更大，因此，向多个客户端提供服务是一种有效的利用 CPU 的方式。接下来讨论同时向多个客户端提供服务的并发服务器端。下面列出的是具有代表性的并发服务端的实现模型和方法：
+ 多进程服务器：通过创建多个进程提供服务 多路复用服务器：通过捆绑并统一管理 I/O 对象提供服务 多线程服务器：通过生成与客户端等量的线程提供服务  先是第一种方法：多进程服务器
+10.1.2 理解进程 进程的定义如下：
+ 占用内存空间的正在运行的程序
+ 假如你下载了一个游戏到电脑上，此时的游戏不是进程，而是程序。只有当游戏被加载到主内存并进入运行状态，这是才可称为进程。
+10.1.3 进程 ID 在说进程创建方法之前，先要简要说明进程 ID。无论进程是如何创建的，所有的进程都会被操作系统分配一个 ID。此 ID 被称为「进程ID」，其值为大于 2 的证书。1 要分配给操作系统启动后的（用于协助操作系统）首个进程，因此用户无法得到 ID 值为 1 。接下来观察在 Linux 中运行的进程。
+1  ps au   通过上面的命令可查看当前运行的所有进程。需要注意的是，该命令同时列出了 PID（进程ID）。参数 a 和 u列出了所有进程的详细信息。
+10.1.4 通过调用 fork 函数创建进程 创建进程的方式很多，此处只介绍用于创建多进程服务端的 fork 函数。
+1 2 3  #include &lt;unistd.h&gt;pid_t fork(void); // 成功时返回进程ID,失败时返回 -1   fork 函数将创建调用的进程副本。也就是说，并非根据完全不同的程序创建进程，而是复制正在运行的、调用 fork 函数的进程。另外，两个进程都执行 fork 函数调用后的语句（准确的说是在 fork 函数返回后）。但因为是通过同一个进程、复制相同的内存空间，之后的程序流要根据 fork 函数的返回值加以区分。即利用 fork 函数的如下特点区分程序执行流程。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-10-%E7%AB%A0-%E5%A4%9A%E8%BF%9B%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF-%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2022-03-30T15:59:25+08:00" />
+<meta property="article:modified_time" content="2022-03-30T15:59:25+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.3.1/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://caixiongjiang.github.io/">
+    
+        <div class="nav-title">
+            🌀Jarson Cai&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            头脑是日用品，不是装饰品
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://github.com/caixiongjiang">
+    GitHub
+</a>
+<br>
+
+<a href="https://jarson-cai.gitee.io/jarson-cai-blog">
+    MiFeng
+</a>
+<br>
+
+<a href="nau_cxj@163.com">
+    Email
+</a>
+<br>
+
+<a href="https://leetcode-cn.com/u/cai-xiong-jiang/">
+    LiKou
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2022 🌀Jarson Cai&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac-10-%e7%ab%a0-%e5%a4%9a%e8%bf%9b%e7%a8%8b%e6%9c%8d%e5%8a%a1%e5%99%a8%e7%ab%af" onclick="onNavClick(`#第-10-章-多进程服务器端-nav`)" id="第-10-章-多进程服务器端-nav">
+									第 10 章 多进程服务器端
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#101-%e8%bf%9b%e7%a8%8b%e6%a6%82%e5%bf%b5%e5%8f%8a%e5%ba%94%e7%94%a8" onclick="onNavClick(`#101-进程概念及应用-nav`)" id="101-进程概念及应用-nav">
+									10.1 进程概念及应用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1011-%e5%b9%b6%e5%8f%91%e6%9c%8d%e5%8a%a1%e7%ab%af%e7%9a%84%e5%ae%9e%e7%8e%b0%e6%96%b9%e6%b3%95" onclick="onNavClick(`#1011-并发服务端的实现方法-nav`)" id="1011-并发服务端的实现方法-nav">
+									10.1.1 并发服务端的实现方法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1012-%e7%90%86%e8%a7%a3%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#1012-理解进程-nav`)" id="1012-理解进程-nav">
+									10.1.2 理解进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1013-%e8%bf%9b%e7%a8%8b-id" onclick="onNavClick(`#1013-进程-id-nav`)" id="1013-进程-id-nav">
+									10.1.3 进程 ID
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1014-%e9%80%9a%e8%bf%87%e8%b0%83%e7%94%a8-fork-%e5%87%bd%e6%95%b0%e5%88%9b%e5%bb%ba%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#1014-通过调用-fork-函数创建进程-nav`)" id="1014-通过调用-fork-函数创建进程-nav">
+									10.1.4 通过调用 fork 函数创建进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#102-%e8%bf%9b%e7%a8%8b%e5%92%8c%e5%83%b5%e5%b0%b8%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#102-进程和僵尸进程-nav`)" id="102-进程和僵尸进程-nav">
+									10.2 进程和僵尸进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1021-%e5%83%b5%e5%b0%b8zombie%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#1021-僵尸zombie进程-nav`)" id="1021-僵尸zombie进程-nav">
+									10.2.1 僵尸（Zombie）进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1022-%e4%ba%a7%e7%94%9f%e5%83%b5%e5%b0%b8%e8%bf%9b%e7%a8%8b%e7%9a%84%e5%8e%9f%e5%9b%a0" onclick="onNavClick(`#1022-产生僵尸进程的原因-nav`)" id="1022-产生僵尸进程的原因-nav">
+									10.2.2 产生僵尸进程的原因
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1023-%e9%94%80%e6%af%81%e5%83%b5%e5%b0%b8%e8%bf%9b%e7%a8%8b-1%e5%88%a9%e7%94%a8-wait-%e5%87%bd%e6%95%b0" onclick="onNavClick(`#1023-销毁僵尸进程-1利用-wait-函数-nav`)" id="1023-销毁僵尸进程-1利用-wait-函数-nav">
+									10.2.3 销毁僵尸进程 1：利用 wait 函数
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1024-%e9%94%80%e6%af%81%e5%83%b5%e5%b0%b8%e8%bf%9b%e7%a8%8b-2%e4%bd%bf%e7%94%a8-waitpid-%e5%87%bd%e6%95%b0" onclick="onNavClick(`#1024-销毁僵尸进程-2使用-waitpid-函数-nav`)" id="1024-销毁僵尸进程-2使用-waitpid-函数-nav">
+									10.2.4 销毁僵尸进程 2：使用 waitpid 函数
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#103-%e4%bf%a1%e5%8f%b7%e5%a4%84%e7%90%86" onclick="onNavClick(`#103-信号处理-nav`)" id="103-信号处理-nav">
+									10.3 信号处理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1031-%e5%90%91%e6%93%8d%e4%bd%9c%e7%b3%bb%e7%bb%9f%e6%b1%82%e5%8a%a9" onclick="onNavClick(`#1031-向操作系统求助-nav`)" id="1031-向操作系统求助-nav">
+									10.3.1 向操作系统求助
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1032-%e4%bf%a1%e5%8f%b7%e4%b8%8e-signal-%e5%87%bd%e6%95%b0" onclick="onNavClick(`#1032-信号与-signal-函数-nav`)" id="1032-信号与-signal-函数-nav">
+									10.3.2 信号与 signal 函数
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1033-%e5%88%a9%e7%94%a8-sigaction-%e5%87%bd%e6%95%b0%e8%bf%9b%e8%a1%8c%e4%bf%a1%e5%8f%b7%e5%a4%84%e7%90%86" onclick="onNavClick(`#1033-利用-sigaction-函数进行信号处理-nav`)" id="1033-利用-sigaction-函数进行信号处理-nav">
+									10.3.3 利用 sigaction 函数进行信号处理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1034-%e5%88%a9%e7%94%a8%e4%bf%a1%e5%8f%b7%e5%a4%84%e7%90%86%e6%8a%80%e6%9c%af%e6%b6%88%e7%81%ad%e5%83%b5%e5%b0%b8%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#1034-利用信号处理技术消灭僵尸进程-nav`)" id="1034-利用信号处理技术消灭僵尸进程-nav">
+									10.3.4 利用信号处理技术消灭僵尸进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#104-%e5%9f%ba%e4%ba%8e%e5%a4%9a%e4%bb%bb%e5%8a%a1%e7%9a%84%e5%b9%b6%e5%8f%91%e6%9c%8d%e5%8a%a1%e5%99%a8" onclick="onNavClick(`#104-基于多任务的并发服务器-nav`)" id="104-基于多任务的并发服务器-nav">
+									10.4 基于多任务的并发服务器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1041-%e5%9f%ba%e4%ba%8e%e8%bf%9b%e7%a8%8b%e7%9a%84%e5%b9%b6%e5%8f%91%e6%9c%8d%e5%8a%a1%e5%99%a8%e6%a8%a1%e5%9e%8b" onclick="onNavClick(`#1041-基于进程的并发服务器模型-nav`)" id="1041-基于进程的并发服务器模型-nav">
+									10.4.1 基于进程的并发服务器模型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1042-%e5%ae%9e%e7%8e%b0%e5%b9%b6%e5%8f%91%e6%9c%8d%e5%8a%a1%e5%99%a8" onclick="onNavClick(`#1042-实现并发服务器-nav`)" id="1042-实现并发服务器-nav">
+									10.4.2 实现并发服务器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1043-%e9%80%9a%e8%bf%87-fork-%e5%87%bd%e6%95%b0%e5%a4%8d%e5%88%b6%e6%96%87%e4%bb%b6%e6%8f%8f%e8%bf%b0%e7%ac%a6" onclick="onNavClick(`#1043-通过-fork-函数复制文件描述符-nav`)" id="1043-通过-fork-函数复制文件描述符-nav">
+									10.4.3 通过 fork 函数复制文件描述符
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#105-%e5%88%86%e5%89%b2-tcp-%e7%9a%84-io-%e7%a8%8b%e5%ba%8f" onclick="onNavClick(`#105-分割-tcp-的-io-程序-nav`)" id="105-分割-tcp-的-io-程序-nav">
+									10.5 分割 TCP 的 I/O 程序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1051-%e5%88%86%e5%89%b2-io-%e7%9a%84%e4%bc%98%e7%82%b9" onclick="onNavClick(`#1051-分割-io-的优点-nav`)" id="1051-分割-io-的优点-nav">
+									10.5.1 分割 I/O 的优点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1052-%e5%9b%9e%e5%a3%b0%e5%ae%a2%e6%88%b7%e7%ab%af%e7%9a%84-io-%e7%a8%8b%e5%ba%8f%e5%88%86%e5%89%b2" onclick="onNavClick(`#1052-回声客户端的-io-程序分割-nav`)" id="1052-回声客户端的-io-程序分割-nav">
+									10.5.2 回声客户端的 I/O 程序分割
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#106-%e4%b9%a0%e9%a2%98" onclick="onNavClick(`#106-习题-nav`)" id="106-习题-nav">
+									10.6 习题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac-10-%e7%ab%a0-%e5%a4%9a%e8%bf%9b%e7%a8%8b%e6%9c%8d%e5%8a%a1%e5%99%a8%e7%ab%af" onclick="onNavClick(`#第-10-章-多进程服务器端-nav`)" id="第-10-章-多进程服务器端-nav">
+									第 10 章 多进程服务器端
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#101-%e8%bf%9b%e7%a8%8b%e6%a6%82%e5%bf%b5%e5%8f%8a%e5%ba%94%e7%94%a8" onclick="onNavClick(`#101-进程概念及应用-nav`)" id="101-进程概念及应用-nav">
+									10.1 进程概念及应用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1011-%e5%b9%b6%e5%8f%91%e6%9c%8d%e5%8a%a1%e7%ab%af%e7%9a%84%e5%ae%9e%e7%8e%b0%e6%96%b9%e6%b3%95" onclick="onNavClick(`#1011-并发服务端的实现方法-nav`)" id="1011-并发服务端的实现方法-nav">
+									10.1.1 并发服务端的实现方法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1012-%e7%90%86%e8%a7%a3%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#1012-理解进程-nav`)" id="1012-理解进程-nav">
+									10.1.2 理解进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1013-%e8%bf%9b%e7%a8%8b-id" onclick="onNavClick(`#1013-进程-id-nav`)" id="1013-进程-id-nav">
+									10.1.3 进程 ID
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1014-%e9%80%9a%e8%bf%87%e8%b0%83%e7%94%a8-fork-%e5%87%bd%e6%95%b0%e5%88%9b%e5%bb%ba%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#1014-通过调用-fork-函数创建进程-nav`)" id="1014-通过调用-fork-函数创建进程-nav">
+									10.1.4 通过调用 fork 函数创建进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#102-%e8%bf%9b%e7%a8%8b%e5%92%8c%e5%83%b5%e5%b0%b8%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#102-进程和僵尸进程-nav`)" id="102-进程和僵尸进程-nav">
+									10.2 进程和僵尸进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1021-%e5%83%b5%e5%b0%b8zombie%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#1021-僵尸zombie进程-nav`)" id="1021-僵尸zombie进程-nav">
+									10.2.1 僵尸（Zombie）进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1022-%e4%ba%a7%e7%94%9f%e5%83%b5%e5%b0%b8%e8%bf%9b%e7%a8%8b%e7%9a%84%e5%8e%9f%e5%9b%a0" onclick="onNavClick(`#1022-产生僵尸进程的原因-nav`)" id="1022-产生僵尸进程的原因-nav">
+									10.2.2 产生僵尸进程的原因
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1023-%e9%94%80%e6%af%81%e5%83%b5%e5%b0%b8%e8%bf%9b%e7%a8%8b-1%e5%88%a9%e7%94%a8-wait-%e5%87%bd%e6%95%b0" onclick="onNavClick(`#1023-销毁僵尸进程-1利用-wait-函数-nav`)" id="1023-销毁僵尸进程-1利用-wait-函数-nav">
+									10.2.3 销毁僵尸进程 1：利用 wait 函数
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1024-%e9%94%80%e6%af%81%e5%83%b5%e5%b0%b8%e8%bf%9b%e7%a8%8b-2%e4%bd%bf%e7%94%a8-waitpid-%e5%87%bd%e6%95%b0" onclick="onNavClick(`#1024-销毁僵尸进程-2使用-waitpid-函数-nav`)" id="1024-销毁僵尸进程-2使用-waitpid-函数-nav">
+									10.2.4 销毁僵尸进程 2：使用 waitpid 函数
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#103-%e4%bf%a1%e5%8f%b7%e5%a4%84%e7%90%86" onclick="onNavClick(`#103-信号处理-nav`)" id="103-信号处理-nav">
+									10.3 信号处理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1031-%e5%90%91%e6%93%8d%e4%bd%9c%e7%b3%bb%e7%bb%9f%e6%b1%82%e5%8a%a9" onclick="onNavClick(`#1031-向操作系统求助-nav`)" id="1031-向操作系统求助-nav">
+									10.3.1 向操作系统求助
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1032-%e4%bf%a1%e5%8f%b7%e4%b8%8e-signal-%e5%87%bd%e6%95%b0" onclick="onNavClick(`#1032-信号与-signal-函数-nav`)" id="1032-信号与-signal-函数-nav">
+									10.3.2 信号与 signal 函数
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1033-%e5%88%a9%e7%94%a8-sigaction-%e5%87%bd%e6%95%b0%e8%bf%9b%e8%a1%8c%e4%bf%a1%e5%8f%b7%e5%a4%84%e7%90%86" onclick="onNavClick(`#1033-利用-sigaction-函数进行信号处理-nav`)" id="1033-利用-sigaction-函数进行信号处理-nav">
+									10.3.3 利用 sigaction 函数进行信号处理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1034-%e5%88%a9%e7%94%a8%e4%bf%a1%e5%8f%b7%e5%a4%84%e7%90%86%e6%8a%80%e6%9c%af%e6%b6%88%e7%81%ad%e5%83%b5%e5%b0%b8%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#1034-利用信号处理技术消灭僵尸进程-nav`)" id="1034-利用信号处理技术消灭僵尸进程-nav">
+									10.3.4 利用信号处理技术消灭僵尸进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#104-%e5%9f%ba%e4%ba%8e%e5%a4%9a%e4%bb%bb%e5%8a%a1%e7%9a%84%e5%b9%b6%e5%8f%91%e6%9c%8d%e5%8a%a1%e5%99%a8" onclick="onNavClick(`#104-基于多任务的并发服务器-nav`)" id="104-基于多任务的并发服务器-nav">
+									10.4 基于多任务的并发服务器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1041-%e5%9f%ba%e4%ba%8e%e8%bf%9b%e7%a8%8b%e7%9a%84%e5%b9%b6%e5%8f%91%e6%9c%8d%e5%8a%a1%e5%99%a8%e6%a8%a1%e5%9e%8b" onclick="onNavClick(`#1041-基于进程的并发服务器模型-nav`)" id="1041-基于进程的并发服务器模型-nav">
+									10.4.1 基于进程的并发服务器模型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1042-%e5%ae%9e%e7%8e%b0%e5%b9%b6%e5%8f%91%e6%9c%8d%e5%8a%a1%e5%99%a8" onclick="onNavClick(`#1042-实现并发服务器-nav`)" id="1042-实现并发服务器-nav">
+									10.4.2 实现并发服务器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1043-%e9%80%9a%e8%bf%87-fork-%e5%87%bd%e6%95%b0%e5%a4%8d%e5%88%b6%e6%96%87%e4%bb%b6%e6%8f%8f%e8%bf%b0%e7%ac%a6" onclick="onNavClick(`#1043-通过-fork-函数复制文件描述符-nav`)" id="1043-通过-fork-函数复制文件描述符-nav">
+									10.4.3 通过 fork 函数复制文件描述符
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#105-%e5%88%86%e5%89%b2-tcp-%e7%9a%84-io-%e7%a8%8b%e5%ba%8f" onclick="onNavClick(`#105-分割-tcp-的-io-程序-nav`)" id="105-分割-tcp-的-io-程序-nav">
+									10.5 分割 TCP 的 I/O 程序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1051-%e5%88%86%e5%89%b2-io-%e7%9a%84%e4%bc%98%e7%82%b9" onclick="onNavClick(`#1051-分割-io-的优点-nav`)" id="1051-分割-io-的优点-nav">
+									10.5.1 分割 I/O 的优点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#1052-%e5%9b%9e%e5%a3%b0%e5%ae%a2%e6%88%b7%e7%ab%af%e7%9a%84-io-%e7%a8%8b%e5%ba%8f%e5%88%86%e5%89%b2" onclick="onNavClick(`#1052-回声客户端的-io-程序分割-nav`)" id="1052-回声客户端的-io-程序分割-nav">
+									10.5.2 回声客户端的 I/O 程序分割
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#106-%e4%b9%a0%e9%a2%98" onclick="onNavClick(`#106-习题-nav`)" id="106-习题-nav">
+									10.6 习题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://caixiongjiang.github.io/">
+            🌀Jarson Cai&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://caixiongjiang.github.io/">
+        <div class="single-column-header-title">🌀Jarson Cai&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">头脑是日用品，不是装饰品</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    《TCP/IP网络编程》第 10 章 多进程服务器端 笔记
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2022-03-30 15:59
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/tcp/ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0">《TCP/IP网络编程》学习笔记</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/tcp/ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B">《TCP/IP网络编程》</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            38 min
+                            
+                            39 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h2 id="第-10-章-多进程服务器端">第 10 章 多进程服务器端</h2>
+<h3 id="101-进程概念及应用">10.1 进程概念及应用</h3>
+<h4 id="1011-并发服务端的实现方法">10.1.1 并发服务端的实现方法</h4>
+<p>通过改进服务端，使其同时向所有发起请求的客户端提供服务，以提高平均满意度。而且，网络程序中数据通信时间比 CPU 运算时间占比更大，因此，向多个客户端提供服务是一种有效的利用 CPU 的方式。接下来讨论同时向多个客户端提供服务的并发服务器端。下面列出的是具有代表性的并发服务端的实现模型和方法：</p>
+<ul>
+<li>多进程服务器：通过创建多个进程提供服务</li>
+<li>多路复用服务器：通过捆绑并统一管理 I/O 对象提供服务</li>
+<li>多线程服务器：通过生成与客户端等量的线程提供服务</li>
+</ul>
+<p>先是第一种方法：多进程服务器</p>
+<h4 id="1012-理解进程">10.1.2 理解进程</h4>
+<p>进程的定义如下：</p>
+<blockquote>
+<p>占用内存空间的正在运行的程序</p>
+</blockquote>
+<p>假如你下载了一个游戏到电脑上，此时的游戏不是进程，而是程序。只有当游戏被加载到主内存并进入运行状态，这是才可称为进程。</p>
+<h4 id="1013-进程-id">10.1.3 进程 ID</h4>
+<p>在说进程创建方法之前，先要简要说明进程 ID。无论进程是如何创建的，所有的进程都会被操作系统分配一个 ID。此 ID 被称为「进程ID」，其值为大于 2 的证书。1 要分配给操作系统启动后的（用于协助操作系统）首个进程，因此用户无法得到 ID 值为 1 。接下来观察在 Linux 中运行的进程。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">ps au
+</code></pre></td></tr></table>
+</div>
+</div><p>通过上面的命令可查看当前运行的所有进程。需要注意的是，该命令同时列出了 PID（进程ID）。参数 a 和 u列出了所有进程的详细信息。</p>
+<p><img src="https://i.loli.net/2019/01/20/5c43d7c1f2a8b.png" alt=""></p>
+<h4 id="1014-通过调用-fork-函数创建进程">10.1.4 通过调用 fork 函数创建进程</h4>
+<p>创建进程的方式很多，此处只介绍用于创建多进程服务端的 fork 函数。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span>pid_t <span style="color:#008b45">fork</span>(<span style="color:#00688b;font-weight:bold">void</span>);
+<span style="color:#228b22">// 成功时返回进程ID,失败时返回 -1
+</span></code></pre></td></tr></table>
+</div>
+</div><p>fork 函数将创建调用的进程副本。也就是说，并非根据完全不同的程序创建进程，而是复制正在运行的、调用 fork 函数的进程。另外，两个进程都执行 fork 函数调用后的语句（准确的说是在 fork 函数返回后）。但因为是通过同一个进程、复制相同的内存空间，之后的程序流要根据 fork 函数的返回值加以区分。即利用 fork 函数的如下特点区分程序执行流程。</p>
+<ul>
+<li>父进程：fork 函数返回子进程 ID</li>
+<li>子进程：fork 函数返回 0</li>
+</ul>
+<p>此处，「父进程」（Parent Process）指原进程，即调用 fork 函数的主体，而「子进程」（Child Process）是通过父进程调用 fork 函数复制出的进程。接下来是调用 fork 函数后的程序运行流程。如图所示：</p>
+<p><img src="https://i.loli.net/2019/01/20/5c43da5412b90.png" alt=""></p>
+<p>从图中可以看出，父进程调用 fork 函数的同时复制出子进程，并分别得到 fork 函数的返回值。但复制前，父进程将全局变量 gval 增加到 11,将局部变量 lval 的值增加到 25，因此在这种状态下完成进程复制。复制完成后根据 fork 函数的返回类型区分父子进程。父进程的 lval 的值增加 1 ，但这不会影响子进程的 lval 值。同样子进程将 gval 的值增加 1 也不会影响到父进程的 gval 。因为 fork 函数调用后分成了完全不同的进程，只是二者共享同一段代码而已。接下来给出一个例子：</p>
+<ul>
+<li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/fork.c">fork.c</a></li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> gval = <span style="color:#b452cd">10</span>;
+<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+{
+    pid_t pid;
+    <span style="color:#00688b;font-weight:bold">int</span> lval = <span style="color:#b452cd">20</span>;
+    gval++, lval += <span style="color:#b452cd">5</span>;
+    pid = fork();
+    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+        gval += <span style="color:#b452cd">2</span>, lval += <span style="color:#b452cd">2</span>;
+    <span style="color:#8b008b;font-weight:bold">else</span>
+        gval -= <span style="color:#b452cd">2</span>, lval -= <span style="color:#b452cd">2</span>;
+    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+        printf(<span style="color:#cd5555">&#34;Child Proc: [%d,%d] </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, gval, lval);
+    <span style="color:#8b008b;font-weight:bold">else</span>
+        printf(<span style="color:#cd5555">&#34;Parent Proc: [%d,%d] </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, gval, lval);
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc fork.c -o fork
+./fork
+</code></pre></td></tr></table>
+</div>
+</div><p>运行结果：</p>
+<p><img src="https://i.loli.net/2019/01/20/5c43e054e7f6f.png" alt=""></p>
+<p>可以看出，当执行了 fork 函数之后，此后就相当于有了两个程序在执行代码，对于父进程来说，fork 函数返回的是子进程的ID，对于子进程来说，fork 函数返回 0。所以这两个变量，父进程进行了 +2 操作 ，而子进程进行了 -2 操作，所以结果是这样。</p>
+<h3 id="102-进程和僵尸进程">10.2 进程和僵尸进程</h3>
+<p>文件操作中，关闭文件和打开文件同等重要。同样，进程销毁和进程创建也同等重要。如果未认真对待进程销毁，他们将变成僵尸进程。</p>
+<h4 id="1021-僵尸zombie进程">10.2.1 僵尸（Zombie）进程</h4>
+<p>进程的工作完成后（执行完 main 函数中的程序后）应被销毁，但有时这些进程将变成僵尸进程，占用系统中的重要资源。这种状态下的进程称作「僵尸进程」，这也是给系统带来负担的原因之一。</p>
+<blockquote>
+<p>僵尸进程是当子进程比父进程先结束，而父进程又没有回收子进程，释放子进程占用的资源，此时子进程将成为一个僵尸进程。如果父进程先退出 ，子进程被init接管，子进程退出后init会回收其占用的相关资源</p>
+</blockquote>
+<p><strong>维基百科</strong>：</p>
+<blockquote>
+<p>在类UNIX系统中，僵尸进程是指完成执行（通过exit系统调用，或运行时发生致命错误或收到终止信号所致）但在操作系统的进程表中仍然有一个表项（进程控制块PCB），处于&quot;终止状态&quot;的进程。这发生于子进程需要保留表项以允许其父进程读取子进程的exit status：一旦退出态通过wait系统调用读取，僵尸进程条目就从进程表中删除，称之为&quot;回收（reaped）&quot;。正常情况下，进程直接被其父进程wait并由系统回收。进程长时间保持僵尸状态一般是错误的并导致资源泄漏。</p>
+<p>英文术语zombie process源自丧尸 — 不死之人，隐喻子进程已死但仍然没有被收割。与正常进程不同，kill命令对僵尸进程无效。孤儿进程不同于僵尸进程，其父进程已经死掉，但孤儿进程仍能正常执行，但并不会变为僵尸进程，因为被init（进程ID号为1）收养并wait其退出。</p>
+<p>子进程死后，系统会发送SIGCHLD 信号给父进程，父进程对其默认处理是忽略。如果想响应这个消息，父进程通常在SIGCHLD 信号事件处理程序中，使用wait系统调用来响应子进程的终止。</p>
+<p>僵尸进程被收割后，其进程号(PID)与在进程表中的表项都可以被系统重用。但如果父进程没有调用wait，僵尸进程将保留进程表中的表项，导致了资源泄漏。某些情况下这反倒是期望的：父进程创建了另外一个子进程，并希望具有不同的进程号。如果父进程通过设置事件处理函数为SIG_IGN显式忽略SIGCHLD信号，而不是隐式默认忽略该信号，或者具有SA_NOCLDWAIT标志，所有子进程的退出状态信息将被抛弃并且直接被系统回收。</p>
+<p>UNIX命令ps列出的进程的状态（&ldquo;STAT&rdquo;）栏标示为 &ldquo;Z&quot;则为僵尸进程。[1]</p>
+<p>收割僵尸进程的方法是通过kill命令手工向其父进程发送SIGCHLD信号。如果其父进程仍然拒绝收割僵尸进程，则终止父进程，使得init进程收养僵尸进程。init进程周期执行wait系统调用收割其收养的所有僵尸进程。</p>
+</blockquote>
+<h4 id="1022-产生僵尸进程的原因">10.2.2 产生僵尸进程的原因</h4>
+<p>为了防止僵尸进程产生，先解释产生僵尸进程的原因。利用如下两个示例展示调用 fork 函数产生子进程的终止方式。</p>
+<ul>
+<li>传递参数并调用 exit() 函数</li>
+<li>main 函数中执行 return 语句并返回值</li>
+</ul>
+<p>**向 exit 函数传递的参数值和 main 函数的 return 语句返回的值都回传递给操作系统。而操作系统不会销毁子进程，直到把这些值传递给产生该子进程的父进程。处在这种状态下的进程就是僵尸进程。**也就是说将子进程变成僵尸进程的正是操作系统。既然如此，僵尸进程何时被销毁呢？</p>
+<blockquote>
+<p>应该向创建子进程册父进程传递子进程的 exit 参数值或 return 语句的返回值。</p>
+</blockquote>
+<p>如何向父进程传递这些值呢？操作系统不会主动把这些值传递给父进程。只有父进程主动发起请求（函数调用）的时候，操作系统才会传递该值。换言之，如果父进程未主动要求获得子进程结束状态值，操作系统将一直保存，并让子进程长时间处于僵尸进程状态。也就是说，父母要负责收回自己生的孩子。接下来的示例是创建僵尸进程：</p>
+<ul>
+<li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/zombie.c">zombie.c</a></li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+{
+    pid_t pid = fork();
+    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+    {
+        puts(<span style="color:#cd5555">&#34;Hi, I am a child Process&#34;</span>);
+    }
+    <span style="color:#8b008b;font-weight:bold">else</span>
+    {
+        printf(<span style="color:#cd5555">&#34;Child Process ID: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
+        sleep(<span style="color:#b452cd">30</span>);
+    }
+    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+        puts(<span style="color:#cd5555">&#34;End child proess&#34;</span>);
+    <span style="color:#8b008b;font-weight:bold">else</span>
+        puts(<span style="color:#cd5555">&#34;End parent process&#34;</span>);
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc zombie.c -o zombie
+./zombie
+</code></pre></td></tr></table>
+</div>
+</div><p>结果：</p>
+<p><img src="https://i.loli.net/2019/01/20/5c443890f1781.png" alt=""></p>
+<p>因为暂停了 30 秒，所以在这个时间内可以验证一下子进程是否为僵尸进程。</p>
+<p><img src="https://i.loli.net/2019/01/20/5c4439a751b11.png" alt=""></p>
+<p>通过 <code>ps au</code> 命令可以看出，子进程仍然存在，并没有被销毁，僵尸进程在这里显示为 <code>Z+</code>.30秒后，红框里面的两个进程会同时被销毁。</p>
+<blockquote>
+<p>利用 <code>./zombie &amp;</code>可以使程序在后台运行，不用打开新的命令行窗口。</p>
+</blockquote>
+<h4 id="1023-销毁僵尸进程-1利用-wait-函数">10.2.3 销毁僵尸进程 1：利用 wait 函数</h4>
+<p>如前所述，为了销毁子进程，父进程应该主动请求获取子进程的返回值。下面是发起请求的具体方法。有两种，下面的函数是其中一种。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span>pid_t <span style="color:#008b45">wait</span>(<span style="color:#00688b;font-weight:bold">int</span> *statloc);
+<span style="color:#228b22">/*
+</span><span style="color:#228b22">成功时返回终止的子进程 ID ,失败时返回 -1
+</span><span style="color:#228b22">*/</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>调用此函数时如果已有子进程终止，那么子进程终止时传递的返回值（exit 函数的参数返回值，main 函数的 return 返回值）将保存到该函数的参数所指的内存空间。但函数参数指向的单元中还包含其他信息，因此需要用下列宏进行分离：</p>
+<ul>
+<li>WIFEXITED 子进程正常终止时返回「真」</li>
+<li>WEXITSTATUS 返回子进程时的返回值</li>
+</ul>
+<p>也就是说，向 wait 函数传递变量 status 的地址时，调用 wait 函数后应编写如下代码：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
+{
+    puts(<span style="color:#cd5555">&#34;Normal termination&#34;</span>);
+    printf(<span style="color:#cd5555">&#34;Child pass num: %d&#34;</span>, WEXITSTATUS(status));
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>根据以上内容，有如下示例：</p>
+<ul>
+<li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/wait.c">wait.c</a></li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdlib.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span>
+<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+{
+    <span style="color:#00688b;font-weight:bold">int</span> status;
+    pid_t pid = fork(); <span style="color:#228b22">//这里的子进程将在第13行通过 return 语句终止
+</span><span style="color:#228b22"></span>
+    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+    {
+        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">3</span>;
+    }
+    <span style="color:#8b008b;font-weight:bold">else</span>
+    {
+        printf(<span style="color:#cd5555">&#34;Child PID: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
+        pid = fork(); <span style="color:#228b22">//这里的子进程将在 21 行通过 exit() 函数终止
+</span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+        {
+            exit(<span style="color:#b452cd">7</span>);
+        }
+        <span style="color:#8b008b;font-weight:bold">else</span>
+        {
+            printf(<span style="color:#cd5555">&#34;Child PID: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
+            wait(&amp;status);         <span style="color:#228b22">//之间终止的子进程相关信息将被保存到 status 中，同时相关子进程被完全销毁
+</span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status)) <span style="color:#228b22">//通过 WIFEXITED 来验证子进程是否正常终止。如果正常终止，则调用 WEXITSTATUS 宏输出子进程返回值
+</span><span style="color:#228b22"></span>                printf(<span style="color:#cd5555">&#34;Child send one: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status));
+
+            wait(&amp;status); <span style="color:#228b22">//因为之前创建了两个进程，所以再次调用 wait 函数和宏
+</span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
+                printf(<span style="color:#cd5555">&#34;Child send two: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status));
+            sleep(<span style="color:#b452cd">30</span>);
+        }
+    }
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc wait.c -o <span style="color:#658b00">wait</span>
+./wait
+</code></pre></td></tr></table>
+</div>
+</div><p>结果：</p>
+<p><img src="https://i.loli.net/2019/01/20/5c4441951df43.png" alt=""></p>
+<p>此时，系统中并没有上述 PID 对应的进程，这是因为调用了 wait 函数，完全销毁了该子进程。另外两个子进程返回时返回的 3 和 7 传递到了父进程。</p>
+<p>这就是通过 wait 函数消灭僵尸进程的方法，调用 wait 函数时，如果没有已经终止的子进程，那么程序将阻塞（Blocking）直到有子进程终止，因此要谨慎调用该函数。</p>
+<h4 id="1024-销毁僵尸进程-2使用-waitpid-函数">10.2.4 销毁僵尸进程 2：使用 waitpid 函数</h4>
+<p>wait 函数会引起程序阻塞，还可以考虑调用 waitpid 函数。这是防止僵尸进程的第二种方法，也是防止阻塞的方法。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span>pid_t <span style="color:#008b45">waitpid</span>(pid_t pid, <span style="color:#00688b;font-weight:bold">int</span> *statloc, <span style="color:#00688b;font-weight:bold">int</span> options);
+<span style="color:#228b22">/*
+</span><span style="color:#228b22">成功时返回终止的子进程ID 或 0 ，失败时返回 -1
+</span><span style="color:#228b22">pid: 等待终止的目标子进程的ID,若传 -1，则与 wait 函数相同，可以等待任意子进程终止
+</span><span style="color:#228b22">statloc: 与 wait 函数的 statloc 参数具有相同含义
+</span><span style="color:#228b22">options: 传递头文件 sys/wait.h 声明的常量 WNOHANG ,即使没有终止的子进程也不会进入阻塞状态，而是返回 0 退出函数。
+</span><span style="color:#228b22">*/</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>以下是 waitpid 的使用示例：</p>
+<ul>
+<li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/waitpid.c">waitpid.c</a></li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+{
+    <span style="color:#00688b;font-weight:bold">int</span> status;
+    pid_t pid = fork();
+    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+    {
+        sleep(<span style="color:#b452cd">15</span>); <span style="color:#228b22">//用 sleep 推迟子进程的执行
+</span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">24</span>;
+    }
+    <span style="color:#8b008b;font-weight:bold">else</span>
+    {
+        <span style="color:#228b22">//调用waitpid 传递参数 WNOHANG ，这样之前有没有终止的子进程则返回0
+</span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">while</span> (!waitpid(-<span style="color:#b452cd">1</span>, &amp;status, WNOHANG))
+        {
+            sleep(<span style="color:#b452cd">3</span>);
+            puts(<span style="color:#cd5555">&#34;sleep 3 sec.&#34;</span>);
+        }
+        <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
+            printf(<span style="color:#cd5555">&#34;Child send %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status));
+    }
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc waitpid.c -o waitpid
+./waitpid
+</code></pre></td></tr></table>
+</div>
+</div><p>结果:</p>
+<p><img src="https://i.loli.net/2019/01/20/5c444785a16ae.png" alt=""></p>
+<p>可以看出来，在 while 循环中正好执行了 5 次。这也证明了 waitpid 函数并没有阻塞</p>
+<h3 id="103-信号处理">10.3 信号处理</h3>
+<p>我们已经知道了进程的创建及销毁的办法，但是还有一个问题没有解决。</p>
+<blockquote>
+<p>子进程究竟何时终止？调用 waitpid 函数后要无休止的等待吗？</p>
+</blockquote>
+<h4 id="1031-向操作系统求助">10.3.1 向操作系统求助</h4>
+<p>子进程终止的识别主题是操作系统，因此，若操作系统能把如下信息告诉正忙于工作的父进程，将有助于构建更高效的程序</p>
+<p>为了实现上述的功能，引入信号处理机制（Signal Handing）。此处「信号」是在特定事件发生时由操作系统向进程发送的消息。另外，为了响应该消息，执行与消息相关的自定义操作的过程被称为「处理」或「信号处理」。</p>
+<h4 id="1032-信号与-signal-函数">10.3.2 信号与 signal 函数</h4>
+<p>下面进程和操作系统的对话可以帮助理解信号处理。</p>
+<blockquote>
+<p>进程：操作系统，如果我之前创建的子进程终止，就帮我调用 zombie_handler 函数。</p>
+<p>操作系统：好的，如果你的子进程终止，我舅帮你调用 zombie_handler 函数，你先把要函数要执行的语句写好。</p>
+</blockquote>
+<p>上述的对话，相当于「注册信号」的过程。即进程发现自己的子进程结束时，请求操作系统调用的特定函数。该请求可以通过如下函数调用完成：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">void</span> (*signal(<span style="color:#00688b;font-weight:bold">int</span> signo, <span style="color:#00688b;font-weight:bold">void</span> (*func)(<span style="color:#00688b;font-weight:bold">int</span>)))(<span style="color:#00688b;font-weight:bold">int</span>);
+<span style="color:#228b22">/*
+</span><span style="color:#228b22">为了在产生信号时调用，返回之前注册的函数指针
+</span><span style="color:#228b22">函数名: signal
+</span><span style="color:#228b22">参数：int signo,void(*func)(int)
+</span><span style="color:#228b22">返回类型：参数类型为int型，返回 void 型函数指针
+</span><span style="color:#228b22">*/</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>调用上述函数时，第一个参数为特殊情况信息，第二个参数为特殊情况下将要调用的函数的地址值（指针）。发生第一个参数代表的情况时，调用第二个参数所指的函数。下面给出可以在 signal 函数中注册的部分特殊情况和对应的函数。</p>
+<ul>
+<li>SIGALRM：已到通过调用 alarm 函数注册时间</li>
+<li>SIGINT：输入 ctrl+c</li>
+<li>SIGCHLD：子进程终止</li>
+</ul>
+<p>接下来编写调用 signal 函数的语句完成如下请求：</p>
+<blockquote>
+<p>「子进程终止则调用 mychild 函数」</p>
+</blockquote>
+<p>此时 mychild 函数的参数应为 int ，返回值类型应为 void 。只有这样才能称为 signal 函数的第二个参数。另外，常数 SIGCHLD 定义了子进程终止的情况，应成为 signal 函数的第一个参数。也就是说，signal 函数调用语句如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">signal(SIGCHLD , mychild);
+</code></pre></td></tr></table>
+</div>
+</div><p>接下来编写 signal 函数的调用语句，分别完成如下两个请求：</p>
+<ol>
+<li>已到通过 alarm 函数注册时间，请调用 timeout 函数</li>
+<li>输入 ctrl+c 时调用 keycontrol 函数</li>
+</ol>
+<p>代表这 2 种情况的常数分别为 SIGALRM 和 SIGINT ，因此按如下方式调用 signal 函数。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">signal(SIGALRM , timeout);
+signal(SIGINT , keycontrol);
+</code></pre></td></tr></table>
+</div>
+</div><p>以上就是信号注册过程。注册好信号之后，发生注册信号时（注册的情况发生时），操作系统将调用该信号对应的函数。先介绍 alarm 函数。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">alarm</span>(<span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">int</span> seconds);
+<span style="color:#228b22">// 返回0或以秒为单位的距 SIGALRM 信号发生所剩时间
+</span></code></pre></td></tr></table>
+</div>
+</div><p>如果调用该函数的同时向它传递一个正整型参数，相应时间后（以秒为单位）将产生 SIGALRM 信号。若向该函数传递为 0 ，则之前对 SIGALRM 信号的预约将取消。如果通过改函数预约信号后未指定该信号对应的处理函数，则（通过调用 signal 函数）终止进程，不做任何处理。</p>
+<ul>
+<li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/signal.c">signal.c</a></li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">timeout</span>(<span style="color:#00688b;font-weight:bold">int</span> sig) <span style="color:#228b22">//信号处理器
+</span><span style="color:#228b22"></span>{
+    <span style="color:#8b008b;font-weight:bold">if</span> (sig == SIGALRM)
+        puts(<span style="color:#cd5555">&#34;Time out!&#34;</span>);
+    alarm(<span style="color:#b452cd">2</span>); <span style="color:#228b22">//为了每隔 2 秒重复产生 SIGALRM 信号，在信号处理器中调用 alarm 函数
+</span><span style="color:#228b22"></span>}
+<span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">keycontrol</span>(<span style="color:#00688b;font-weight:bold">int</span> sig) <span style="color:#228b22">//信号处理器
+</span><span style="color:#228b22"></span>{
+    <span style="color:#8b008b;font-weight:bold">if</span> (sig == SIGINT)
+        puts(<span style="color:#cd5555">&#34;CTRL+C pressed&#34;</span>);
+}
+<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+{
+    <span style="color:#00688b;font-weight:bold">int</span> i;
+    signal(SIGALRM, timeout); <span style="color:#228b22">//注册信号及相应处理器
+</span><span style="color:#228b22"></span>    signal(SIGINT, keycontrol);
+    alarm(<span style="color:#b452cd">2</span>); <span style="color:#228b22">//预约 2 秒候发生 SIGALRM 信号
+</span><span style="color:#228b22"></span>
+    <span style="color:#8b008b;font-weight:bold">for</span> (i = <span style="color:#b452cd">0</span>; i &lt; <span style="color:#b452cd">3</span>; i++)
+    {
+        puts(<span style="color:#cd5555">&#34;wait...&#34;</span>);
+        sleep(<span style="color:#b452cd">100</span>);
+    }
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc signal.c -o signal
+./signal
+</code></pre></td></tr></table>
+</div>
+</div><p>结果：</p>
+<p><img src="https://i.loli.net/2019/01/20/5c446c877acb7.png" alt=""></p>
+<p>上述结果是没有任何输入的运行结果。当输入 ctrl+c 时:</p>
+<p><img src="https://i.loli.net/2019/01/20/5c446ce0b1143.png" alt=""></p>
+<p>就可以看到 <code>CTRL+C pressed</code> 的字符串。</p>
+<blockquote>
+<p>发生信号时将唤醒由于调用 sleep 函数而进入阻塞状态的进程。</p>
+</blockquote>
+<p>调用函数的主题的确是操作系统，但是进程处于睡眠状态时无法调用函数，因此，产生信号时，为了调用信号处理器，将唤醒由于调用 sleep 函数而进入阻塞状态的进程。而且，进程一旦被唤醒，就不会再进入睡眠状态。即使还未到 sleep 中规定的时间也是如此。所以上述示例运行不到 10 秒后就会结束，连续输入 CTRL+C 可能连一秒都不到。</p>
+<p><strong>简言之，就是本来系统要睡眠100秒，但是到了 alarm(2) 规定的两秒之后，就会唤醒睡眠的进程，进程被唤醒了就不会再进入睡眠状态了，所以就不用等待100秒。如果把 timeout() 函数中的 alarm(2) 注释掉，就会先输出<code>wait...</code>，然后再输出<code>Time out!</code> (这时已经跳过了第一次的 sleep(100) 秒),然后就真的会睡眠100秒，因为没有再发出 alarm(2)  的信号。</strong></p>
+<h4 id="1033-利用-sigaction-函数进行信号处理">10.3.3 利用 sigaction 函数进行信号处理</h4>
+<p>前面所学的内容可以防止僵尸进程，还有一个函数，叫做 sigaction 函数，他类似于 signal 函数，而且可以完全代替后者，也更稳定。之所以稳定，是因为：</p>
+<blockquote>
+<p>signal 函数在 Unix 系列的不同操作系统可能存在区别，但 sigaction 函数完全相同</p>
+</blockquote>
+<p>实际上现在很少用 signal 函数编写程序，他只是为了保持对旧程序的兼容，下面介绍 sigaction 函数，只讲解可以替换 signal 函数的功能。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span>
+<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">sigaction</span>(<span style="color:#00688b;font-weight:bold">int</span> signo, <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">struct</span> sigaction *act, <span style="color:#8b008b;font-weight:bold">struct</span> sigaction *oldact);
+<span style="color:#228b22">/*
+</span><span style="color:#228b22">成功时返回 0 ，失败时返回 -1
+</span><span style="color:#228b22">act: 对于第一个参数的信号处理函数（信号处理器）信息。
+</span><span style="color:#228b22">oldact: 通过此参数获取之前注册的信号处理函数指针，若不需要则传递 0
+</span><span style="color:#228b22">*/</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>声明并初始化 sigaction 结构体变量以调用上述函数，该结构体定义如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">struct</span> sigaction
+{
+    <span style="color:#00688b;font-weight:bold">void</span> (*sa_handler)(<span style="color:#00688b;font-weight:bold">int</span>);
+    sigset_t sa_mask;
+    <span style="color:#00688b;font-weight:bold">int</span> sa_flags;
+};
+</code></pre></td></tr></table>
+</div>
+</div><p>此结构体的成员 sa_handler 保存信号处理的函数指针值（地址值）。sa_mask 和 sa_flags 的所有位初始化 0 即可。这 2 个成员用于指定信号相关的选项和特性，而我们的目的主要是防止产生僵尸进程，故省略。</p>
+<p>下面的示例是关于 sigaction 函数的使用方法。</p>
+<ul>
+<li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/sigaction.c">sigaction.c</a></li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span>
+<span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">timeout</span>(<span style="color:#00688b;font-weight:bold">int</span> sig)
+{
+    <span style="color:#8b008b;font-weight:bold">if</span> (sig == SIGALRM)
+        puts(<span style="color:#cd5555">&#34;Time out!&#34;</span>);
+    alarm(<span style="color:#b452cd">2</span>);
+}
+
+<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+{
+    <span style="color:#00688b;font-weight:bold">int</span> i;
+    <span style="color:#8b008b;font-weight:bold">struct</span> sigaction act;
+    act.sa_handler = timeout;    <span style="color:#228b22">//保存函数指针
+</span><span style="color:#228b22"></span>    sigemptyset(&amp;act.sa_mask);   <span style="color:#228b22">//将 sa_mask 函数的所有位初始化成0
+</span><span style="color:#228b22"></span>    act.sa_flags = <span style="color:#b452cd">0</span>;            <span style="color:#228b22">//sa_flags 同样初始化成 0
+</span><span style="color:#228b22"></span>    sigaction(SIGALRM, &amp;act, <span style="color:#b452cd">0</span>); <span style="color:#228b22">//注册 SIGALRM 信号的处理器。
+</span><span style="color:#228b22"></span>
+    alarm(<span style="color:#b452cd">2</span>); <span style="color:#228b22">//2 秒后发生 SIGALRM 信号
+</span><span style="color:#228b22"></span>
+    <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = <span style="color:#b452cd">0</span>; i &lt; <span style="color:#b452cd">3</span>; i++)
+    {
+        puts(<span style="color:#cd5555">&#34;wait...&#34;</span>);
+        sleep(<span style="color:#b452cd">100</span>);
+    }
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+
+</code></pre></td></tr></table>
+</div>
+</div><p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc sigaction.c -o sigaction
+./sigaction
+</code></pre></td></tr></table>
+</div>
+</div><p>结果：</p>
+<pre tabindex="0"><code>wait...
+Time out!
+wait...
+Time out!
+wait...
+Time out!
+</code></pre><p>可以发现，结果和之前用 signal 函数的结果没有什么区别。以上就是信号处理的相关理论。</p>
+<h4 id="1034-利用信号处理技术消灭僵尸进程">10.3.4 利用信号处理技术消灭僵尸进程</h4>
+<p>下面利用子进程终止时产生 SIGCHLD 信号这一点，来用信号处理来消灭僵尸进程。看以下代码：</p>
+<ul>
+<li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/remove_zomebie.c">remove_zomebie.c</a></li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdlib.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
+</span><span style="color:#1e889b"></span>
+<span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">read_childproc</span>(<span style="color:#00688b;font-weight:bold">int</span> sig)
+{
+    <span style="color:#00688b;font-weight:bold">int</span> status;
+    pid_t id = waitpid(-<span style="color:#b452cd">1</span>, &amp;status, WNOHANG);
+    <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
+    {
+        printf(<span style="color:#cd5555">&#34;Removed proc id: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, id);             <span style="color:#228b22">//子进程的 pid
+</span><span style="color:#228b22"></span>        printf(<span style="color:#cd5555">&#34;Child send: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status)); <span style="color:#228b22">//子进程的返回值
+</span><span style="color:#228b22"></span>    }
+}
+
+<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+{
+    pid_t pid;
+    <span style="color:#8b008b;font-weight:bold">struct</span> sigaction act;
+    act.sa_handler = read_childproc;
+    sigemptyset(&amp;act.sa_mask);
+    act.sa_flags = <span style="color:#b452cd">0</span>;
+    sigaction(SIGCHLD, &amp;act, <span style="color:#b452cd">0</span>);
+
+    pid = fork();
+    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>) <span style="color:#228b22">//子进程执行阶段
+</span><span style="color:#228b22"></span>    {
+        puts(<span style="color:#cd5555">&#34;Hi I&#39;m child process&#34;</span>);
+        sleep(<span style="color:#b452cd">10</span>);
+        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">12</span>;
+    }
+    <span style="color:#8b008b;font-weight:bold">else</span> <span style="color:#228b22">//父进程执行阶段
+</span><span style="color:#228b22"></span>    {
+        printf(<span style="color:#cd5555">&#34;Child proc id: %d</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
+        pid = fork();
+        <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+        {
+            puts(<span style="color:#cd5555">&#34;Hi! I&#39;m child process&#34;</span>);
+            sleep(<span style="color:#b452cd">10</span>);
+            exit(<span style="color:#b452cd">24</span>);
+        }
+        <span style="color:#8b008b;font-weight:bold">else</span>
+        {
+            <span style="color:#00688b;font-weight:bold">int</span> i;
+            printf(<span style="color:#cd5555">&#34;Child proc id: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
+            <span style="color:#8b008b;font-weight:bold">for</span> (i = <span style="color:#b452cd">0</span>; i &lt; <span style="color:#b452cd">5</span>; i++)
+            {
+                puts(<span style="color:#cd5555">&#34;wait&#34;</span>);
+                sleep(<span style="color:#b452cd">5</span>);
+            }
+        }
+    }
+    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc remove_zomebie.c -o zombie
+./zombie
+</code></pre></td></tr></table>
+</div>
+</div><p>结果：</p>
+<pre tabindex="0"><code>Child proc id: 11211
+Hi I'm child process
+Child proc id: 11212 
+wait
+Hi! I'm child process
+
+wait
+
+wait
+Removed proc id: 11211 
+Child send: 12 
+wait
+Removed proc id: 11212 
+Child send: 24 
+wait
+</code></pre><p>请自习观察结果，结果中的每一个空行代表间隔了5 秒，程序是先创建了两个子进程，然后子进程 10  秒之后会返回值，第一个 wait 由于子进程在执行，所以直接被唤醒，然后这两个子进程正在睡 10 秒，所以 5 秒之后第二个 wait 开始执行，又过了 5 秒，两个子进程同时被唤醒。所以剩下的 wait 也被唤醒。</p>
+<p>所以在本程序的过程中，当子进程终止时候，会向系统发送一个信号，然后调用我们提前写好的处理函数，在处理函数中使用 waitpid 来处理僵尸进程，获取子进程返回值。</p>
+<h3 id="104-基于多任务的并发服务器">10.4 基于多任务的并发服务器</h3>
+<h4 id="1041-基于进程的并发服务器模型">10.4.1 基于进程的并发服务器模型</h4>
+<p>之前的回声服务器每次只能同事向 1 个客户端提供服务。因此，需要扩展回声服务器，使其可以同时向多个客户端提供服务。下图是基于多进程的回声服务器的模型。</p>
+<p><img src="https://i.loli.net/2019/01/21/5c453664cde26.png" alt=""></p>
+<p>从图中可以看出，每当有客户端请求时（连接请求），回声服务器都创建子进程以提供服务。如果请求的客户端有 5 个，则将创建 5 个子进程来提供服务，为了完成这些任务，需要经过如下过程：</p>
+<ul>
+<li>第一阶段：回声服务器端（父进程）通过调用 accept 函数受理连接请求</li>
+<li>第二阶段：此时获取的套接字文件描述符创建并传递给子进程</li>
+<li>第三阶段：进程利用传递来的文件描述符提供服务</li>
+</ul>
+<h4 id="1042-实现并发服务器">10.4.2 实现并发服务器</h4>
+<p>下面是基于多进程实现的并发的回声服务器的服务端，可以结合第四章的 <a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch04/echo_client.c">echo_client.c</a> 回声客户端来运行。</p>
+<ul>
+<li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/echo_mpserv.c">echo_mpserv.c</a></li>
+</ul>
+<p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc echo_mpserv.c -o eserver
+./eserver
+</code></pre></td></tr></table>
+</div>
+</div><p>结果：</p>
+<p>和第四章的几乎一样，可以自己测试，此时的服务端支持同时给多个客户端进行服务，每有一个客户端连接服务端，就会多开一个子进程，所以可以同时提供服务。</p>
+<h4 id="1043-通过-fork-函数复制文件描述符">10.4.3 通过 fork 函数复制文件描述符</h4>
+<p>示例中给出了通过 fork 函数复制文件描述符的过程。父进程将 2 个套接字（一个是服务端套接字另一个是客户端套接字）文件描述符复制给了子进程。</p>
+<p>调用 fork 函数时赋值父进程的所有资源，但是套接字不是归进程所有的，而是归操作系统所有，只是进程拥有代表相应套接字的文件描述符。</p>
+<p><img src="https://s2.ax1x.com/2019/01/21/kP7Rjx.png" alt=""></p>
+<p>如图所示，1 个套接字存在 2 个文件描述符时，只有 2 个文件描述符都终止（销毁）后，才能销毁套接字。如果维持图中的状态，即使子进程销毁了与客户端连接的套接字文件描述符，也无法销毁套接字（服务器套接字同样如此）。因此调用 fork 函数候，要将无关紧要的套接字文件描述符关掉，如图所示：</p>
+<p><img src="https://s2.ax1x.com/2019/01/21/kPH7ZT.png" alt=""></p>
+<h3 id="105-分割-tcp-的-io-程序">10.5 分割 TCP 的 I/O 程序</h3>
+<h4 id="1051-分割-io-的优点">10.5.1 分割 I/O 的优点</h4>
+<p>我们已经实现的回声客户端的数据回声方式如下：</p>
+<blockquote>
+<p>向服务器传输数据，并等待服务器端回复。无条件等待，直到接收完服务器端的回声数据后，才能传输下一批数据。</p>
+</blockquote>
+<p>传输数据后要等待服务器端返回的数据，因为程序代码中重复调用了 read 和 write 函数。只能这么写的原因之一是，程序在 1 个进程中运行，现在可以创建多个进程，因此可以分割数据收发过程。默认分割过程如下图所示：</p>
+<p><img src="https://s2.ax1x.com/2019/01/21/kPbhkD.png" alt=""></p>
+<p>从图中可以看出，客户端的父进程负责接收数据，额外创建的子进程负责发送数据，分割后，不同进程分别负责输入输出，这样，无论客户端是否从服务器端接收完数据都可以进程传输。</p>
+<p>分割 I/O 程序的另外一个好处是，可以提高频繁交换数据的程序性能，图下图所示：</p>
+<p><img src="https://s2.ax1x.com/2019/01/21/kPbvtg.png" alt=""></p>
+<p>根据上图显示可以看出，再网络不好的情况下，明显提升速度。</p>
+<h4 id="1052-回声客户端的-io-程序分割">10.5.2 回声客户端的 I/O 程序分割</h4>
+<p>下面是回声客户端的 I/O 分割的代码实现：</p>
+<ul>
+<li><a href="https://github.com/riba2534/TCP-IP-NetworkNote/blob/master/ch10/echo_mpclient.c">echo_mpclient.c</a></li>
+</ul>
+<p>可以配合刚才的并发服务器进行执行。</p>
+<p>编译运行：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc echo_mpclient.c -o eclient
+./eclient 127.0.0.1 <span style="color:#b452cd">9190</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>结果：</p>
+<p><img src="https://s2.ax1x.com/2019/01/21/kPOcXn.png" alt=""></p>
+<p>可以看出，基本和以前的一样，但是里面的内部结构却发生了很大的变化</p>
+<h3 id="106-习题">10.6 习题</h3>
+<blockquote>
+<p>以下答案仅代表本人个人观点，可能不是正确答案。</p>
+</blockquote>
+<ol>
+<li>
+<p><strong>下列关于进程的说法错误的是？</strong></p>
+<p>答：以下加粗的内容为正确的</p>
+<ol>
+<li><strong>从操作系统的角度上说，进程是程序运行的单位</strong></li>
+<li>进程根据创建方式建立父子关系</li>
+<li><strong>进程可以包含其他进程，即一个进程的内存空间可以包含其他进程</strong></li>
+<li><strong>子进程可以创建其他子进程，而创建出来的子进程还可以创建其他子进程，但所有这些进程只与一个父进程建立父子关系。</strong></li>
+</ol>
+</li>
+<li>
+<p><strong>调用 fork 函数将创建子进程，一下关于子进程错误的是？</strong></p>
+<p>答：以下加粗的内容为正确的</p>
+<ol>
+<li><strong>父进程销毁时也会同时销毁子进程</strong></li>
+<li><strong>子进程是复制父进程所有资源创建出的进程</strong></li>
+<li>父子进程共享全局变量</li>
+<li>通过 fork 函数创建的子进程将执行从开始到 fork 函数调用为止的代码。</li>
+</ol>
+</li>
+<li>
+<p><strong>创建子进程时复制父进程所有内容，此时复制对象也包含套接字文件描述符。编写程序验证赋值的文件描述符整数值是否与原文件描述符数值相同。</strong></p>
+<p>答：代码为多进程服务器修改而来，代码：<a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/test_server.c">test_server.c</a></p>
+<p>运行截图：</p>
+<p><img src="https://s2.ax1x.com/2019/01/21/kPj3Md.png" alt=""></p>
+<p>从图上可以看出，数值相同。</p>
+</li>
+<li>
+<p><strong>请说明进程变为僵尸进程的过程以及预防措施。</strong></p>
+<p>答：当一个父进程以fork()系统调用建立一个新的子进程后，核心进程就会在进程表中给这个子进程分配一个进入点，然后将相关信息存储在该进入点所对应的进程表内。这些信息中有一项是其父进程的识别码。而当这个子进程结束的时候（比如调用exit命令结束），其实他并没有真正的被销毁，而是留下一个称为僵尸进程（Zombie）的数据结构（系统调用exit的作用是使进程退出，但是也仅仅限于一个正常的进程变成了一个僵尸进程，并不能完全将其销毁）。<strong>预防措施</strong>：通过 wait 和 waitpid 函数加上信号函数写代码来预防。</p>
+</li>
+</ol>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2022-03-30</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-11-%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1-%E7%AC%94%E8%AE%B0/">
+			下回<br>《TCP/IP网络编程》第 11 章 进程间通信 笔记
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-9-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E5%A4%9A%E7%A7%8D%E5%8F%AF%E9%80%89%E9%A1%B9-%E7%AC%94%E8%AE%B0/">
+			上回<br>《TCP/IP网络编程》第 9 章 套接字的多种可选项 笔记
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://blog.riba2534.cn">riba2534</a>
+<br>
+
+&copy;
+	
+	2022 🌀Jarson Cai&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "blog-9g6ht92ca9c564c6",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html><head>
+<title>《数字图像处理》第二章——图像压缩</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="研究生课程笔记，以及课后小作业">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="《数字图像处理》第二章——图像压缩" />
+<meta property="og:description" content="研究生课程笔记，以及课后小作业" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://caixiongjiang.github.io/blog/2022/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%9B%BE%E5%83%8F%E5%8E%8B%E7%BC%A9/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2022-02-28T18:07:05+08:00" />
+<meta property="article:modified_time" content="2022-02-28T00:43:06+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/avater.jfif">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.3.1/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://caixiongjiang.github.io/">
+    
+        <div class="nav-title">
+            🌀Jarson Cai&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            头脑是日用品，不是装饰品
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://github.com/caixiongjiang">
+    GitHub
+</a>
+<br>
+
+<a href="https://jarson-cai.gitee.io/jarson-cai-blog">
+    MiFeng
+</a>
+<br>
+
+<a href="nau_cxj@163.com">
+    Email
+</a>
+<br>
+
+<a href="https://leetcode-cn.com/u/cai-xiong-jiang/">
+    Leetcode
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2022 🌀Jarson Cai&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e5%ad%97%e5%9b%be%e5%83%8f%e5%a4%84%e7%90%86%e7%ac%ac%e4%ba%8c%e7%ab%a0%e5%9b%be%e5%83%8f%e5%8e%8b%e7%bc%a9" onclick="onNavClick(`#数字图像处理第二章图像压缩-nav`)" id="数字图像处理第二章图像压缩-nav">
+									《数字图像处理》第二章——图像压缩
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%9b%be%e5%83%8f%e5%8e%8b%e7%bc%a9%e5%9f%ba%e6%9c%ac%e6%a6%82%e5%bf%b5" onclick="onNavClick(`#图像压缩基本概念-nav`)" id="图像压缩基本概念-nav">
+									图像压缩基本概念
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%be%e5%83%8f%e5%8e%8b%e7%bc%a9%e6%a0%87%e5%87%86%e5%8c%85%e6%8b%ac%e8%a7%86%e9%a2%91" onclick="onNavClick(`#图像压缩标准包括视频-nav`)" id="图像压缩标准包括视频-nav">
+									图像压缩标准（包括视频）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%be%e5%83%8f%e5%8e%8b%e7%bc%a9%e7%9a%84%e6%b5%81%e7%a8%8b" onclick="onNavClick(`#图像压缩的流程-nav`)" id="图像压缩的流程-nav">
+									图像压缩的流程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#jpeg%e5%8e%8b%e7%bc%a9" onclick="onNavClick(`#jpeg压缩-nav`)" id="jpeg压缩-nav">
+									JPEG压缩
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e5%99%a8" onclick="onNavClick(`#编码器-nav`)" id="编码器-nav">
+									编码器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%be%e5%83%8f%e5%88%86%e5%9d%97" onclick="onNavClick(`#图像分块-nav`)" id="图像分块-nav">
+									图像分块
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#jpeg%e6%98%a0%e5%b0%84%e5%99%a8" onclick="onNavClick(`#jpeg映射器-nav`)" id="jpeg映射器-nav">
+									JPEG映射器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#jpeg%e4%b8%ad%e7%9a%84%e9%87%8f%e5%8c%96" onclick="onNavClick(`#jpeg中的量化-nav`)" id="jpeg中的量化-nav">
+									JPEG中的量化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#jpeg-ls%e6%97%a0%e6%8d%9f%e5%8e%8b%e7%bc%a9" onclick="onNavClick(`#jpeg-ls无损压缩-nav`)" id="jpeg-ls无损压缩-nav">
+									JPEG-LS（无损压缩）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b8%b8%e7%a8%8b%e7%bc%96%e7%a0%81" onclick="onNavClick(`#游程编码-nav`)" id="游程编码-nav">
+									游程编码
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e9%aa%8c%e4%bd%9c%e4%b8%9a" onclick="onNavClick(`#实验作业-nav`)" id="实验作业-nav">
+									实验作业
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e9%a2%98" onclick="onNavClick(`#第一题-nav`)" id="第一题-nav">
+									第一题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e9%a2%98" onclick="onNavClick(`#第二题-nav`)" id="第二题-nav">
+									第二题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e9%a2%98" onclick="onNavClick(`#第三题-nav`)" id="第三题-nav">
+									第三题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e5%ad%97%e5%9b%be%e5%83%8f%e5%a4%84%e7%90%86%e7%ac%ac%e4%ba%8c%e7%ab%a0%e5%9b%be%e5%83%8f%e5%8e%8b%e7%bc%a9" onclick="onNavClick(`#数字图像处理第二章图像压缩-nav`)" id="数字图像处理第二章图像压缩-nav">
+									《数字图像处理》第二章——图像压缩
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%9b%be%e5%83%8f%e5%8e%8b%e7%bc%a9%e5%9f%ba%e6%9c%ac%e6%a6%82%e5%bf%b5" onclick="onNavClick(`#图像压缩基本概念-nav`)" id="图像压缩基本概念-nav">
+									图像压缩基本概念
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%be%e5%83%8f%e5%8e%8b%e7%bc%a9%e6%a0%87%e5%87%86%e5%8c%85%e6%8b%ac%e8%a7%86%e9%a2%91" onclick="onNavClick(`#图像压缩标准包括视频-nav`)" id="图像压缩标准包括视频-nav">
+									图像压缩标准（包括视频）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%be%e5%83%8f%e5%8e%8b%e7%bc%a9%e7%9a%84%e6%b5%81%e7%a8%8b" onclick="onNavClick(`#图像压缩的流程-nav`)" id="图像压缩的流程-nav">
+									图像压缩的流程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#jpeg%e5%8e%8b%e7%bc%a9" onclick="onNavClick(`#jpeg压缩-nav`)" id="jpeg压缩-nav">
+									JPEG压缩
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e5%99%a8" onclick="onNavClick(`#编码器-nav`)" id="编码器-nav">
+									编码器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%be%e5%83%8f%e5%88%86%e5%9d%97" onclick="onNavClick(`#图像分块-nav`)" id="图像分块-nav">
+									图像分块
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#jpeg%e6%98%a0%e5%b0%84%e5%99%a8" onclick="onNavClick(`#jpeg映射器-nav`)" id="jpeg映射器-nav">
+									JPEG映射器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#jpeg%e4%b8%ad%e7%9a%84%e9%87%8f%e5%8c%96" onclick="onNavClick(`#jpeg中的量化-nav`)" id="jpeg中的量化-nav">
+									JPEG中的量化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#jpeg-ls%e6%97%a0%e6%8d%9f%e5%8e%8b%e7%bc%a9" onclick="onNavClick(`#jpeg-ls无损压缩-nav`)" id="jpeg-ls无损压缩-nav">
+									JPEG-LS（无损压缩）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b8%b8%e7%a8%8b%e7%bc%96%e7%a0%81" onclick="onNavClick(`#游程编码-nav`)" id="游程编码-nav">
+									游程编码
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e9%aa%8c%e4%bd%9c%e4%b8%9a" onclick="onNavClick(`#实验作业-nav`)" id="实验作业-nav">
+									实验作业
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e9%a2%98" onclick="onNavClick(`#第一题-nav`)" id="第一题-nav">
+									第一题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e9%a2%98" onclick="onNavClick(`#第二题-nav`)" id="第二题-nav">
+									第二题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e9%a2%98" onclick="onNavClick(`#第三题-nav`)" id="第三题-nav">
+									第三题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://caixiongjiang.github.io/">
+            🌀Jarson Cai&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://caixiongjiang.github.io/">
+        <div class="single-column-header-title">🌀Jarson Cai&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">头脑是日用品，不是装饰品</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/img-process.png')"
+                    
+                
+            >
+                <div class="post-title">
+                    《数字图像处理》第二章——图像压缩
+                    
+                    <div class="post-subtitle">
+                        研究生课程笔记，以及课后小作业
+                    </div>
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2022-02-28 18:07
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/">[数字图像处理]</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/python">python</a>
+                                &nbsp;
+                            
+                                <a href="/tags/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0">《数字图像处理》学习笔记</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            14 min
+                            
+                            49 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h2 id="数字图像处理第二章图像压缩">《数字图像处理》第二章——图像压缩</h2>
+<h3 id="图像压缩基本概念">图像压缩基本概念</h3>
+<ul>
+<li>压缩比： Cr = n1 / n2</li>
+<li>相对数据冗余： Rd = 1 - 1 / Cr</li>
+<li>无损压缩： 压缩编码冗余和像素冗余称为无损压缩</li>
+</ul>
+<h3 id="图像压缩标准包括视频">图像压缩标准（包括视频）</h3>
+<ul>
+<li>主流的静态图像压缩标准（JPEG家族）：JPEG, JPEG-LS(无损压缩), JPEG-2000</li>
+<li>主流的视频压缩标准（MPEG家族）：MPEG-1, MPEG-2, MPEG-3, MPEG-4 AVC</li>
+</ul>
+<h3 id="图像压缩的流程">图像压缩的流程</h3>
+<p>以<code>JPEG</code>的压缩流程为例：</p>
+<pre tabindex="0"><code>输入的图像——&gt;图像分块——&gt;映射器——&gt;量化器——&gt;编码器
+                      解码器——&gt;反映射——&gt;输出图片
+</code></pre><p><strong>量化器是该过程中唯一对图像质量有损耗的</strong></p>
+<h3 id="jpeg压缩">JPEG压缩</h3>
+<h4 id="编码器">编码器</h4>
+<p><em>JPEG使用的是哈夫曼编码，哈夫曼编码得到的是一种无前缀编码，这会使得出现概率越高的元素编码长度越短，出现概率越低的元素编码长度越长，最后总的编码长度编程最短</em></p>
+<p>哈夫曼编码使用规则：</p>
+<ul>
+<li>1.每次取集合中最小的两个值，相加之后再加入原有的集合，再重复取最小的两个值，到最后只剩一个元素</li>
+<li>2.将原有集合的数字进行编码，层数越高，编码长度越短</li>
+</ul>
+<p><strong>在JPEG中应用为：对像素出现的概率高低进行编码！</strong></p>
+<p>demo：</p>
+<pre tabindex="0"><code>a1 - 0.4
+a2 - 0.3
+a3 - 0.1
+
+对应编码：
+a1 - 1
+a2 - 01
+a3 - 00
+</code></pre><p>编码熵：$ -\sum_{i = 1}^n p(s)log_2^{p(s)}$
+（概率*对应的<code>自信息</code>）</p>
+<h3 id="图像分块">图像分块</h3>
+<p>在<code>JPEG</code>中采用8✖️8的小块进行分别处理，<strong>这么做的原因是分别对小块进行处理比对整张图像进行处理更加高效</strong>、</p>
+<p><em>若JPEG为RGB的彩色图像，我们需要先将RGB通道转化为YCbCr通道，再对每个通道进行分块处理</em></p>
+<p>模式“RGB”转换为“YCbCr”的公式如下：</p>
+<pre tabindex="0"><code>Y= 0.257R+0.504G+0.098B+16
+Cb = -0.148R-0.291G+0.439B+128
+Cr = 0.439R-0.368G-0.071*B+128
+</code></pre><p>python 中的PIL Image 本身是带有rgb2ycbcr()函数的，但是其MATLAB实现上有差异。</p>
+<p>python中的自带函数实现：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">PIL</span> <span style="color:#8b008b;font-weight:bold">import</span> Image
+image =Image.open(<span style="color:#cd5555">&#34;test.jpg&#34;</span>)
+image_ycbcr =image.convert(<span style="color:#cd5555">&#34;YCbCr&#34;</span>)
+</code></pre></td></tr></table>
+</div>
+</div><p>python 实现MATLAB中rgb2ycbcr()函数：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">mat = np.array(
+    [[<span style="color:#b452cd">65.481</span>, <span style="color:#b452cd">128.553</span>, <span style="color:#b452cd">24.966</span>],
+     [-<span style="color:#b452cd">37.797</span>, -<span style="color:#b452cd">74.203</span>, <span style="color:#b452cd">112.0</span>],
+     [<span style="color:#b452cd">112.0</span>, -<span style="color:#b452cd">93.786</span>, -<span style="color:#b452cd">18.214</span>]])
+mat_inv = np.linalg.inv(mat)
+offset = np.array([<span style="color:#b452cd">16</span>, <span style="color:#b452cd">128</span>, <span style="color:#b452cd">128</span>])
+
+
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">rgb2ycbcr</span>(rgb_img):
+    ycbcr_img = np.zeros(rgb_img.shape)
+    <span style="color:#8b008b;font-weight:bold">for</span> x <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(rgb_img.shape[<span style="color:#b452cd">0</span>]):
+        <span style="color:#8b008b;font-weight:bold">for</span> y <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(rgb_img.shape[<span style="color:#b452cd">1</span>]):
+            ycbcr_img[x, y, :] = np.round(np.dot(mat, rgb_img[x, y, :] * <span style="color:#b452cd">1.0</span> / <span style="color:#b452cd">255</span>) + offset)
+    <span style="color:#8b008b;font-weight:bold">return</span> ycbcr_img
+
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="jpeg映射器">JPEG映射器</h4>
+<p>首先了解一下，图像矩阵映射之后的误差如何衡量：</p>
+<p>误差的指标为<code>均方根误差</code>(假设矩阵为M×N)：
+$$ MSE = \sqrt{\frac{1}{MN}\sum_{i = 1}^n\sum_{i = 1}^n(\dot{f}(x,y) - f(x,y))} $$</p>
+<p>JPEG默认的映射器是做<code>离散余弦变换</code>（DCT），这里讲两种，第一种为<code>K-L变换</code>，第二种就是<code>DCT变换</code>。</p>
+<p>K-L变换：将8×8矩阵的64个像素取1个进行K-L变换，然后进行反变换，计算均方误差，只传输均方误差最小的像素。（<strong>而对于K-L变换来说，第一个像素就是你需要传输的那个像素</strong>）</p>
+<p>优缺点：优点就是传输的大小缩小了很多，缺点是需要根据具体的图像来确定映射矩阵</p>
+<p>DCT变换：同K-L变换相似，它的矩阵是固定的。</p>
+<p>DCT变换公式(二维离散n×n)：
+$$ T(u,v)=\sum_{x = 0}^{n - 1}\sum_{y = 0}^{n - 1}f(x,y)r(x,y,u,v) $$</p>
+<p>逆变换：
+$$ f(x,y)=\sum_{u = 0}^{n - 1}\sum_{v = 0}^{n - 1}T(u,v)s(x,y,u,v) $$</p>
+<p>其中：
+$$ r(x,y,u,v) = s(x,y,u,v) = \alpha(u)\alpha(v)cos{\frac{(2x+1)u\pi}{2n}}cos{\frac{(2y+1)v\pi}{2n}}$$
+$$ \alpha(u) = \begin{cases}
+\sqrt{\frac{1}{n}} &amp; {u = 0} \
+\sqrt{\frac{2}{n}} &amp; {u \neq 0}
+\end{cases}$$
+$$ \alpha(v) = \begin{cases}
+\sqrt{\frac{1}{n}} &amp; {v = 0} \
+\sqrt{\frac{2}{n}} &amp; {v \neq 0}
+\end{cases}$$</p>
+<p>DCT优势：</p>
+<p>1.其图像转换的矩阵是不变的</p>
+<p>2.其良好的周期性</p>
+<h4 id="jpeg中的量化">JPEG中的量化</h4>
+<p><code>JPEG</code>采用的是均匀量化，假设量化因子为16，其量化的过程就是原图像处以16向下取整再乘以16。（量化因子越大，损耗越大）</p>
+<p><em>需要注意的是：量化是按照右上到左下的锯齿状进行的，当<code>JPEG</code>进行到某一个系数时，发现后续量化后都变成了0，我们只需要用一个信号来表明结束</em></p>
+<p>Max-Lloyd最优量化器：根据不同的图片个性定制量化方式</p>
+<h3 id="jpeg-ls无损压缩">JPEG-LS（无损压缩）</h3>
+<p>无损压缩的编码思想：根据原像素矩阵进行预测，再与真实值比较，将产生的误差进行哈夫曼编码</p>
+<p>解码：先用哈夫曼解码，在预测值上加上误差（有正有负），还原图像</p>
+<p>两种预测方式：</p>
+<ul>
+<li>$$F(x,y) = F(x - 1, y)$$</li>
+<li>$$F(x,y) = \frac{F(x - 1, y) + F(x - 1, y - 1) + F(x, y - 1)}{3}$$</li>
+</ul>
+<h3 id="游程编码">游程编码</h3>
+<p>一般用于编码二值图像！</p>
+<p>demo：只有两种灰度值的图片，可以对<strong>每行每种灰度值连续出现的值和次数进行编码。（也就是相同灰度值所占行程的长度）</strong></p>
+<h2 id="实验作业">实验作业</h2>
+<p>本次实验作业全部用<code>python3</code>完成</p>
+<h3 id="第一题">第一题</h3>
+<pre tabindex="0"><code>JPEG的基本实现：
+1.图像分成8×8的块
+2.DCT变换
+3.采用均匀量化（系数为N）
+4.将图像进行逆DCT变换
+5.可视化图像
+</code></pre><p>代码如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">68
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">69
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">70
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">71
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">72
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">73
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">74
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">75
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">76
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">77
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">78
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">79
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">80
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">81
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">82
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">83
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">84
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">85
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">86
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">87
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">88
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">89
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">90
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">91
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">92
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">matplotlib.pyplot</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">plt</span>
+<span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">numpy</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">np</span>
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">PIL</span> <span style="color:#8b008b;font-weight:bold">import</span> Image
+
+
+<span style="color:#228b22"># 生成DCT矩阵</span>
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">func1</span>(block_size):
+    dct_matrix = np.zeros((block_size, block_size))
+    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(block_size):
+        <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(block_size):
+            <span style="color:#8b008b;font-weight:bold">if</span> i == <span style="color:#b452cd">0</span>:
+                a = np.sqrt(<span style="color:#b452cd">1</span> / block_size) <span style="color:#228b22">#a代表转化系数</span>
+            <span style="color:#8b008b;font-weight:bold">else</span>:
+                a = np.sqrt(<span style="color:#b452cd">2</span> / block_size)
+            temp = ((<span style="color:#b452cd">2</span> * j + <span style="color:#b452cd">1</span>) * i * np.pi) / (<span style="color:#b452cd">2</span> * block_size) <span style="color:#228b22">#公式 cos(((2x + 1)u派)/2n)</span>
+            dct_matrix[i, j] = a * np.cos(temp) <span style="color:#228b22"># 离散余弦变换</span>
+    <span style="color:#8b008b;font-weight:bold">return</span> dct_matrix
+
+<span style="color:#228b22"># 按照指定块大小进行DCT变换</span>
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">func2</span>(image, dct_mat):
+    block_size = dct_mat.shape[<span style="color:#b452cd">0</span>]
+    height, width = image.shape
+    dct_img = np.zeros((height, width), dtype=np.float32)
+    <span style="color:#8b008b;font-weight:bold">for</span> row <span style="color:#8b008b">in</span> np.arange(<span style="color:#b452cd">0</span>, height, block_size):
+        <span style="color:#8b008b;font-weight:bold">for</span> col <span style="color:#8b008b">in</span> np.arange(<span style="color:#b452cd">0</span>, width, block_size):
+            block = np.array(image[row:(row + block_size), col:(col + block_size)], dtype=np.float32)
+            dct_img[row:(row + block_size), col:(col + block_size)] = np.matmul(np.matmul(dct_mat, block), dct_mat.T)
+
+    <span style="color:#8b008b;font-weight:bold">return</span> dct_img
+
+
+<span style="color:#228b22"># 量化每个块 采用简单的除以side再乘以side，这里side取16</span>
+<span style="color:#228b22"># 当side大于50时，图片量化损耗较大</span>
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">func3</span>(dct_image, side):
+    m, n = dct_image.shape
+    <span style="color:#8b008b;font-weight:bold">for</span> row <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(m):
+        <span style="color:#8b008b;font-weight:bold">for</span> col <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(n):
+            a = dct_image[row, col]
+            a /= side
+            <span style="color:#228b22"># 四舍五入</span>
+            <span style="color:#8b008b;font-weight:bold">if</span> (<span style="color:#658b00">int</span>(a + <span style="color:#b452cd">1</span>) - a) &lt; (a - <span style="color:#658b00">int</span>(a - <span style="color:#b452cd">1</span>)):
+                dct_image[row, col] = <span style="color:#658b00">int</span>(a + <span style="color:#b452cd">1</span>) * side
+            <span style="color:#8b008b;font-weight:bold">else</span>:
+                dct_image[row, col] = <span style="color:#658b00">int</span>(a - <span style="color:#b452cd">1</span>) * side
+
+    <span style="color:#8b008b;font-weight:bold">return</span> dct_image
+
+<span style="color:#228b22"># 逆DCT变换</span>
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">func4</span>(image, dct_mat):
+    block_size = dct_mat.shape[<span style="color:#b452cd">0</span>]
+    height, width = image.shape
+    inv_dct_img = np.zeros((height, width), dtype=np.float32)
+    <span style="color:#8b008b;font-weight:bold">for</span> row <span style="color:#8b008b">in</span> np.arange(<span style="color:#b452cd">0</span>, height, block_size):
+        <span style="color:#8b008b;font-weight:bold">for</span> col <span style="color:#8b008b">in</span> np.arange(<span style="color:#b452cd">0</span>, width, block_size):
+            block = np.array(image[row:(row + block_size), col:(col + block_size)], dtype=np.float32)
+            inv_dct_img[row:(row + block_size), col:(col + block_size)] = np.matmul(np.matmul(dct_mat.T, block),
+                                                                                    dct_mat)
+
+    <span style="color:#8b008b;font-weight:bold">return</span> inv_dct_img
+
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">main</span>(img_path):
+
+    <span style="color:#228b22"># 第一题实现</span>
+    src1 = np.array(Image.open(img_path).convert(<span style="color:#cd5555">&#34;L&#34;</span>))
+    dct = func1(<span style="color:#b452cd">8</span>)
+    dct_img1 = func2(src1, dct)
+    inv_dct_img1 = func4(dct_img1, dct)
+    dct_img2 = func3(dct_img1, <span style="color:#b452cd">16</span>)
+    inv_dct_img2 = func4(dct_img2, dct)
+
+    <span style="color:#228b22"># 重新导入图像（量化会对原图像进行修改）</span>
+    src = np.array(Image.open(img_path).convert(<span style="color:#cd5555">&#34;L&#34;</span>))
+
+    img_list = [src, inv_dct_img1, inv_dct_img2]
+    img_name = [<span style="color:#cd5555">&#34;原图像&#34;</span>, <span style="color:#cd5555">&#34;1.没有量化直接DCT的结果&#34;</span>, <span style="color:#cd5555">&#34;1.量化+DCT的结果&#34;</span>]
+
+    plt.rcParams[<span style="color:#cd5555">&#39;font.sans-serif&#39;</span>] = [<span style="color:#cd5555">&#39;SimHei&#39;</span>]
+    plt.rcParams[<span style="color:#cd5555">&#39;axes.unicode_minus&#39;</span>] = <span style="color:#8b008b;font-weight:bold">False</span>
+
+    _, axs = plt.subplots(<span style="color:#b452cd">1</span>, <span style="color:#b452cd">3</span>, figsize=(<span style="color:#b452cd">12</span>, <span style="color:#b452cd">12</span>))
+
+    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">1</span>):
+        <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">3</span>):
+            axs[i][j].imshow(img_list[i * <span style="color:#b452cd">3</span> + j], cmap=<span style="color:#cd5555">&#39;gray&#39;</span>, vmin=<span style="color:#b452cd">0</span>, vmax=<span style="color:#b452cd">255</span>)
+            axs[i][j].set_title(img_name[i * <span style="color:#b452cd">3</span> + j])
+            axs[i][j].axes.get_xaxis().set_visible(<span style="color:#8b008b;font-weight:bold">False</span>)
+            axs[i][j].axes.get_yaxis().set_visible(<span style="color:#8b008b;font-weight:bold">False</span>)
+
+    plt.show()
+
+<span style="color:#8b008b;font-weight:bold">if</span> __name__ == <span style="color:#cd5555">&#39;__main__&#39;</span>:
+    main(<span style="color:#cd5555">&#39;/Users/jarsonsmac/Desktop/学习资料/数字图像处理和机器视觉/week2/woman.jpg&#39;</span>)
+</code></pre></td></tr></table>
+</div>
+</div><p>实验结果：
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/1.jpg" alt="第一题实验结果"></p>
+<h3 id="第二题">第二题</h3>
+<pre tabindex="0"><code>直接对原始图像进行量化
+</code></pre><p>代码如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">matplotlib.pyplot</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">plt</span>
+<span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">numpy</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">np</span>
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">PIL</span> <span style="color:#8b008b;font-weight:bold">import</span> Image
+
+<span style="color:#228b22"># 量化每个块 采用简单的除以side再乘以side，这里side取16</span>
+<span style="color:#228b22"># 当side大于50时，图片量化损耗较大</span>
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">func3</span>(dct_image, side):
+    m, n = dct_image.shape
+    <span style="color:#8b008b;font-weight:bold">for</span> row <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(m):
+        <span style="color:#8b008b;font-weight:bold">for</span> col <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(n):
+            a = dct_image[row, col]
+            a /= side
+            <span style="color:#228b22"># 四舍五入</span>
+            <span style="color:#8b008b;font-weight:bold">if</span> (<span style="color:#658b00">int</span>(a + <span style="color:#b452cd">1</span>) - a) &lt; (a - <span style="color:#658b00">int</span>(a - <span style="color:#b452cd">1</span>)):
+                dct_image[row, col] = <span style="color:#658b00">int</span>(a + <span style="color:#b452cd">1</span>) * side
+            <span style="color:#8b008b;font-weight:bold">else</span>:
+                dct_image[row, col] = <span style="color:#658b00">int</span>(a - <span style="color:#b452cd">1</span>) * side
+
+    <span style="color:#8b008b;font-weight:bold">return</span> dct_image
+
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">main</span>(img_path):
+
+    <span style="color:#228b22"># 第三题实现</span>
+    src3 = np.array(Image.open(img_path).convert(<span style="color:#cd5555">&#34;L&#34;</span>))
+    image3 = func3(src3, <span style="color:#b452cd">16</span>)
+    src4 = np.array(Image.open(img_path).convert(<span style="color:#cd5555">&#34;L&#34;</span>))
+    image4 = func3(src4, <span style="color:#b452cd">50</span>)
+
+    <span style="color:#228b22"># 重新导入图像（量化会对原图像进行修改）</span>
+    src = np.array(Image.open(img_path).convert(<span style="color:#cd5555">&#34;L&#34;</span>))
+
+    img_list = [src, image3, image4]
+    img_name = [<span style="color:#cd5555">&#34;原图像&#34;</span>, <span style="color:#cd5555">&#34;3.直接量化的结果(side = 16)&#34;</span>, <span style="color:#cd5555">&#34;3.直接量化的结果(side = 50)&#34;</span>]
+
+    plt.rcParams[<span style="color:#cd5555">&#39;font.sans-serif&#39;</span>] = [<span style="color:#cd5555">&#39;SimHei&#39;</span>]
+    plt.rcParams[<span style="color:#cd5555">&#39;axes.unicode_minus&#39;</span>] = <span style="color:#8b008b;font-weight:bold">False</span>
+
+    _, axs = plt.subplots(<span style="color:#b452cd">1</span>, <span style="color:#b452cd">3</span>, figsize=(<span style="color:#b452cd">12</span>, <span style="color:#b452cd">12</span>))
+
+    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">1</span>):
+        <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">3</span>):
+            axs[i][j].imshow(img_list[i * <span style="color:#b452cd">3</span> + j], cmap=<span style="color:#cd5555">&#39;gray&#39;</span>, vmin=<span style="color:#b452cd">0</span>, vmax=<span style="color:#b452cd">255</span>)
+            axs[i][j].set_title(img_name[i * <span style="color:#b452cd">3</span> + j])
+            axs[i][j].axes.get_xaxis().set_visible(<span style="color:#8b008b;font-weight:bold">False</span>)
+            axs[i][j].axes.get_yaxis().set_visible(<span style="color:#8b008b;font-weight:bold">False</span>)
+
+    plt.show()
+
+
+<span style="color:#8b008b;font-weight:bold">if</span> __name__ == <span style="color:#cd5555">&#39;__main__&#39;</span>:
+    main(<span style="color:#cd5555">&#39;/Users/jarsonsmac/Desktop/学习资料/数字图像处理和机器视觉/week2/woman.jpg&#39;</span>)
+</code></pre></td></tr></table>
+</div>
+</div><p>实验结果：
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/2.jpg" alt="第二题实验结果"></p>
+<h3 id="第三题">第三题</h3>
+<pre tabindex="0"><code>计算给定直方图及预测其误差
+</code></pre><p>共有两种预测方式：</p>
+<p>1.$$F(x,y) = F(x - 1, y)$$</p>
+<p>2.$$F(x,y) = \frac{F(x - 1, y) + F(x - 1, y - 1) + F(x, y - 1)}{3}$$</p>
+<p>代码如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#228b22"># 第一种预测方案</span>
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forecast1</span>(matrix):
+    m, n = matrix.shape
+    fore_mat = np.zeros((m, n), dtype=np.int32)
+    dif_sum = <span style="color:#b452cd">0</span>
+    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(m):
+        <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(n):
+            <span style="color:#8b008b;font-weight:bold">if</span>(i == <span style="color:#b452cd">0</span>):
+                fore_mat[i][j] = matrix[i][j]
+            <span style="color:#8b008b;font-weight:bold">else</span>:
+                fore_mat[i][j] = matrix[i - <span style="color:#b452cd">1</span>][j]
+            dif_sum += <span style="color:#658b00">abs</span>(fore_mat[i][j] - matrix[i][j])
+
+    <span style="color:#8b008b;font-weight:bold">return</span> dif_sum
+
+
+<span style="color:#228b22"># 第二种预测方案</span>
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forecast2</span>(matrix):
+    m, n = matrix.shape
+    fore_mat = np.zeros((m, n))
+    dif_sum = <span style="color:#b452cd">0</span>
+    <span style="color:#658b00">dir</span> = np.array([[-<span style="color:#b452cd">1</span>, <span style="color:#b452cd">0</span>], [-<span style="color:#b452cd">1</span>, -<span style="color:#b452cd">1</span>], [<span style="color:#b452cd">0</span>, -<span style="color:#b452cd">1</span>]]) <span style="color:#228b22">#上 左上 左</span>
+    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(m):
+        <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(n):
+            <span style="color:#658b00">sum</span> = <span style="color:#b452cd">0</span>
+            cnt = <span style="color:#b452cd">0</span>
+            <span style="color:#8b008b;font-weight:bold">for</span> k <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">3</span>):
+                dx = i + <span style="color:#658b00">dir</span>[k][<span style="color:#b452cd">0</span>]
+                dy = j + <span style="color:#658b00">dir</span>[k][<span style="color:#b452cd">1</span>]
+                <span style="color:#8b008b;font-weight:bold">if</span> dx &lt; <span style="color:#b452cd">0</span> <span style="color:#8b008b">or</span> dy &lt; <span style="color:#b452cd">0</span>:
+                    <span style="color:#8b008b;font-weight:bold">continue</span>
+                <span style="color:#658b00">sum</span> += matrix[dx][dy]
+                ++cnt
+            <span style="color:#8b008b;font-weight:bold">if</span> <span style="color:#658b00">sum</span> == <span style="color:#b452cd">0</span> <span style="color:#8b008b">or</span> cnt == <span style="color:#b452cd">0</span>: <span style="color:#228b22">#被除数不能为0和除数不能为0</span>
+                fore_mat[i][j] = <span style="color:#b452cd">0</span>
+            <span style="color:#8b008b;font-weight:bold">else</span>:
+                fore_mat[i][j] = <span style="color:#658b00">sum</span> / cnt
+            dif_sum += <span style="color:#658b00">abs</span>(fore_mat[i][j] - matrix[i][j])
+    <span style="color:#8b008b;font-weight:bold">return</span> dif_sum
+
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">main</span>():
+    <span style="color:#228b22"># 第5题实现</span>
+    im2 = Image.open(<span style="color:#cd5555">&#34;/Users/jarsonsmac/Desktop/学习资料/数字图像处理和机器视觉/week2/woman.jpg&#34;</span>)
+    src7 = np.array(im2.convert(<span style="color:#cd5555">&#34;L&#34;</span>))  <span style="color:#228b22"># 图像转化为矩阵</span>
+    dif1 = forecast1(src7)
+    dif2 = forecast2(src7)
+    <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;第一种预测方法的墒=&#34;</span> + <span style="color:#658b00">str</span>(dif1))
+    <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;第二种预测方法的墒=&#34;</span> + <span style="color:#658b00">str</span>(dif2))
+    <span style="color:#8b008b;font-weight:bold">if</span> dif1 &lt; dif2:
+        <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;第一种预测方法好，墒低&#34;</span>)
+    <span style="color:#8b008b;font-weight:bold">else</span>:
+        <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;第二种预测方法好，墒低&#34;</span>)
+
+<span style="color:#8b008b;font-weight:bold">if</span> __name__ == <span style="color:#cd5555">&#39;__main__&#39;</span>:
+    main()
+</code></pre></td></tr></table>
+</div>
+</div><p>实验结果：</p>
+<pre tabindex="0"><code>第一种预测方法的墒=2726550
+第二种预测方法的墒=86114089.0
+第一种预测方法好，墒低
+</code></pre>
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2022-02-28</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="https://caixiongjiang.github.io/blog/2022/effective-c&#43;&#43;/effective-c&#43;&#43;%E5%AF%BC%E8%AF%BB%E6%9D%A1%E6%AC%BE1~3/">
+			下回<br>《Effective C&#43;&#43;》导读&amp;条款1~3
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2022/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/linux%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+			上回<br>Linux环境搭建：虚拟机上运行CentOS
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2022 🌀Jarson Cai&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "blog-9g6ht92ca9c564c6",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

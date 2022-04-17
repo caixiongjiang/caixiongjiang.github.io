@@ -6,7 +6,19 @@
     <description>Recent content in Blogs on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 13 Apr 2022 20:16:48 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/blog/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 17 Apr 2022 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>第七讲：vector容器深入探索</title>
+      <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC7%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Sun, 17 Apr 2022 18:18:05 +0800</pubDate>
+      
+      <guid>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC7%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</guid>
+      <description>第七讲：vector容器深入探索 vector是动态空间，随着元素的加入，它的内部机制会自动扩充空间以容纳新元素。
+vector扩容机制(GNU 2.9版) 从途中可以看出，有三个非常关键的指针start，finish，end_of_storage:
+ start指向第一个元素的内存空间，也就是begin()方法指向的内存空间。 finish指向当前使用中的最后一个元素的后一个位置的内存空间，也就是end()方法指向的内存空间！ end_of_storage指向当前最大可用空间的尾。  源码：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46  template &amp;lt;class T, class Alloc = alloc&amp;gt; // 預設使用 alloc 為配置器 class vector { public: // 以下標示 (1),(2),(3),(4),(5)，代表 iterator_traits&amp;lt;I&amp;gt; 所服務的5個型別。  typedef T value_type;	// (1)  typedef value_type* pointer; // (2)  typedef const value_type* const_pointer; typedef const value_type* const_iterator; typedef value_type&amp;amp; reference; // (3)  typedef const value_type&amp;amp; const_reference; typedef size_t size_type; typedef ptrdiff_t difference_type; // (4)  // 以下，由於vector 所維護的是一個連續線性空間，所以不論其元素型別為何，  // 原生指標都可以做為其迭代器而滿足所有需求。  typedef value_type* iterator; /* 根據上述寫法，如果客端寫出這樣的碼： vector&amp;lt;Shape&amp;gt;::iterator is; is 的型別其實就是Shape* 而STL 內部運用 iterator_traits&amp;lt;is&amp;gt;::reference 時，獲得 Shape&amp;amp; 運用iterator_traits&amp;lt;is&amp;gt;::iterator_category 時，獲得 random_access_iterator_tag	(5) （此乃iterator_traits 針對原生指標的特化結果） */ // vector採用簡單的線性連續空間。以兩個迭代器start和end分別指向頭尾，  // 并以迭代器end_of_storage指向容量尾端。容量可能比(尾-头)还大 protected: iterator start; iterator finish; iterator end_of_storage; public: iterator begin() { return start; } const_iterator begin() const { return start; } iterator end() { return finish; } /*通过函数相减有利于后期修改指针时，不需要修改size()方法*/ size_type size() const { return size_type(end() - begin()); } /*capacity代表最大容量*/ size_type capacity() const { return size_type(end_of_storage - begin()); } bool empty() const { return begin() == end(); } /*连续空间的容器都会有[]的运算符重载*/ reference operator[](size_type n) { return *(begin() + n); } // 取出第一個元素內容  reference front() { return *begin(); } // 取出最後一個元素內容  reference back() { return *(end() - 1); } }   通过push_back()方法来看扩容机制：</description>
+    </item>
+    
     <item>
       <title>《TCP/IP网络编程》第 24 章 制作 HTTP 服务器端 笔记</title>
       <link>https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-24-%E7%AB%A0-%E5%88%B6%E4%BD%9C-http-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF-%E7%AC%94%E8%AE%B0/</link>
@@ -58,7 +70,7 @@ select 性能上最大的弱点是：每次传递监视对象信息，准确的�
     </item>
     
     <item>
-      <title>《STL源码剖析》第六讲 学习笔记</title>
+      <title>第六讲：迭代器设计的原则&amp;iterator traits的作用与设计</title>
       <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC6%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
       <pubDate>Fri, 08 Apr 2022 18:18:05 +0800</pubDate>
       
@@ -83,7 +95,7 @@ iterator traits用于分离class iiterators和non-class iterators</description>
     </item>
     
     <item>
-      <title>《STL源码剖析》第五讲 学习笔记</title>
+      <title>第五讲：深入理解容器</title>
       <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC5%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
       <pubDate>Fri, 08 Apr 2022 13:18:05 +0800</pubDate>
       
@@ -93,7 +105,7 @@ iterator traits用于分离class iiterators和non-class iterators</description>
     </item>
     
     <item>
-      <title>《STL源码剖析》第四讲 学习笔记</title>
+      <title>第四讲：深入理解分配器</title>
       <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC4%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
       <pubDate>Fri, 08 Apr 2022 10:54:05 +0800</pubDate>
       
@@ -111,7 +123,7 @@ alloc的优点 GNU2.9下：
     </item>
     
     <item>
-      <title>《STL源码剖析》第三讲 学习笔记</title>
+      <title>第三讲:泛型编程和模版技术</title>
       <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC3%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
       <pubDate>Thu, 07 Apr 2022 15:21:05 +0800</pubDate>
       
@@ -129,7 +141,7 @@ demo：vector和deque内部都没有sort()函数，sort()函数是放在算法�
     </item>
     
     <item>
-      <title>《STL源码剖析》第二讲 学习笔记</title>
+      <title>第二讲:容器之分类及各种测试</title>
       <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC2%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
       <pubDate>Thu, 07 Apr 2022 10:07:05 +0800</pubDate>
       
@@ -140,7 +152,7 @@ demo：vector和deque内部都没有sort()函数，sort()函数是放在算法�
     </item>
     
     <item>
-      <title>《STL源码剖析》第一讲 学习笔记</title>
+      <title>第一讲:STL体系结构介绍</title>
       <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC1%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
       <pubDate>Thu, 07 Apr 2022 08:15:05 +0800</pubDate>
       

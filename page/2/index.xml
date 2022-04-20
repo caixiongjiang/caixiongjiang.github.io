@@ -5,9 +5,59 @@
     <description>Recent content on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 19 Apr 2022 18:14:05 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 20 Apr 2022 18:18:05 +0800</lastBuildDate>
     
         <atom:link href="https://caixiongjiang.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+        <item>
+        <title>第四讲：深入理解分配器</title>
+        <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC4%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
+        <pubDate>Fri, 08 Apr 2022 10:54:05 +0800</pubDate>
+        
+        <guid>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC4%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</guid>
+        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC4%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ -&lt;h2 id=&#34;第四讲深入理解分配器&#34;&gt;第四讲：深入理解分配器&lt;/h2&gt;
+&lt;h3 id=&#34;operator-new--malloc&#34;&gt;operator new() &amp;amp; malloc()&lt;/h3&gt;
+&lt;p&gt;operator() new会调用malloc(), malloc()作用是分配内存。&lt;/p&gt;
+&lt;p&gt;看图：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stl/img4_1.jpg&#34; alt=&#34;malloc()分配的内存视图&#34;&gt;
+size部分为我们所需要的内存，可以看出malloc()分配的内存比所需要的内存多。&lt;strong&gt;多分配的内存空间如果称为开销的话，也就是说我们的单个内存越大，开销所占比例就越小！&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&#34;分配器最重要的两个函数allocate--deallocate&#34;&gt;分配器最重要的两个函数：allocate &amp;amp; deallocate&lt;/h3&gt;
+&lt;p&gt;VC++下和BC++下：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;申请内存：allocator--&amp;gt;operator new()--&amp;gt;malloc()
+释放内存：deallocator--&amp;gt;operator delete()--&amp;gt;free()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;分配512个int整数：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; *p = allocator&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;().allocate(&lt;span style=&#34;color:#b452cd&#34;&gt;512&lt;/span&gt;, (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;*)&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;);
+allocator&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;().deallocate(p, &lt;span style=&#34;color:#b452cd&#34;&gt;512&lt;/span&gt;);
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;注：&lt;em&gt;一个type +（）形成了一个临时对象，才能调用其中的成员函数。举例：&lt;code&gt;queue&amp;lt;int&amp;gt;()&lt;/code&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;h4 id=&#34;alloc的优点&#34;&gt;alloc的优点&lt;/h4&gt;
+&lt;p&gt;GNU2.9下：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;申请内存：allocator--&amp;gt;allocate()--&amp;gt;operator new()--&amp;gt;malloc()
+释放内存：deallocator--&amp;gt;deallocate()-&amp;gt;operator delete()--&amp;gt;free()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;注：&lt;em&gt;虽然GNU标准allocator被设计出来，但它的容器基本都不用标准的allocator，而是使用alloc&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stl/img4_2.jpg&#34; alt=&#34;容器的分配器&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stl/img4_3.jpg&#34; alt=&#34;运行过程&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;使用malloc()和free()会带来很大的额外开销，如果区块小，开销比例会很大。&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;额外开销中的cookie记录内存的大小，但因为容器元素的大小是一样的，所以alloc使用一个长链表（i = 0～15），第i个对应cookie大小为8(i + 1)Bytes的内存大小，容器的内存大小会被调整为8的倍数，这样就只需要用少量cookie来记录内存大小！&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;所以使用alloc存放1000000个元素，可以省掉cookie开销大约8000000个Bytes&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;GNU4.9下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;容器使用的分配器又变为了allocator，继承于new_allocator，使用operator new() 和 operator delete()&lt;/li&gt;
+&lt;li&gt;4.9下的alloc被更名为__pool_alloc，属于__gnu_cxx::__pool_alloc&lt;/li&gt;
+&lt;/ul&gt;
+- https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC4%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ - </description>
+        </item>
     
     
     
@@ -2265,294 +2315,6 @@ Child proc output: Thank you for your message
 &lt;/li&gt;
 &lt;/ol&gt;
 - https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-11-%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1-%E7%AC%94%E8%AE%B0/ - </description>
-        </item>
-    
-    
-    
-        <item>
-        <title>《模式识别&amp;机器学习》课后作业（1）</title>
-        <link>https://caixiongjiang.github.io/blog/2022/%E6%A8%A1%E5%BC%8F%E8%AF%86%E5%88%AB%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/%E6%A8%A1%E5%BC%8F%E8%AF%86%E5%88%AB%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E5%90%8E%E4%BD%9C%E4%B8%9A1/</link>
-        <pubDate>Thu, 31 Mar 2022 18:07:05 +0800</pubDate>
-        
-        <guid>https://caixiongjiang.github.io/blog/2022/%E6%A8%A1%E5%BC%8F%E8%AF%86%E5%88%AB%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/%E6%A8%A1%E5%BC%8F%E8%AF%86%E5%88%AB%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E5%90%8E%E4%BD%9C%E4%B8%9A1/</guid>
-        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/%E6%A8%A1%E5%BC%8F%E8%AF%86%E5%88%AB%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/%E6%A8%A1%E5%BC%8F%E8%AF%86%E5%88%AB%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E5%90%8E%E4%BD%9C%E4%B8%9A1/ -&lt;h2 id=&#34;模式识别机器学习课后作业&#34;&gt;《模式识别&amp;amp;机器学习》课后作业&lt;/h2&gt;
-&lt;h3 id=&#34;作业一&#34;&gt;作业一&lt;/h3&gt;
-&lt;p&gt;写一个感知器算法，用来区分1到10里的任意两个数字，并与真实结果进行比较。&lt;/p&gt;
-&lt;h4 id=&#34;代码实现&#34;&gt;代码实现&lt;/h4&gt;
-&lt;ul&gt;
-&lt;li&gt;Perceptron.m(主函数)：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;44
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;45
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;46
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;47
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;48
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;49
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;50
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;51
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;52
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;53
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;54
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;55
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;56
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;57
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;58
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;59
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;60
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;61
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;62
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;63
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;64
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;65
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;66
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;67
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;68
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;69
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;70
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;71
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;72
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;73
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;74
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;75
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;76
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;77
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-matlab&#34; data-lang=&#34;matlab&#34;&gt;&lt;span style=&#34;color:#228b22&#34;&gt;%Perceptron.m&lt;/span&gt;
-clear variables
-clc
-&lt;span style=&#34;color:#228b22&#34;&gt;% 读取数据&lt;/span&gt;
-load (&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;test_images.mat&amp;#39;&lt;/span&gt;);
-load (&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;test_labels.mat&amp;#39;&lt;/span&gt;);
- 
-&lt;span style=&#34;color:#228b22&#34;&gt;% 设定数据量&lt;/span&gt;
-train_num = &lt;span style=&#34;color:#b452cd&#34;&gt;1000&lt;/span&gt;;
-test_num =&lt;span style=&#34;color:#b452cd&#34;&gt;200&lt;/span&gt;;
-&lt;span style=&#34;color:#228b22&#34;&gt;% 临时变量以及各个感知器参数&lt;/span&gt;
-&lt;span style=&#34;color:#658b00&#34;&gt;j&lt;/span&gt; = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
-lr = &lt;span style=&#34;color:#b452cd&#34;&gt;0.1&lt;/span&gt;;&lt;span style=&#34;color:#228b22&#34;&gt;%学习率&lt;/span&gt;
-epoch = &lt;span style=&#34;color:#b452cd&#34;&gt;70&lt;/span&gt;;&lt;span style=&#34;color:#228b22&#34;&gt;%设定训练多少轮&lt;/span&gt;
-number = [&lt;span style=&#34;color:#b452cd&#34;&gt;4&lt;/span&gt;,&lt;span style=&#34;color:#b452cd&#34;&gt;8&lt;/span&gt;];&lt;span style=&#34;color:#228b22&#34;&gt;%要取的数字组合&lt;/span&gt;
- 
-&lt;span style=&#34;color:#228b22&#34;&gt;% 提取数据中标签为任意组合的样本，共计200个&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;% 由于数据本身打乱过，因此可以直接取200个而不考虑样本不均衡问题&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;%提取数字4和8的样本&lt;/span&gt;
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;i&lt;/span&gt; = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;:&lt;span style=&#34;color:#b452cd&#34;&gt;10000&lt;/span&gt;
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; test_labels1(&lt;span style=&#34;color:#658b00&#34;&gt;i&lt;/span&gt;)==number(&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;)|| test_labels1(&lt;span style=&#34;color:#658b00&#34;&gt;i&lt;/span&gt;)==number(&lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;)
-        data(:,:,&lt;span style=&#34;color:#658b00&#34;&gt;j&lt;/span&gt;) = test_images(:,:,&lt;span style=&#34;color:#658b00&#34;&gt;i&lt;/span&gt;);
-        label(&lt;span style=&#34;color:#658b00&#34;&gt;j&lt;/span&gt;) = test_labels1(&lt;span style=&#34;color:#658b00&#34;&gt;i&lt;/span&gt;);&lt;span style=&#34;color:#228b22&#34;&gt;%取相应标签&lt;/span&gt;
-        &lt;span style=&#34;color:#658b00&#34;&gt;j&lt;/span&gt;=&lt;span style=&#34;color:#658b00&#34;&gt;j&lt;/span&gt;+&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
-     &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;j&lt;/span&gt;&amp;gt;train_num+test_num
-         &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;break&lt;/span&gt;;
-     &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
- 
-&lt;span style=&#34;color:#228b22&#34;&gt;% 由于感知器输出结果仅为0、1，因此要将标签进行转换&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;% 本程序中，由于matlab计算不等式相对容易，因此没有对样本进行规范化&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;% 由于没有进行规范化，后面更新权值w需要借助标签，因此标签需要置-1和1&lt;/span&gt;
- 
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; k = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;:train_num+test_num
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; label(k)==number(&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;)
-        label(k)=-&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; label(k)==number(&lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;)
-        label(k)=&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
- 
-data_ = liansuyun_mat2vector(data, train_num + test_num);&lt;span style=&#34;color:#228b22&#34;&gt;%矩阵转向量&lt;/span&gt;
-
-&lt;span style=&#34;color:#228b22&#34;&gt;%数据归一化&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;%   [data_,PS]=mapminmax(data_);&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;%train_data =[data_(1:train_num,:) label1(1:train_num,1)];&lt;/span&gt;
-test_data = [data_(train_num+&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;:train_num+test_num,:),&lt;span style=&#34;color:#658b00&#34;&gt;ones&lt;/span&gt;(test_num,&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;)];&lt;span style=&#34;color:#228b22&#34;&gt;%这里对测试数据也进行增广变换&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;% test_data = data_(train_num+1:train_num+test_num,:);&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;% 训练权值&lt;/span&gt;
- 
-w=perceptionLearn(data_(&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;:train_num,:),label(&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;:train_num),lr,epoch);
-&lt;span style=&#34;color:#228b22&#34;&gt;% 测试（预测）&lt;/span&gt;
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; k = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;:test_num
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; test_data(k,:)*w&amp;#39;&amp;gt;&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
-        result(k) = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;
-        result(k) = -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-
-&lt;span style=&#34;color:#228b22&#34;&gt;% 输出预测的准确率&lt;/span&gt;
-acc = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;;
-sum=&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;;
-sum1=&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;;
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; sample = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;:test_num
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; result(sample)==label(train_num+sample)
-        acc = acc+&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;
-        fprintf(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;分类错误的序号为：%d\n&amp;#39;&lt;/span&gt;,sample);
-        sum=sum+&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;    
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-sum1=test_num-sum;
-fprintf(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;分类错误的个数为：%d,分类正确的个数为：%d\n&amp;#39;&lt;/span&gt;,sum,sum1);
-fprintf(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;精确度为：%5.2f%%\n&amp;#39;&lt;/span&gt;,(acc/test_num)*&lt;span style=&#34;color:#b452cd&#34;&gt;100&lt;/span&gt;);
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;ul&gt;
-&lt;li&gt;perceptionLearn.m：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-matlab&#34; data-lang=&#34;matlab&#34;&gt;&lt;span style=&#34;color:#228b22&#34;&gt;%% perceptionLearn.m&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;% 函数输入：数据（行向量），标签，学习率，终止轮次&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;% 输出：训练得到的权值向量&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;% 训练方法：单样本修正，学习率（步长）采用了固定值&lt;/span&gt;
-
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;function&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;[w]=&lt;span style=&#34;color:#008b45&#34;&gt;perceptionLearn&lt;/span&gt;(x,y,learningRate,maxEpoch)&lt;span style=&#34;color:#bbb&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;    &lt;/span&gt;[rows,cols]=&lt;span style=&#34;color:#658b00&#34;&gt;size&lt;/span&gt;(x);
-    x=[x,&lt;span style=&#34;color:#658b00&#34;&gt;ones&lt;/span&gt;(rows,&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;)];&lt;span style=&#34;color:#228b22&#34;&gt;%增广&lt;/span&gt;
-    w=&lt;span style=&#34;color:#658b00&#34;&gt;zeros&lt;/span&gt;(&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;,cols+&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;);&lt;span style=&#34;color:#228b22&#34;&gt;%同上&lt;/span&gt;
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; epoch=&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;:maxEpoch&lt;span style=&#34;color:#228b22&#34;&gt;%不可分情况下整体迭代轮次&lt;/span&gt;
-        flag=true;&lt;span style=&#34;color:#228b22&#34;&gt;%标志位真则训练完毕&lt;/span&gt;
-        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; sample=&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;:rows
-            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;sign&lt;/span&gt;(x(sample,:)*w&amp;#39;)~=y(sample)&lt;span style=&#34;color:#228b22&#34;&gt;%分类是否正确？错误则更新权值&lt;/span&gt;
-                flag=false;
-               &lt;span style=&#34;color:#228b22&#34;&gt;%这里和教案稍有不同，不进行规范化，那么更新权值时需要标签来充当梯度方向的变量&lt;/span&gt;
-                w=w+learningRate*y(sample)*x(sample,:);
-            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; flag==true
-            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;break&lt;/span&gt;;
-        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;ul&gt;
-&lt;li&gt;liansuyun_mat2vector.m：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-matlab&#34; data-lang=&#34;matlab&#34;&gt;&lt;span style=&#34;color:#228b22&#34;&gt;%% liansuyun_mat2vector.m&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;% 函数输入：数据（三维数据），数据个数&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;% 输出：数据（1200个一维向量）&lt;/span&gt;
-&lt;span style=&#34;color:#228b22&#34;&gt;% 功能：将每一个二维矩阵变为1维向量&lt;/span&gt;
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;function&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;[w]=&lt;span style=&#34;color:#008b45&#34;&gt;liansuyun_mat2vector&lt;/span&gt;(mat, maxCnt)&lt;span style=&#34;color:#bbb&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;    &lt;/span&gt;w = [];
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;i&lt;/span&gt; = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt; : maxCnt
-        mat1 = mat(:,:,&lt;span style=&#34;color:#658b00&#34;&gt;i&lt;/span&gt;);
-        [x, y] = &lt;span style=&#34;color:#658b00&#34;&gt;size&lt;/span&gt;(mat1);
-        mat2 = mat1&amp;#39;;
-        mat3 = &lt;span style=&#34;color:#658b00&#34;&gt;reshape&lt;/span&gt;(mat2, &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, x * y);
-        w = [w; mat3];
-    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt; 
-&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;h4 id=&#34;结果&#34;&gt;结果&lt;/h4&gt;
-&lt;ul&gt;
-&lt;li&gt;对4和8进行分类：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;分类错误的序号为：166
-分类错误的个数为：1,分类正确的个数为：199
-精确度为：99.50%
-&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
-&lt;li&gt;对1和9进行分类：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;分类错误的个数为：0,分类正确的个数为：200
-精确度为：100.00%
-&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
-&lt;li&gt;对2和6进行分类：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;分类错误的序号为：188
-分类错误的个数为：1,分类正确的个数为：199
-精确度为：99.50%
-&lt;/code&gt;&lt;/pre&gt;- https://caixiongjiang.github.io/blog/2022/%E6%A8%A1%E5%BC%8F%E8%AF%86%E5%88%AB%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/%E6%A8%A1%E5%BC%8F%E8%AF%86%E5%88%AB%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E5%90%8E%E4%BD%9C%E4%B8%9A1/ - </description>
         </item>
     
     

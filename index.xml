@@ -5,16 +5,191 @@
     <description>Recent content on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 19 Apr 2022 18:14:05 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 20 Apr 2022 18:18:05 +0800</lastBuildDate>
     
         <atom:link href="https://caixiongjiang.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     
     
         <item>
+        <title>第十讲：rb_tree深度探索</title>
+        <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC10%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
+        <pubDate>Wed, 20 Apr 2022 18:18:05 +0800</pubDate>
+        
+        <guid>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC10%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</guid>
+        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC10%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ -&lt;h2 id=&#34;第十讲rb_tree深度探索&#34;&gt;第十讲：rb_tree深度探索&lt;/h2&gt;
+&lt;h3 id=&#34;红黑树的结构&#34;&gt;红黑树的结构&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;红黑树是平衡二分搜索树中常常使用的一种，平衡二分搜索树的特性：排列规则有利search和insert，并保持适度平衡。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;红黑树提供遍历的功能及iterators。按正常规则（++ite）遍历，便能获得排序状态。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;红黑树的结构样例：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stl/img10_1.jpg&#34; alt=&#34;&#34;&gt;
+排序的状态为红黑树的中序遍历，begin()在左下，end()是在右下&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;红黑树的规则：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;1.每个节点不是红色就是黑色&lt;/li&gt;
+&lt;li&gt;2.根节点为黑色&lt;/li&gt;
+&lt;li&gt;3.如果节点为红，其子节点必须是黑&lt;/li&gt;
+&lt;li&gt;4.任一节点至NULL(树尾端)的任何路径，所含黑色节点数必须相同&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stl/img10_2.jpg&#34; alt=&#34;&#34;&gt;
+&lt;em&gt;根据规则4，新增节点必须为红；根据规则3，新增节点之父节点必须为黑，当新节点根据二叉搜索树的规则到达其插入点，
+但未能符合上述要求，就必须调整颜色并旋转树形&lt;/em&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;我们不应该用红黑树的iterators改变元素值（因为元素有其严谨的排序规则）。但是编程层面并未阻止此事，rb_tree将会为set和map服务，而map允许元素的data被改变，
+只有元素的key才是不能被改变的。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;rb_tree提供两种insertion操作（红黑树本身对重复与否没有限制，而取决于insert的方式）：insert_unique()和insert_equal()。前者表示节点的key一定在整个树中独一无二，
+否则安插失败；后者表示节点的key可以重复。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;部分源码（在这里将key和data合起来的节点合成value）：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;color:#228b22&#34;&gt;//这里的Value是key和data的组合，如果value只传一个值说明没有value（set）
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;template&lt;/span&gt; &amp;lt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Key&lt;/span&gt;, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Value&lt;/span&gt;, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;KeyOfValue&lt;/span&gt;, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Compare&lt;/span&gt;,
+          &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Alloc&lt;/span&gt; = alloc&amp;gt;
+&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;rb_tree&lt;/span&gt; {
+&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;protected&lt;/span&gt;:
+    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; __rb_tree_node&amp;lt;Value&amp;gt; rb_tree_node;&lt;span style=&#34;color:#228b22&#34;&gt;//红黑树的结构
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;···&lt;/span&gt;
+&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt;:
+     &lt;span style=&#34;color:#228b22&#34;&gt;// 注意，没有定义iterator（喔，不，定义在后面）
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; rb_tree_node* link_type;&lt;span style=&#34;color:#228b22&#34;&gt;//指向红黑树节点的指针
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;···&lt;/span&gt;
+&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;protected&lt;/span&gt;:
+    &lt;span style=&#34;color:#228b22&#34;&gt;//rb_tree只以三个资料表现它自己
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    size_type node_count;&lt;span style=&#34;color:#228b22&#34;&gt;//rb_tree的大小（节点数量）
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    link_type header;
+    Compare key_compare;&lt;span style=&#34;color:#228b22&#34;&gt;//key的大小比较准则；应会是个function object
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;···&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;测试rb_tree（GNU2.9）:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;rb_tree&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;, &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;, identity&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;, less&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;&amp;gt; itree;
+cout &amp;lt;&amp;lt; itree.empty() &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//1
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cout &amp;lt;&amp;lt; itree.size() &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//0
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;
+itree.insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;);
+itree.insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;8&lt;/span&gt;);
+itree.insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;);
+itree.insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;9&lt;/span&gt;);
+itree.insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;13&lt;/span&gt;);
+itree.insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;);&lt;span style=&#34;color:#228b22&#34;&gt;//无效，因为使用了insert_unique()函数
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cout &amp;lt;&amp;lt; itree.empty() &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//0
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cout &amp;lt;&amp;lt; itree.size() &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//5
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cout &amp;lt;&amp;lt; itree.count(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;) &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//1
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;
+itree.insert_equal(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;);
+itree.insert_equal(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;);
+cout &amp;lt;&amp;lt; itree.size() &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//7，因为使用了insert_equal()函数
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cout &amp;lt;&amp;lt; itree.count(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;) &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;在GNU4.9下只是改变了名称：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;_Rb_tree&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;, &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;, identity&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;, less&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;&amp;gt; itree;
+cout &amp;lt;&amp;lt; itree.empty() &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//1
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cout &amp;lt;&amp;lt; itree.size() &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//0
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;
+itree._M_insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;);
+itree._M_insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;8&lt;/span&gt;);
+itree._M_insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;);
+itree._M_insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;9&lt;/span&gt;);
+itree._M_insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;13&lt;/span&gt;);
+itree._M_insert_unique(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;);&lt;span style=&#34;color:#228b22&#34;&gt;//无效，因为使用了_M_insert_unique()函数
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cout &amp;lt;&amp;lt; itree.empty() &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//0
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cout &amp;lt;&amp;lt; itree.size() &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//5
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cout &amp;lt;&amp;lt; itree.count(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;) &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//1
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;
+itree._M_insert_equal(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;);
+itree._M_insert_equal(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;);
+cout &amp;lt;&amp;lt; itree.size() &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//7，因为使用了_M_insert_equal()函数
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cout &amp;lt;&amp;lt; itree.count(&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;) &amp;lt;&amp;lt; endl;&lt;span style=&#34;color:#228b22&#34;&gt;//3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;- https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC10%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ - </description>
+        </item>
+    
+    
+    
+        <item>
         <title>第九讲：deque，queue，stack深度探索</title>
         <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC9%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
-        <pubDate>Tue, 19 Apr 2022 18:14:05 +0800</pubDate>
+        <pubDate>Wed, 20 Apr 2022 18:14:05 +0800</pubDate>
         
         <guid>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC9%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</guid>
         <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC9%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ -&lt;h2 id=&#34;第九讲dequequeuestack深度探索&#34;&gt;第九讲：deque，queue，stack深度探索&lt;/h2&gt;
@@ -3410,56 +3585,6 @@ merge(), reverse(), sort()
 &lt;em&gt;unique()作用为移除相同的连续元素，移除到只剩一个&lt;/em&gt;
 具体源码看《STL源码剖析》p136～p142&lt;/p&gt;
 - https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC5%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ - </description>
-        </item>
-    
-    
-    
-        <item>
-        <title>第四讲：深入理解分配器</title>
-        <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC4%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
-        <pubDate>Fri, 08 Apr 2022 10:54:05 +0800</pubDate>
-        
-        <guid>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC4%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</guid>
-        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC4%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ -&lt;h2 id=&#34;第四讲深入理解分配器&#34;&gt;第四讲：深入理解分配器&lt;/h2&gt;
-&lt;h3 id=&#34;operator-new--malloc&#34;&gt;operator new() &amp;amp; malloc()&lt;/h3&gt;
-&lt;p&gt;operator() new会调用malloc(), malloc()作用是分配内存。&lt;/p&gt;
-&lt;p&gt;看图：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stl/img4_1.jpg&#34; alt=&#34;malloc()分配的内存视图&#34;&gt;
-size部分为我们所需要的内存，可以看出malloc()分配的内存比所需要的内存多。&lt;strong&gt;多分配的内存空间如果称为开销的话，也就是说我们的单个内存越大，开销所占比例就越小！&lt;/strong&gt;&lt;/p&gt;
-&lt;h3 id=&#34;分配器最重要的两个函数allocate--deallocate&#34;&gt;分配器最重要的两个函数：allocate &amp;amp; deallocate&lt;/h3&gt;
-&lt;p&gt;VC++下和BC++下：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;申请内存：allocator--&amp;gt;operator new()--&amp;gt;malloc()
-释放内存：deallocator--&amp;gt;operator delete()--&amp;gt;free()
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;分配512个int整数：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; *p = allocator&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;().allocate(&lt;span style=&#34;color:#b452cd&#34;&gt;512&lt;/span&gt;, (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;*)&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;);
-allocator&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;().deallocate(p, &lt;span style=&#34;color:#b452cd&#34;&gt;512&lt;/span&gt;);
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;注：&lt;em&gt;一个type +（）形成了一个临时对象，才能调用其中的成员函数。举例：&lt;code&gt;queue&amp;lt;int&amp;gt;()&lt;/code&gt;&lt;/em&gt;&lt;/p&gt;
-&lt;h4 id=&#34;alloc的优点&#34;&gt;alloc的优点&lt;/h4&gt;
-&lt;p&gt;GNU2.9下：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;申请内存：allocator--&amp;gt;allocate()--&amp;gt;operator new()--&amp;gt;malloc()
-释放内存：deallocator--&amp;gt;deallocate()-&amp;gt;operator delete()--&amp;gt;free()
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;注：&lt;em&gt;虽然GNU标准allocator被设计出来，但它的容器基本都不用标准的allocator，而是使用alloc&lt;/em&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stl/img4_2.jpg&#34; alt=&#34;容器的分配器&#34;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stl/img4_3.jpg&#34; alt=&#34;运行过程&#34;&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;使用malloc()和free()会带来很大的额外开销，如果区块小，开销比例会很大。&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;额外开销中的cookie记录内存的大小，但因为容器元素的大小是一样的，所以alloc使用一个长链表（i = 0～15），第i个对应cookie大小为8(i + 1)Bytes的内存大小，容器的内存大小会被调整为8的倍数，这样就只需要用少量cookie来记录内存大小！&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;所以使用alloc存放1000000个元素，可以省掉cookie开销大约8000000个Bytes&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;GNU4.9下：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;容器使用的分配器又变为了allocator，继承于new_allocator，使用operator new() 和 operator delete()&lt;/li&gt;
-&lt;li&gt;4.9下的alloc被更名为__pool_alloc，属于__gnu_cxx::__pool_alloc&lt;/li&gt;
-&lt;/ul&gt;
-- https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC4%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ - </description>
         </item>
     
     

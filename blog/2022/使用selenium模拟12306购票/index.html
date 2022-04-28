@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html><head>
+<title>爬虫：使用selenium模拟12306购票</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="本人学习爬虫的目的是为了了解网页结构，正则表达式以及一些爬虫工具的使用">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="爬虫：使用selenium模拟12306购票" />
+<meta property="og:description" content="本人学习爬虫的目的是为了了解网页结构，正则表达式以及一些爬虫工具的使用" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://caixiongjiang.github.io/blog/2022/%E4%BD%BF%E7%94%A8selenium%E6%A8%A1%E6%8B%9F12306%E8%B4%AD%E7%A5%A8/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2022-04-28T10:07:05+08:00" />
+<meta property="article:modified_time" content="2022-04-28T10:08:06+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/avater.jfif">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.3.1/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://caixiongjiang.github.io/">
+    
+        <div class="nav-title">
+            🌀Jarson Cai&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            头脑是日用品，不是装饰品
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://github.com/caixiongjiang">
+    GitHub
+</a>
+<br>
+
+<a href="https://jarson-cai.gitee.io/jarson-cai-blog">
+    MiFeng
+</a>
+<br>
+
+<a href="nau_cxj@163.com">
+    Email
+</a>
+<br>
+
+<a href="https://leetcode-cn.com/u/cai-xiong-jiang/">
+    Leetcode
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2022 🌀Jarson Cai&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8selenium%e6%a8%a1%e6%8b%9f12306%e8%b4%ad%e7%a5%a8" onclick="onNavClick(`#使用selenium模拟12306购票-nav`)" id="使用selenium模拟12306购票-nav">
+									使用selenium模拟12306购票
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#selenium%e4%bb%8b%e7%bb%8d" onclick="onNavClick(`#selenium介绍-nav`)" id="selenium介绍-nav">
+									selenium介绍
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%ac%e5%b0%8f%e7%a8%8b%e5%ba%8f%e5%8e%9f%e7%90%86%e4%bb%8b%e7%bb%8d" onclick="onNavClick(`#本小程序原理介绍-nav`)" id="本小程序原理介绍-nav">
+									本小程序原理介绍
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%b5%84%e6%ba%90%e5%87%86%e5%a4%87" onclick="onNavClick(`#资源准备-nav`)" id="资源准备-nav">
+									资源准备
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a0%b4%e8%a7%a312306%e6%a3%80%e6%b5%8b%e8%87%aa%e5%8a%a8%e5%8c%96%e6%8e%a7%e5%88%b6" onclick="onNavClick(`#破解12306检测自动化控制-nav`)" id="破解12306检测自动化控制-nav">
+									破解12306检测自动化控制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a8%8b%e5%ba%8f%e6%95%b4%e4%bd%93%e6%ad%a5%e9%aa%a4" onclick="onNavClick(`#程序整体步骤-nav`)" id="程序整体步骤-nav">
+									程序整体步骤
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a8%8b%e5%ba%8f%e6%ba%90%e7%a0%81" onclick="onNavClick(`#程序源码-nav`)" id="程序源码-nav">
+									程序源码
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%90%e8%a1%8c%e7%bb%93%e6%9e%9c" onclick="onNavClick(`#运行结果-nav`)" id="运行结果-nav">
+									运行结果
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a8%8b%e5%ba%8f%e4%b8%8d%e8%b6%b3" onclick="onNavClick(`#程序不足-nav`)" id="程序不足-nav">
+									程序不足
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#tips" onclick="onNavClick(`#tips-nav`)" id="tips-nav">
+									Tips
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8selenium%e6%a8%a1%e6%8b%9f12306%e8%b4%ad%e7%a5%a8" onclick="onNavClick(`#使用selenium模拟12306购票-nav`)" id="使用selenium模拟12306购票-nav">
+									使用selenium模拟12306购票
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#selenium%e4%bb%8b%e7%bb%8d" onclick="onNavClick(`#selenium介绍-nav`)" id="selenium介绍-nav">
+									selenium介绍
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%ac%e5%b0%8f%e7%a8%8b%e5%ba%8f%e5%8e%9f%e7%90%86%e4%bb%8b%e7%bb%8d" onclick="onNavClick(`#本小程序原理介绍-nav`)" id="本小程序原理介绍-nav">
+									本小程序原理介绍
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%b5%84%e6%ba%90%e5%87%86%e5%a4%87" onclick="onNavClick(`#资源准备-nav`)" id="资源准备-nav">
+									资源准备
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a0%b4%e8%a7%a312306%e6%a3%80%e6%b5%8b%e8%87%aa%e5%8a%a8%e5%8c%96%e6%8e%a7%e5%88%b6" onclick="onNavClick(`#破解12306检测自动化控制-nav`)" id="破解12306检测自动化控制-nav">
+									破解12306检测自动化控制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a8%8b%e5%ba%8f%e6%95%b4%e4%bd%93%e6%ad%a5%e9%aa%a4" onclick="onNavClick(`#程序整体步骤-nav`)" id="程序整体步骤-nav">
+									程序整体步骤
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a8%8b%e5%ba%8f%e6%ba%90%e7%a0%81" onclick="onNavClick(`#程序源码-nav`)" id="程序源码-nav">
+									程序源码
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%90%e8%a1%8c%e7%bb%93%e6%9e%9c" onclick="onNavClick(`#运行结果-nav`)" id="运行结果-nav">
+									运行结果
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a8%8b%e5%ba%8f%e4%b8%8d%e8%b6%b3" onclick="onNavClick(`#程序不足-nav`)" id="程序不足-nav">
+									程序不足
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#tips" onclick="onNavClick(`#tips-nav`)" id="tips-nav">
+									Tips
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://caixiongjiang.github.io/">
+            🌀Jarson Cai&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://caixiongjiang.github.io/">
+        <div class="single-column-header-title">🌀Jarson Cai&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">头脑是日用品，不是装饰品</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E7%88%AC%E8%99%AB/selenium.png')"
+                    
+                
+            >
+                <div class="post-title">
+                    爬虫：使用selenium模拟12306购票
+                    
+                    <div class="post-subtitle">
+                        本人学习爬虫的目的是为了了解网页结构，正则表达式以及一些爬虫工具的使用
+                    </div>
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2022-04-28 10:07
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/">[爬虫]</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/python">python</a>
+                                &nbsp;
+                            
+                                <a href="/tags/selenium">selenium</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            16 min
+                            
+                            44 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h2 id="使用selenium模拟12306购票">使用selenium模拟12306购票</h2>
+<h3 id="selenium介绍">selenium介绍</h3>
+<ul>
+<li>selenium是一种自动化测试工具，可以通过浏览器引擎来自动化帮人类做某些事。</li>
+<li>selenium也可以作为一种轻量化爬虫工具。优点是它能绕过网站自身加密后的源码，通过浏览器解析后来获取网页中的元素，也就是文本信息；缺点也很明显，就是它本身是通过浏览器去运行的，非常容易受浏览器访问时网络波动的影响，因此通常要设置睡眠短暂时间来等待浏览器的加载，整体效率就不高。</li>
+<li>总体来说，selenium适合轻量化数据的爬虫。</li>
+</ul>
+<h3 id="本小程序原理介绍">本小程序原理介绍</h3>
+<ul>
+<li>通过python使用selenium自动操控浏览器引擎模拟人的购票动作。</li>
+<li>通过第三方图像识别破解复杂验证码。（以前的12306登录有这个环节，现在取消了）</li>
+<li>本小程序没有涉及UI界面的设计，只为学习爬虫工具，粗浅了解网页结构。</li>
+</ul>
+<h3 id="资源准备">资源准备</h3>
+<ul>
+<li>
+<p>1.谷歌浏览器（你也可以使用火狐浏览器）</p>
+</li>
+<li>
+<p>2.下载谷歌浏览器驱动：</p>
+<ul>
+<li>查看浏览器的版本：点击浏览器右上角的<code>三个点按钮</code>，找到<code>帮助</code>中的<code>关于Google Chrome</code>，点击就可以看到自己的版本号了</li>
+<li>打开网址：<a href="https://registry.npmmirror.com/binary.html?path=chromedriver/">https://registry.npmmirror.com/binary.html?path=chromedriver/</a>,选择浏览器版本对应的镜像，根据操作系统来选择下载哪一个镜像</li>
+<li>下载解压后，将文件改为<code>chromedriver</code>，放入python解释器所在的文件夹，也就是你python环境配置的地方，这里我使用的<code>PyCharm</code>,所以把它放在了我的项目目录下的bin文件中。</li>
+</ul>
+</li>
+<li>
+<p>3.下载<code>selenium</code>库（哪种ok就哪种）:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"> pip install selenium
+ pip install selenium -i 清华源
+</code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<h3 id="破解12306检测自动化控制">破解12306检测自动化控制</h3>
+<ul>
+<li>
+<p>12306的滑窗验证会自动检测自动化测试，导致机器滑窗验证失败。</p>
+</li>
+<li>
+<p>反识别自动化控制工具使用：</p>
+<ul>
+<li>
+<p>如果你的chrome版本小于88，在启动浏览器的时候（此时没有加载任何内容），向页面潜入js代码，去掉webdriver：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium.webdriver</span> <span style="color:#8b008b;font-weight:bold">import</span> Chrome
+web = Chrome()
+
+web.execute_cdp_cmd(<span style="color:#cd5555">&#34;Page.addScriptToEvaluateOnDocument&#34;</span>, {
+	<span style="color:#cd5555">&#34;source&#34;</span> : <span style="color:#cd5555">&#34;&#34;&#34;
+</span><span style="color:#cd5555">	navigator.webdriver = undefined
+</span><span style="color:#cd5555">        Object.defineProperty(navigator, &#39;webdriver&#39;, {
+</span><span style="color:#cd5555">            get: () =&gt; undefined
+</span><span style="color:#cd5555">        })
+</span><span style="color:#cd5555">    &#34;&#34;&#34;</span>
+  })  
+</code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>如果你的chrome版本大于88，引入option:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium.webdriver</span> <span style="color:#8b008b;font-weight:bold">import</span> Chrome
+<span style="color:#228b22">#导入驱动选项包</span>
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium.webdriver.chrome.options</span> <span style="color:#8b008b;font-weight:bold">import</span> Options
+<span style="color:#228b22">#去掉自动化标志(滑块能监测到自动化工具)</span>
+option = Options() <span style="color:#228b22">#创建一个Options对象</span>
+option.add_experimental_option(<span style="color:#cd5555">&#39;excludeSwitches&#39;</span>, [<span style="color:#cd5555">&#39;enable-automation&#39;</span>])
+option.add_argument(<span style="color:#cd5555">&#39;--disable-blink-features=AutomationControlled&#39;</span>)
+</code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+</li>
+</ul>
+<h3 id="程序整体步骤">程序整体步骤</h3>
+<ul>
+<li>输入账号，密码，实现自动登录，并跳转到首页页面。</li>
+<li>输入出发地和目的地，时间，是否为学生票，进行搜索。</li>
+<li>输入要购买的票类型，爬取该种票类型的信息，提示输入要选择的序号，选择后并进行预订</li>
+<li>选择学生票，座位类型（自动选择，前面已经输入），以及座位号，点击预订</li>
+</ul>
+<h3 id="程序源码">程序源码</h3>
+<p>通过一个类来实现和几个类内方法来实现：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 51
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 52
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 53
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 54
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 55
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 56
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 57
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 58
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 59
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 60
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 61
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 62
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 63
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 64
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 65
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 66
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 67
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 68
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 69
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 70
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 71
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 72
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 73
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 74
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 75
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 76
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 77
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 78
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 79
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 80
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 81
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 82
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 83
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 84
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 85
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 86
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 87
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 88
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 89
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 90
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 91
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 92
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 93
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 94
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 95
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 96
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 97
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 98
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 99
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">100
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">101
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">102
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">103
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">104
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">105
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">106
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">107
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">108
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">109
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">110
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">111
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">112
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">113
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">114
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">115
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">116
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">117
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">118
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">119
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">120
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">121
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">122
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">123
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">124
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">125
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">126
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">127
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">128
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">129
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">130
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">131
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">132
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">133
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">134
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">135
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">136
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">137
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">138
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">139
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">140
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">141
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">142
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">143
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">144
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">145
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">146
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">147
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">148
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">149
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">150
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">151
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">152
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">153
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">154
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">155
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">156
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">157
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">158
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">159
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">160
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">161
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">162
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">163
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">164
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">165
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">166
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">167
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">168
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">169
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">170
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">171
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">172
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">173
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">174
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">175
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">176
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">177
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">178
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">179
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">180
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">181
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">182
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">183
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">184
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">185
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">186
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">187
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">188
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">189
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">190
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">191
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">192
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">193
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">194
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">195
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">196
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">197
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">198
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">199
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">200
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">201
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">202
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">203
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">204
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">205
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">206
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">207
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">208
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">209
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">210
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">211
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">212
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">213
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">214
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">215
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">216
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">217
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">218
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">219
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">220
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">221
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">222
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">223
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">224
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">225
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">226
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">227
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">228
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">229
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">230
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">time</span>
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium</span> <span style="color:#8b008b;font-weight:bold">import</span> webdriver
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium.webdriver.common.by</span> <span style="color:#8b008b;font-weight:bold">import</span> By
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium.webdriver.common.keys</span> <span style="color:#8b008b;font-weight:bold">import</span> Keys
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium.webdriver.support</span> <span style="color:#8b008b;font-weight:bold">import</span> expected_conditions <span style="color:#8b008b;font-weight:bold">as</span> EC
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium.webdriver.support.wait</span> <span style="color:#8b008b;font-weight:bold">import</span> WebDriverWait
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium.webdriver</span> <span style="color:#8b008b;font-weight:bold">import</span> ActionChains
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium.webdriver</span> <span style="color:#8b008b;font-weight:bold">import</span> ChromeOptions
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium.webdriver.support.select</span> <span style="color:#8b008b;font-weight:bold">import</span> Select <span style="color:#228b22">#引入select包，为了下拉列表使用</span>
+<span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">selenium.common.exceptions</span> <span style="color:#8b008b;font-weight:bold">import</span> TimeoutException, NoSuchElementException
+
+
+<span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">Login12306</span>():
+    <span style="color:#228b22"># Chrome浏览器绕过webdriver检测，可以成功滑窗</span>
+    <span style="color:#228b22"># 这种方式浏览器没监测到是自动测试工具</span>
+    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, url, login_user, login_passwd):
+        option = ChromeOptions()
+        option.add_experimental_option(<span style="color:#cd5555">&#39;excludeSwitches&#39;</span>, [<span style="color:#cd5555">&#39;enable-automation&#39;</span>])
+        self.driver = webdriver.Chrome(options=option)
+        self.driver.get(url)
+        script = <span style="color:#cd5555">&#39;Object.defineProperty(navigator, &#34;webdriver&#34;, {get:()=&gt;undefined,});&#39;</span>
+        self.driver.execute_script(script)
+        self.driver.maximize_window() <span style="color:#228b22">#最大化窗口</span>
+        self.login_user = login_user
+        self.login_passwd = login_passwd
+        self.init_url = url
+
+    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">Login</span>(self):
+        <span style="color:#228b22"># 点击选择账号登录</span>
+        wait = WebDriverWait(self.driver, <span style="color:#b452cd">60</span>, <span style="color:#b452cd">0.1</span>)
+        account_login = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, <span style="color:#cd5555">&#39;.login-hd-code a&#39;</span>)))<span style="color:#228b22">#J-password</span>
+        account_login.click()
+
+        <span style="color:#228b22"># 输入用户名密码</span>
+        user_input = self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;J-userName&#34;]&#39;</span>)
+        user_input.send_keys(self.login_user)
+        time.sleep(<span style="color:#b452cd">1</span>)
+        passwd_input = self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;J-password&#34;]&#39;</span>)
+        passwd_input.send_keys(self.login_passwd)
+        time.sleep(<span style="color:#b452cd">1</span>)
+        login_btn = self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;J-login&#34;]&#39;</span>)
+        login_btn.click()
+
+        <span style="color:#228b22"># 滑窗验证处理</span>
+        time.sleep(<span style="color:#b452cd">1</span>)
+        span = self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;nc_1_n1z&#34;]&#39;</span>)
+        actions = ActionChains(self.driver)
+        actions.click_and_hold(span)
+        actions.drag_and_drop_by_offset(span, <span style="color:#b452cd">350</span>, <span style="color:#b452cd">0</span>)
+        actions.perform()
+
+        <span style="color:#228b22"># 通过url变化与否判断是否登录成功</span>
+        time.sleep(<span style="color:#b452cd">2</span>)
+        <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#39;current_url: &#39;</span>, self.driver.current_url)
+        <span style="color:#8b008b;font-weight:bold">if</span> self.driver.current_url == self.init_url:
+            <span style="color:#228b22"># 网页没跳转, 判断是否提示错误信息</span>
+            err_login = self.driver.find_element(By.CSS_SELECTOR, <span style="color:#cd5555">&#39;div.login-error&#39;</span>)
+            <span style="color:#8b008b;font-weight:bold">if</span> err_login:
+                <span style="color:#8b008b;font-weight:bold">if</span> err_login.is_displayed():
+                    <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#39;Login Error!&#39;</span>)
+        <span style="color:#8b008b;font-weight:bold">else</span>:
+            <span style="color:#8b008b;font-weight:bold">try</span>:
+                <span style="color:#228b22"># 登录成功后，关闭弹出的对话框</span>
+                modal = self.driver.find_element(By.CSS_SELECTOR, <span style="color:#cd5555">&#39;div.modal&#39;</span>)
+                confirm_btn = self.driver.find_element(By.CSS_SELECTOR, <span style="color:#cd5555">&#39;div.modal &gt; div.modal-ft &gt; a&#39;</span>)
+                confirm_btn.click()
+                <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;登录成功&#34;</span>)
+            <span style="color:#8b008b;font-weight:bold">except</span> NoSuchElementException:
+                <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#39;NoSuchElementException&#39;</span>)
+            self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;J-index&#34;]/a&#39;</span>).click()
+
+    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">Purchase</span>(self):
+        <span style="color:#228b22">#点击跳到首页</span>
+        departure = <span style="color:#658b00">input</span>(<span style="color:#cd5555">&#34;请输入出发地：&#34;</span>)
+        destination = <span style="color:#658b00">input</span>(<span style="color:#cd5555">&#34;请输入目的地：&#34;</span>)
+        date = <span style="color:#658b00">input</span>(<span style="color:#cd5555">&#34;请输入日期（年-月-日）：&#34;</span>)
+        isStudent = <span style="color:#658b00">input</span>(<span style="color:#cd5555">&#34;是否为学生票（输入Y代表是，其他代表不是）：&#34;</span>)
+        <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;座位类型：特等座/商务座  一等座 二等座/二等包座 高级软卧 软卧/一等卧 动卧 硬卧/二等卧 软座 硬座 无座 其他&#34;</span>)
+        <span style="color:#658b00">type</span> = <span style="color:#658b00">input</span>(<span style="color:#cd5555">&#34;请输入座位类型：&#34;</span>)
+        <span style="color:#8b008b;font-weight:bold">if</span> isStudent == <span style="color:#cd5555">&#34;y&#34;</span> <span style="color:#8b008b">or</span> isStudent == <span style="color:#cd5555">&#34;Y&#34;</span>:
+            flag = <span style="color:#8b008b;font-weight:bold">True</span>
+        <span style="color:#8b008b;font-weight:bold">else</span>:
+            flag = <span style="color:#8b008b;font-weight:bold">False</span>
+        <span style="color:#228b22">#time.sleep(5)</span>
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;toolbar_Div&#34;]/div[3]/div[2]/div/div[1]/div/div[2]/div[1]/div[1]/div[1]/div[1]/label&#39;</span>).click()
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;fromStationText&#34;]&#39;</span>).send_keys(departure, Keys.ENTER)
+        <span style="color:#228b22">#time.sleep(2)</span>
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;toolbar_Div&#34;]/div[3]/div[2]/div/div[1]/div/div[2]/div[1]/div[1]/div[1]/div[2]/label&#39;</span>).click()
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;toStationText&#34;]&#39;</span>).send_keys(destination, Keys.ENTER)
+        <span style="color:#228b22">#time.sleep(2)</span>
+        <span style="color:#228b22">#先将默认值清空,再输入</span>
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;train_date&#34;]&#39;</span>).clear()
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;train_date&#34;]&#39;</span>).send_keys(date)
+        <span style="color:#228b22">#time.sleep(2)</span>
+        <span style="color:#8b008b;font-weight:bold">if</span> flag:
+            self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;isStudentDan&#34;]&#39;</span>).click()
+        <span style="color:#228b22">#time.sleep(2)</span>
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;search_one&#34;]&#39;</span>).click()
+
+        <span style="color:#228b22">#转换到最后一个页面</span>
+        self.driver.switch_to.window(self.driver.window_handles[-<span style="color:#b452cd">1</span>])
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;qd_closeDefaultWarningWindowDialog_id&#34;]&#39;</span>).click()
+
+        <span style="color:#228b22">#点击到能预定的车次</span>
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;sear-result&#34;]/span/label[2]&#39;</span>).click()
+        <span style="color:#228b22"># 解析车次信息</span>
+        WebDriverWait(self.driver, <span style="color:#b452cd">1000</span>).until(
+            EC.presence_of_all_elements_located((By.XPATH, <span style="color:#cd5555">&#34;//tbody[@id=&#39;queryLeftTable&#39;]/tr&#34;</span>))
+        )
+        tran_trs = self.driver.find_elements(By.XPATH, <span style="color:#cd5555">&#34;//tbody[@id=&#39;queryLeftTable&#39;]/tr[not(@datatran)]&#34;</span>)
+
+        infos = [[] <span style="color:#8b008b;font-weight:bold">for</span> y <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">40</span>)] <span style="color:#228b22">#定义一个二维数组，y的维度定为40，因为1天的车次一般不会超过40</span>
+
+        types = [<span style="color:#cd5555">&#34;特等座/商务座&#34;</span>, <span style="color:#cd5555">&#34;一等座&#34;</span>, <span style="color:#cd5555">&#34;二等座/二等包座&#34;</span>, <span style="color:#cd5555">&#34;高级软卧&#34;</span>, <span style="color:#cd5555">&#34;软卧/一等卧&#34;</span>, <span style="color:#cd5555">&#34;动卧&#34;</span>, <span style="color:#cd5555">&#34;硬卧/二等卧&#34;</span>, <span style="color:#cd5555">&#34;软座&#34;</span>, <span style="color:#cd5555">&#34;硬座&#34;</span>, <span style="color:#cd5555">&#34;无座&#34;</span>, <span style="color:#cd5555">&#34;其他&#34;</span>]
+        <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(types)):
+            <span style="color:#8b008b;font-weight:bold">if</span> types[i] == <span style="color:#658b00">type</span>:
+                type_id = i + <span style="color:#b452cd">7</span> <span style="color:#228b22">#types[0]对应字段infos[index - 1][7]的数据</span>
+                <span style="color:#8b008b;font-weight:bold">break</span>
+        <span style="color:#cd5555">&#39;&#39;&#39;
+</span><span style="color:#cd5555">        注意infos存储的是网页上所有车次的信息，没有筛选座位类型的结果
+</span><span style="color:#cd5555">        &#39;&#39;&#39;</span>
+        index = <span style="color:#b452cd">1</span> <span style="color:#228b22">#网页上真实的次序</span>
+        <span style="color:#8b008b;font-weight:bold">for</span> tran_tr <span style="color:#8b008b">in</span> tran_trs:
+            infos[index - <span style="color:#b452cd">1</span>] = tran_tr.text.replace(<span style="color:#cd5555">&#39;</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#39;</span>, <span style="color:#cd5555">&#39; &#39;</span>).split(<span style="color:#cd5555">&#39; &#39;</span>)
+            <span style="color:#228b22">#去除多余字段</span>
+            <span style="color:#8b008b;font-weight:bold">if</span> infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">1</span>] == <span style="color:#cd5555">&#34;复&#34;</span>:
+                infos[index - <span style="color:#b452cd">1</span>].remove(<span style="color:#cd5555">&#34;复&#34;</span>)
+            <span style="color:#8b008b;font-weight:bold">if</span> infos[index - <span style="color:#b452cd">1</span>][type_id] == <span style="color:#cd5555">&#34;--&#34;</span> <span style="color:#8b008b">or</span> infos[index - <span style="color:#b452cd">1</span>][type_id] == <span style="color:#cd5555">&#34;无&#34;</span>:
+                index += <span style="color:#b452cd">1</span>
+                <span style="color:#8b008b;font-weight:bold">continue</span>
+            <span style="color:#228b22">#打印有此座位类型的余票信息</span>
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;=============================================================================================================================================================================&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;序号：&#34;</span>, end = <span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#658b00">str</span>(index), end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  车次：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">0</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  出发站-到达站：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">1</span>] + <span style="color:#cd5555">&#34;-&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">2</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  出发时间-到达时间：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">3</span>] + <span style="color:#cd5555">&#34;-&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">4</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  历时：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">5</span>] + <span style="color:#cd5555">&#34; &#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">6</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  特等座/商务座：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">7</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  一等座：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">8</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  二等座/二等包座：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">9</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  高级软卧：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">10</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  软卧/一等卧：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">11</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  动卧：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">12</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  硬卧/二等卧：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">13</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  软座：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">14</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  硬座：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">15</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  无座：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">16</span>], end=<span style="color:#cd5555">&#34;&#34;</span>)
+            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;  其他：&#34;</span> + infos[index - <span style="color:#b452cd">1</span>][<span style="color:#b452cd">17</span>])
+            index += <span style="color:#b452cd">1</span>
+
+        <span style="color:#8b008b;font-weight:bold">while</span>(<span style="color:#b452cd">1</span>):
+            select = <span style="color:#658b00">input</span>(<span style="color:#cd5555">&#34;请输入要选择的班次序号：&#34;</span>)
+            <span style="color:#8b008b;font-weight:bold">if</span> <span style="color:#658b00">int</span>(select) &gt; index:
+                <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;请输入正确的次序号！&#34;</span>)
+                <span style="color:#8b008b;font-weight:bold">continue</span>
+            <span style="color:#8b008b;font-weight:bold">break</span>
+
+        <span style="color:#228b22">#点击预定</span>
+        btns = self.driver.find_elements(By.CLASS_NAME, <span style="color:#cd5555">&#39;btn72&#39;</span>)
+        <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(btns)):
+            <span style="color:#8b008b;font-weight:bold">if</span> i == <span style="color:#658b00">int</span>(select) - <span style="color:#b452cd">1</span>: <span style="color:#228b22">#select从1开始，i从0开始</span>
+                btns[i].click()
+                <span style="color:#8b008b;font-weight:bold">break</span>
+        time.sleep(<span style="color:#b452cd">1</span>)
+        <span style="color:#228b22">#如果操作时间过长就要继续进行验证（虽然前面已经登录了还是要验证）</span>
+
+        <span style="color:#228b22">#输入用户名和密码,点击登录</span>
+        <span style="color:#228b22"># self.driver.find_element(By.XPATH, &#39;//*[@id=&#34;J-userName&#34;]&#39;).send_keys(self.login_user)</span>
+        <span style="color:#228b22"># self.driver.find_element(By.XPATH, &#39;//*[@id=&#34;J-password&#34;]&#39;).send_keys(self.login_passwd)</span>
+        <span style="color:#228b22"># self.driver.find_element(By.XPATH, &#39;//*[@id=&#34;J-login&#34;]&#39;).click()</span>
+        <span style="color:#228b22"># time.sleep(0.5)</span>
+
+        <span style="color:#228b22">#滑块验证</span>
+        <span style="color:#228b22"># span = self.driver.find_element(By.XPATH, &#39;//*[@id=&#34;nc_1_n1z&#34;]&#39;)</span>
+        <span style="color:#228b22"># actions = ActionChains(self.driver)</span>
+        <span style="color:#228b22"># actions.click_and_hold(span)</span>
+        <span style="color:#228b22"># actions.drag_and_drop_by_offset(span, 350, 0)</span>
+        <span style="color:#228b22"># actions.perform()</span>
+
+
+        <span style="color:#228b22">#选择票类型和乘客类型</span>
+        <span style="color:#8b008b;font-weight:bold">if</span> flag: <span style="color:#228b22">#(学生票)</span>
+            self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;normal_passenger_id&#34;]/li[1]/label&#39;</span>).click()
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;dialog_xsertcj_ok&#34;]&#39;</span>).click()
+
+        <span style="color:#228b22">#下拉框选择</span>
+        options_element = self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;seatType_1&#34;]&#39;</span>)
+        options = Select(options_element)
+        <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(options)):
+            select.select_by_visible_text(<span style="color:#658b00">type</span>)
+
+        <span style="color:#228b22">#提交订单</span>
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;submitOrder_id&#34;]&#39;</span>).click()
+        <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34; 窗 | A | B | C | 过道 | D | F | 窗 &#34;</span>)
+        dest_el = self.driver.find_elements(By.CSS_SELECTOR, <span style="color:#cd5555">&#39;rect&#39;</span>)
+        <span style="color:#8b008b;font-weight:bold">while</span>(<span style="color:#b452cd">1</span>):
+            dest = <span style="color:#658b00">input</span>(<span style="color:#cd5555">&#34;请选择你的座位序号：&#34;</span>)
+            <span style="color:#8b008b;font-weight:bold">if</span> dest == <span style="color:#cd5555">&#39;A&#39;</span>:
+                dest_el[<span style="color:#b452cd">0</span>].click()
+            <span style="color:#8b008b;font-weight:bold">elif</span> dest == <span style="color:#cd5555">&#39;B&#39;</span>:
+                dest_el[<span style="color:#b452cd">1</span>].click()
+            <span style="color:#8b008b;font-weight:bold">elif</span> dest == <span style="color:#cd5555">&#39;C&#39;</span>:
+                dest_el[<span style="color:#b452cd">2</span>].click()
+            <span style="color:#8b008b;font-weight:bold">elif</span> dest == <span style="color:#cd5555">&#39;D&#39;</span>:
+                dest_el[<span style="color:#b452cd">3</span>].click()
+            <span style="color:#8b008b;font-weight:bold">elif</span> dest == <span style="color:#cd5555">&#39;F&#39;</span>:
+                dest_el[<span style="color:#b452cd">4</span>].click()
+            <span style="color:#8b008b;font-weight:bold">else</span>:
+                <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;请输入正确的座位&#34;</span>)
+                <span style="color:#8b008b;font-weight:bold">continue</span>
+            <span style="color:#8b008b;font-weight:bold">break</span>
+        time.sleep(<span style="color:#b452cd">1</span>)
+        <span style="color:#228b22">#最后确认</span>
+        self.driver.find_element(By.XPATH, <span style="color:#cd5555">&#39;//*[@id=&#34;qr_submit_id&#34;]&#39;</span>).click()
+        <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;订票成功！&#34;</span>)
+
+<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">main</span>():
+    url = <span style="color:#cd5555">&#39;https://kyfw.12306.cn/otn/resources/login.html&#39;</span>
+    login_user = <span style="color:#658b00">input</span>(<span style="color:#cd5555">&#34;Input Username: &#34;</span>)
+    login_passwd = <span style="color:#658b00">input</span>(<span style="color:#cd5555">&#34;Input Password: &#34;</span>)
+    <span style="color:#8b008b;font-weight:bold">global</span> login  <span style="color:#228b22"># 避免chrome浏览器驱动在程序执行完后自动关闭浏览器</span>
+    login = Login12306(url, login_user, login_passwd)
+    login.Login()
+    login.Purchase()
+
+
+
+<span style="color:#8b008b;font-weight:bold">if</span> __name__ == <span style="color:#cd5555">&#39;__main__&#39;</span>:
+    main()
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="运行结果">运行结果</h3>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E7%88%AC%E8%99%AB/img1_1.png" alt=""></p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E7%88%AC%E8%99%AB/img1_2.png" alt=""></p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E7%88%AC%E8%99%AB/img1_3.png" alt=""></p>
+<h3 id="程序不足">程序不足</h3>
+<ul>
+<li>
+<p>1.因为浏览器有时会不稳定，程序运行可能会出现问题（但概率较小，基本没出现过）</p>
+</li>
+<li>
+<p>2.因为12306是不是会给你来一个，点击预订，会出现重新登录的情况（可能是内部设定的某种机制），有时又不会出现，所以我在代码中注释掉该部分。</p>
+</li>
+<li>
+<p>3.12306网站购票本身比较容易崩溃，因为我们是借助浏览器访问，可能会出现页面崩溃的情况</p>
+</li>
+<li>
+<p>4.这里我们只是实现了买票，并不涉及付款部分，所以这里的买票不是真正的买票</p>
+</li>
+</ul>
+<h3 id="tips">Tips</h3>
+<ul>
+<li>
+<p>如果你想对一个外行人展示，一个装逼小技巧🐶，无头浏览器（不会弹出浏览器）实现：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#228b22">#准备好参数配置（无头浏览器）</span>
+opt = Options()
+opt.add_argument(<span style="color:#cd5555">&#34;--headless&#34;</span>)
+opt.add_argument(<span style="color:#cd5555">&#34;--disable-gpu&#34;</span>) <span style="color:#228b22">#不显示</span>
+
+web = Chrome(options=opt)
+</code></pre></td></tr></table>
+</div>
+</div><p><strong>这里跟上面的避开自动控制检测是一样的方式：都是在Options对象添加属性，骗过网站的检测。</strong></p>
+</li>
+<li>
+<p><strong>郑重声明：这里只是用作个人程序学习使用，并不用作任何商业用途！大家牢记一句话：爬虫爬虫，越爬越刑！</strong></p>
+</li>
+<li>
+<p>本项目源码和其他方式（BeautifulSoup4以及正则表达式的使用）的基础爬虫学习demo已经上传到Github：</p>
+<ul>
+<li>仓库地址：<a href="https://github.com/caixiongjiang/py_reptile">https://github.com/caixiongjiang/py_reptile</a>,如果可以的话，动动你的小手在右上角帮我点个star哦！😯</li>
+<li>本demo源码地址：<a href="https://github.com/caixiongjiang/py_reptile/blob/master/12306%E7%88%AC%E8%99%AB%E6%8A%A2%E7%A5%A8/12306.py">https://github.com/caixiongjiang/py_reptile/blob/master/12306%E7%88%AC%E8%99%AB%E6%8A%A2%E7%A5%A8/12306.py</a></li>
+</ul>
+</li>
+</ul>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2022-04-28</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+			下回<br>已经到头啦。
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC10%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+			上回<br>第十讲：rb_tree深度探索
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2022 🌀Jarson Cai&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "blog-9g6ht92ca9c564c6",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

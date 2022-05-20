@@ -5,9 +5,239 @@
     <description>Recent content on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 17 May 2022 18:18:05 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 20 May 2022 18:18:05 +0800</lastBuildDate>
     
         <atom:link href="https://caixiongjiang.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+        <item>
+        <title>《TCP/IP网络编程》第 15 章 套接字和标准I/O 笔记</title>
+        <link>https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-15-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E5%92%8C%E6%A0%87%E5%87%86i-o-%E7%AC%94%E8%AE%B0/</link>
+        <pubDate>Wed, 06 Apr 2022 17:53:25 +0800</pubDate>
+        
+        <guid>https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-15-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E5%92%8C%E6%A0%87%E5%87%86i-o-%E7%AC%94%E8%AE%B0/</guid>
+        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-15-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E5%92%8C%E6%A0%87%E5%87%86i-o-%E7%AC%94%E8%AE%B0/ -&lt;h2 id=&#34;第-15-章-套接字和标准io&#34;&gt;第 15 章 套接字和标准I/O&lt;/h2&gt;
+&lt;h3 id=&#34;151-标准-io-的优点&#34;&gt;15.1 标准 I/O 的优点&lt;/h3&gt;
+&lt;h4 id=&#34;1511-标准-io-函数的两个优点&#34;&gt;15.1.1 标准 I/O 函数的两个优点&lt;/h4&gt;
+&lt;p&gt;下面是标准 I/O 函数的两个优点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;标准 I/O 函数具有良好的移植性&lt;/li&gt;
+&lt;li&gt;标准 I/O 函数可以利用缓冲提高性能&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;创建套接字时，操作系统会准备 I/O 缓冲。此缓冲在执行 TCP 协议时发挥着非常重要的作用。此时若使用标准 I/O 函数，将得到额外的缓冲支持。如下图：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/01/29/5c500e53ad9aa.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;假设使用 fputs 函数进行传输字符串 「Hello」时，首先将数据传递到标准 I/O 缓冲，然后将数据移动到套接字输出缓冲，最后将字符串发送到对方主机。&lt;/p&gt;
+&lt;p&gt;设置缓冲的主要目的是为了提高性能。从以下两点可以说明性能的提高：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;传输的数据量&lt;/li&gt;
+&lt;li&gt;数据向输出缓冲移动的次数。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;比较 1 个字节的数据发送 10 次的情况和 10 个数据包发送 1 次的情况。发送数据时，数据包中含有头信息。头信与数据大小无关，是按照一定的格式填入的。假设头信息占 40 个字节，需要传输的数据量也存在较大区别：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;1 个字节 10 次：40*10=400 字节&lt;/li&gt;
+&lt;li&gt;10个字节 1 次：40*1=40 字节。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;1512-标准-io-函数和系统函数之间的性能对比&#34;&gt;15.1.2 标准 I/O 函数和系统函数之间的性能对比&lt;/h4&gt;
+&lt;p&gt;下面是利用系统函数的示例：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch15/syscpy.c&#34;&gt;syscpy.c&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;下面是使用标准 I/O 函数复制文件&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch15/stdcpy.c&#34;&gt;stdcpy.c&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;对于以上两个代码进行测试，明显基于标准 I/O 函数的代码跑的更快&lt;/p&gt;
+&lt;h4 id=&#34;1513-标准-io-函数的几个缺点&#34;&gt;15.1.3 标准 I/O 函数的几个缺点&lt;/h4&gt;
+&lt;p&gt;标准 I/O 函数存在以下几个缺点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;不容易进行双向通信&lt;/li&gt;
+&lt;li&gt;有时可能频繁调用 fflush 函数&lt;/li&gt;
+&lt;li&gt;需要以 FILE 结构体指针的形式返回文件描述符。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;152-使用标准-io-函数&#34;&gt;15.2 使用标准 I/O 函数&lt;/h3&gt;
+&lt;h4 id=&#34;1521-利用-fdopen-函数转换为-file-结构体指针&#34;&gt;15.2.1 利用 fdopen 函数转换为 FILE 结构体指针&lt;/h4&gt;
+&lt;p&gt;函数原型如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#1e889b&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;&lt;/span&gt;FILE *&lt;span style=&#34;color:#008b45&#34;&gt;fdopen&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; fildes, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;char&lt;/span&gt; *mode);
+&lt;span style=&#34;color:#228b22&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;成功时返回转换的 FILE 结构体指针，失败时返回 NULL
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;fildes ： 需要转换的文件描述符
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;mode ： 将要创建的 FILE 结构体指针的模式信息
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;*/&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;以下为示例：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch15/desto.c&#34;&gt;desto.c&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#1e889b&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#1e889b&#34;&gt;&amp;lt;fcntl.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;main&lt;/span&gt;()
+{
+    FILE *fp;
+    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; fd = open(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;data.dat&amp;#34;&lt;/span&gt;, O_WRONLY | O_CREAT | O_TRUNC); &lt;span style=&#34;color:#228b22&#34;&gt;//创建文件并返回文件描述符
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (fd == -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;)
+    {
+        fputs(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;file open error&amp;#34;&lt;/span&gt;, stdout);
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
+    }
+    fd = fdopen(fd, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;w&amp;#34;&lt;/span&gt;); &lt;span style=&#34;color:#228b22&#34;&gt;//返回 写 模式的 FILE 指针
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    fputs(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;NetWork C programming &lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;&lt;/span&gt;, fp);
+    fclose(fp);
+    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;编译运行：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;gcc desto.c -o desto
+./desto
+cat data.dat
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;运行结果：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/01/29/5c5018ff07b29.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;文件描述符转换为 FILE 指针，并可以通过该指针调用标准 I/O 函数。&lt;/p&gt;
+&lt;h4 id=&#34;1522-利用-fileno-函数转换为文件描述符&#34;&gt;15.2.2 利用 fileno 函数转换为文件描述符&lt;/h4&gt;
+&lt;p&gt;函数原型如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#1e889b&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;fileno&lt;/span&gt;(FILE *stream);
+&lt;span style=&#34;color:#228b22&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;成功时返回文件描述符，失败时返回 -1
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;*/&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;示例：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch15/todes.c&#34;&gt;todes.c&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#1e889b&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#1e889b&#34;&gt;&amp;lt;fcntl.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;main&lt;/span&gt;()
+{
+    FILE *fp;
+    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; fd = open(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;data.dat&amp;#34;&lt;/span&gt;, O_WRONLY | O_CREAT | O_TRUNC);
+    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (fd == -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;)
+    {
+        fputs(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;file open error&amp;#34;&lt;/span&gt;);
+        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
+    }
+
+    printf(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;First file descriptor : %d &lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;&lt;/span&gt;, fd);
+    fp = fdopen(fd, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;w&amp;#34;&lt;/span&gt;); &lt;span style=&#34;color:#228b22&#34;&gt;//转成 file 指针
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    fputs(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;TCP/IP SOCKET PROGRAMMING &lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;&lt;/span&gt;, fp);
+    printf(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;Second file descriptor: %d &lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;&lt;/span&gt;, fileno(fp)); &lt;span style=&#34;color:#228b22&#34;&gt;//转回文件描述符
+&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    fclose(fp);
+    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;153-基于套接字的标准-io-函数使用&#34;&gt;15.3 基于套接字的标准 I/O 函数使用&lt;/h3&gt;
+&lt;p&gt;把第四章的回声客户端和回声服务端的内容改为基于标准 I/O 函数的数据交换形式。&lt;/p&gt;
+&lt;p&gt;代码如下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch15/echo_client.c&#34;&gt;echo_client.c&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch15/echo_stdserv.c&#34;&gt;echo_stdserv.c&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;编译运行：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;gcc echo_client.c -o eclient
+gcc echo_stdserv.c -o eserver
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;结果：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/01/29/5c502001581bc.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;可以看出，运行结果和第四章相同，这是利用标准 I/O 实现的。&lt;/p&gt;
+&lt;h3 id=&#34;154-习题&#34;&gt;15.4 习题&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;以下答案仅代表本人个人观点，可能不是正确答案。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;请说明标准 I/O 的 2 个优点。他为何拥有这 2 个优点？&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;答：①具有很高的移植性②有良好的缓冲提高性能。因为这些函数是由 ANSI C 标准定义的。适合所有编程领域。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;利用标准 I/O 函数传输数据时，下面的说法是错误的&lt;/strong&gt;：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;调用 fputs 函数传输数据时，调用后应立即开始发送！&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;为何上述说法是错误的？为达到这种效果应该添加哪些处理过程？&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;答：只是传输到了缓冲中，应该利用 fflush 来刷新缓冲区。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+- https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-15-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E5%92%8C%E6%A0%87%E5%87%86i-o-%E7%AC%94%E8%AE%B0/ - </description>
+        </item>
     
     
     
@@ -3429,120 +3659,6 @@ getsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (&lt;span style=&#34;color:#00688b;fo
 &lt;/li&gt;
 &lt;/ol&gt;
 - https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-8-%E7%AB%A0-%E5%9F%9F%E5%90%8D%E5%8F%8A%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80-%E7%AC%94%E8%AE%B0/ - </description>
-        </item>
-    
-    
-    
-        <item>
-        <title>《TCP/IP网络编程》第 7 章 优雅的断开套接字的连接 笔记</title>
-        <link>https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-7-%E7%AB%A0-%E4%BC%98%E9%9B%85%E7%9A%84%E6%96%AD%E5%BC%80%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E8%BF%9E%E6%8E%A5-%E7%AC%94%E8%AE%B0/</link>
-        <pubDate>Sat, 26 Mar 2022 11:25:41 +0800</pubDate>
-        
-        <guid>https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-7-%E7%AB%A0-%E4%BC%98%E9%9B%85%E7%9A%84%E6%96%AD%E5%BC%80%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E8%BF%9E%E6%8E%A5-%E7%AC%94%E8%AE%B0/</guid>
-        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-7-%E7%AB%A0-%E4%BC%98%E9%9B%85%E7%9A%84%E6%96%AD%E5%BC%80%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E8%BF%9E%E6%8E%A5-%E7%AC%94%E8%AE%B0/ -&lt;h2 id=&#34;第-7-章-优雅的断开套接字的连接&#34;&gt;第 7 章 优雅的断开套接字的连接&lt;/h2&gt;
-&lt;p&gt;本章讨论如何优雅的断开套接字的连接，之前用的方法不够优雅是因为，我们是调用 close 函数或 closesocket 函数单方面断开连接的。&lt;/p&gt;
-&lt;h3 id=&#34;71-基于-tcp-的半关闭&#34;&gt;7.1 基于 TCP 的半关闭&lt;/h3&gt;
-&lt;p&gt;TCP 的断开连接过程比建立连接更重要，因为连接过程中一般不会出现大问题，但是断开过程可能发生预想不到的情况。因此应该准确掌控。所以要&lt;strong&gt;掌握半关闭（Half-close）&lt;/strong&gt;，才能明确断开过程。&lt;/p&gt;
-&lt;h4 id=&#34;711-单方面断开连接带来的问题&#34;&gt;7.1.1 单方面断开连接带来的问题&lt;/h4&gt;
-&lt;p&gt;Linux 和 Windows 的 closesocket 函数意味着完全断开连接。完全断开不仅指无法传输数据，而且也不能接收数据。因此在某些情况下，通信一方单方面的断开套接字连接，显得不太优雅。如图所示：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/01/18/5c412a8baa2d8.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;图中描述的是 2 台主机正在进行双向通信，主机 A 发送完最后的数据后，调用 close 函数断开了最后的连接，之后主机 A 无法再接受主机 B 传输的数据。实际上，是完全无法调用与接受数据相关的函数。最终，由主机 B 传输的、主机 A 必须要接受的数据也销毁了。&lt;/p&gt;
-&lt;p&gt;为了解决这类问题，「只关闭一部分数据交换中使用的流」的方法应运而生。断开一部分连接是指，可以传输数据但是无法接收，或可以接受数据但无法传输。顾名思义就是只关闭流的一半。&lt;/p&gt;
-&lt;h4 id=&#34;712-套接字和流stream&#34;&gt;7.1.2 套接字和流（Stream）&lt;/h4&gt;
-&lt;p&gt;两台主机通过套接字建立连接后进入可交换数据的状态，又称「流形成的状态」。也就是把建立套接字后可交换数据的状态看作一种流。&lt;/p&gt;
-&lt;p&gt;此处的流可以比作水流。水朝着一个方向流动，同样，在套接字的流中，数据也止呕能向一个方向流动。因此，为了进行双向通信，需要如图所示的两个流：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/01/18/5c412c3ba25dd.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;一旦两台主机之间建立了套接字连接，每个主机就会拥有单独的输入流和输出流。当然，其中一个主机的输入流与另一个主机的输出流相连，而输出流则与另一个主机的输入流相连。另外，本章讨论的「优雅的断开连接方式」只断开其中 1 个流，而非同时断开两个流。Linux 和 Windows 的 closesocket 函数将同时断开这两个流，因此与「优雅」二字还有一段距离。&lt;/p&gt;
-&lt;h4 id=&#34;713-针对优雅断开的-shutdown-函数&#34;&gt;7.1.3 针对优雅断开的 shutdown 函数&lt;/h4&gt;
-&lt;p&gt;shutdown 用来关闭其中一个流：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#1e889b&#34;&gt;&amp;lt;sys/socket.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;shutdown&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; sock, &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; howto);
-&lt;span style=&#34;color:#228b22&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;成功时返回 0 ，失败时返回 -1
-&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;sock: 需要断开套接字文件描述符
-&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;howto: 传递断开方式信息
-&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;*/&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;调用上述函数时，第二个参数决定断开连接的方式，其值如下所示：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;SHUT_RD&lt;/code&gt; : 断开输入流&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;SHUT_WR&lt;/code&gt; : 断开输出流&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;SHUT_RDWR&lt;/code&gt; : 同时断开 I/O 流&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;若向 shutdown 的第二个参数传递&lt;code&gt;SHUT_RD&lt;/code&gt;，则断开输入流，套接字无法接收数据。即使输入缓冲收到数据也回抹去，而且无法调用相关函数。如果向  shutdown 的第二个参数传递&lt;code&gt;SHUT_WR&lt;/code&gt;，则中断输出流，也就无法传输数据。若如果输出缓冲中还有未传输的数据，则将传递给目标主机。最后，若传递关键字&lt;code&gt;SHUT_RDWR&lt;/code&gt;，则同时中断 I/O 流。这相当于分 2 次调用 shutdown ，其中一次以&lt;code&gt;SHUT_RD&lt;/code&gt;为参数，另一次以&lt;code&gt;SHUT_WR&lt;/code&gt;为参数。&lt;/p&gt;
-&lt;h4 id=&#34;714-为何要半关闭&#34;&gt;7.1.4 为何要半关闭&lt;/h4&gt;
-&lt;p&gt;考虑以下情况：&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;一旦客户端连接到服务器，服务器将约定的文件传输给客户端，客户端收到后发送字符串「Thank you」给服务器端。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;此处「Thank you」的传递是多余的，这只是用来模拟客户端断开连接前还有数据要传输的情况。此时程序的还嫌难度并不小，因为传输文件的服务器端只需连续传输文件数据即可，而客户端无法知道需要接收数据到何时。客户端也没办法无休止的调用输入函数，因为这有可能导致程序&lt;strong&gt;阻塞&lt;/strong&gt;。&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;是否可以让服务器和客户端约定一个代表文件尾的字符？&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;这种方式也有问题，因为这意味这文件中不能有与约定字符相同的内容。为了解决该问题，服务端应最后向客户端传递 EOF 表示文件传输结束。客户端通过函数返回值接受 EOF ，这样可以避免与文件内容冲突。那么问题来了，服务端如何传递 EOF ？&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;断开输出流时向主机传输 EOF。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;当然，调用 close 函数的同时关闭 I/O 流，这样也会向对方发送 EOF 。但此时无法再接受对方传输的数据。换言之，若调用 close 函数关闭流，就无法接受客户端最后发送的字符串「Thank you」。这时需要调用 shutdown 函数，只关闭服务器的输出流。这样既可以发送 EOF ，同时又保留了输入流。下面实现收发文件的服务器端/客户端。&lt;/p&gt;
-&lt;h4 id=&#34;715-基于半关闭的文件传输程序&#34;&gt;7.1.5 基于半关闭的文件传输程序&lt;/h4&gt;
-&lt;p&gt;上述文件传输服务器端和客户端的数据流可以整理如图：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/01/18/5c41326280ab5.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;下面的代码为编程简便，省略了大量错误处理代码。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch07/file_client.c&#34;&gt;file_client.c&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch07/file_server.c&#34;&gt;file_server.c&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;编译运行：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
-&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;gcc file_client.c -o fclient
-gcc file_server.c -o fserver
-./fserver &lt;span style=&#34;color:#b452cd&#34;&gt;9190&lt;/span&gt;
-./fclient 127.0.0.1 &lt;span style=&#34;color:#b452cd&#34;&gt;9190&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;结果：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/01/18/5c4140bc8db2f.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;客户端接受完成后，服务器会接收到来自客户端的感谢信息。&lt;/p&gt;
-&lt;h3 id=&#34;72-基于-windows-的实现&#34;&gt;7.2 基于 Windows 的实现&lt;/h3&gt;
-&lt;p&gt;暂略&lt;/p&gt;
-&lt;h3 id=&#34;73-习题&#34;&gt;7.3 习题&lt;/h3&gt;
-&lt;blockquote&gt;
-&lt;p&gt;以下答案仅代表本人个人观点，可能不是正确答案&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;解释 TCP 中「流」的概念。UDP 中能否形成流？请说明原因。&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;答：两台主机中通过套接字建立连接后进入可交换数据的状态，又称「流形成的状态」。也就是把建立套接字后可交换数据的状态看做一种流。UDP 没有建立连接的过程，所以不能形成流。&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;Linux 中的 close 函数或 Windows 中的 closesocket 函数属于单方面断开连接的方法，有可能带来一些问题。什么是单方面断开连接？什么情形下会出现问题？&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;答：单方面断开连接就是两台主机正在通信，其中一台主机关闭了所有连接，那么一台主机向另一台主机传输的数据可能会没有接收到而损毁。传输文件的服务器只需连续传输文件数据即可，而客户端不知道需要接收数据到何时。客户端也没有办法无休止的调用输入函数。现在需要一个 EOF 代表数据已经传输完毕，那么这时就需要半关闭，服务端把自己的输出流关了，这时客户端就知数据已经传输完毕，因为服务端的输入流还没关，客户端可以给服务器汇报，接收完毕。&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;什么是半关闭？针对输出流执行半关闭的主机处于何种状态？半关闭会导致对方主机接收什么消息？&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;答：半关闭就是把输入流或者输出流关了。针对输出流执行半关闭的主机处于可以接收数据而不能发送数据。半关闭会导致对方主机接收一个 EOF 文件结束符。对方就知道你的数据已经传输完毕。&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-- https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-7-%E7%AB%A0-%E4%BC%98%E9%9B%85%E7%9A%84%E6%96%AD%E5%BC%80%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E8%BF%9E%E6%8E%A5-%E7%AC%94%E8%AE%B0/ - </description>
         </item>
     
     

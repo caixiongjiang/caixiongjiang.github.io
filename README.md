@@ -1,20 +1,3 @@
----
-title: "Hugo：最轻量级博客框架"
-date: 2022-01-26T10:18:05+08:00
-lastmod: 2022-01-26T00:43:06+08:00
-draft: false
-featured_image: "https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/hugo.jpg"
-description: "我的个人静态博客搭建"
-tags:
-- Hugo
-- 博客搭建
-categories:
-- 博客搭建
-series:
-- 环境配置&博客搭建
-comment : true
----
-
 ## 我的Hugo博客搭建
 
 原本想使用`hexo`搭建我的个人静态博客，但是前两天使用了之后发现写了大量文章之后生成博客会特别慢。

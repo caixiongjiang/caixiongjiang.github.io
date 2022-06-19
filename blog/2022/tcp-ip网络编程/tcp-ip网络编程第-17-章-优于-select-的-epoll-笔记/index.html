@@ -19,10 +19,11 @@
 <meta property="og:title" content="《TCP/IP网络编程》第 17 章 优于 select 的 epoll 笔记" />
 <meta property="og:description" content="第 17 章 优于 select 的 epoll 17.1 epoll 理解及应用 select 复用方法由来已久，因此，利用该技术后，无论如何优化程序性能也无法同时介入上百个客户端。这种 select 方式并不适合以 web 服务器端开发为主流的现代开发环境，所以需要学习 Linux 环境下的 epoll
 17.1.1 基于 select 的 I/O 复用技术速度慢的原因 第 12 章实现了基于 select 的 I/O 复用技术服务端，其中有不合理的设计如下：
- 调用 select 函数后常见的针对所有文件描述符的循环语句 每次调用 select 函数时都需要向该函数传递监视对象信息  上述两点可以从 echo_selectserv.c 得到确认，调用 select 函数后，并不是把发生变化的文件描述符单独集中在一起，而是通过作为监视对象的 fd_set 变量的变化，找出发生变化的文件描述符（54,56行），因此无法避免针对所有监视对象的循环语句。而且，作为监视对象的 fd_set 会发生变化，所以调用 select 函数前应该复制并保存原有信息，并在每次调用 select 函数时传递新的监视对象信息。
+调用 select 函数后常见的针对所有文件描述符的循环语句 每次调用 select 函数时都需要向该函数传递监视对象信息 上述两点可以从 echo_selectserv.c 得到确认，调用 select 函数后，并不是把发生变化的文件描述符单独集中在一起，而是通过作为监视对象的 fd_set 变量的变化，找出发生变化的文件描述符（54,56行），因此无法避免针对所有监视对象的循环语句。而且，作为监视对象的 fd_set 会发生变化，所以调用 select 函数前应该复制并保存原有信息，并在每次调用 select 函数时传递新的监视对象信息。
 select 性能上最大的弱点是：每次传递监视对象信息，准确的说，select 是监视套接字变化的函数。而套接字是操作系统管理的，所以 select 函数要借助操作系统才能完成功能。select 函数的这一缺点可以通过如下方式弥补：
- 仅向操作系统传递一次监视对象，监视范围或内容发生变化时只通知发生变化的事项
- 这样就无需每次调用 select 函数时都想操作系统传递监视对象信息，但是前提操作系统支持这种处理方式。Linux 的支持方式是 epoll ，Windows 的支持方式是 IOCP。" />
+仅向操作系统传递一次监视对象，监视范围或内容发生变化时只通知发生变化的事项
+这样就无需每次调用 select 函数时都想操作系统传递监视对象信息，但是前提操作系统支持这种处理方式。Linux 的支持方式是 epoll ，Windows 的支持方式是 IOCP。
+17.1.2 select 也有有点 select 的兼容性比较高，这样就可以支持很多的操作系统，不受平台的限制，使用 select 函数满足以下两个条件：" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-17-%E7%AB%A0-%E4%BC%98%E4%BA%8E-select-%E7%9A%84-epoll-%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="blog" />
 <meta property="article:published_time" content="2022-04-09T19:06:05+08:00" />
@@ -1144,7 +1145,7 @@ color: #515151;
                             
                             24 min
                             
-                            9 s.
+                            10 s.
                         
                     </div>
                 </div>
@@ -1189,65 +1190,63 @@ color: #515151;
 </ul>
 <p>select 函数中为了保存监视对象的文件描述符，直接声明了 fd_set 变量，但 epoll 方式下的操作系统负责保存监视对象文件描述符，因此需要向操作系统请求创建保存文件描述符的空间，此时用的函数就是 epoll_create 。</p>
 <p>此外，为了添加和删除监视对象文件描述符，select 方式中需要 FD_SET、FD_CLR 函数。但在 epoll 方式中，通过 epoll_ctl 函数请求操作系统完成。最后，select 方式下调用 select 函数等待文件描述符的变化，而 epoll_wait 调用 epoll_wait 函数。还有，select 方式中通过 fd_set 变量查看监视对象的状态变化，而 epoll 方式通过如下结构体 epoll_event 将发生变化的文件描述符单独集中在一起。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">struct</span> epoll_event
-{
-    __uint32_t events;
-    epoll_data_t data;
-};
-<span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#8b008b;font-weight:bold">union</span> epoll_data {
-    <span style="color:#00688b;font-weight:bold">void</span> *ptr;
-    <span style="color:#00688b;font-weight:bold">int</span> fd;
-    __uint32_t u32;
-    __uint64_t u64;
-} epoll_data_t;
-
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">struct</span> epoll_event
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    __uint32_t events;
+</span></span><span style="display:flex;"><span>    epoll_data_t data;
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#8b008b;font-weight:bold">union</span> epoll_data {
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">void</span> *ptr;
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> fd;
+</span></span><span style="display:flex;"><span>    __uint32_t u32;
+</span></span><span style="display:flex;"><span>    __uint64_t u64;
+</span></span><span style="display:flex;"><span>} epoll_data_t;
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>声明足够大的 epoll_event 结构体数组候，传递给 epoll_wait 函数时，发生变化的文件描述符信息将被填入数组。因此，无需像 select 函数那样针对所有文件描述符进行循环。</p>
 <h4 id="1714-epoll_create">17.1.4 epoll_create</h4>
 <p>epoll 是从 Linux 的 2.5.44 版内核开始引入的。通过以下命令可以查看 Linux 内核版本：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cat /proc/sys/kernel/osrelease
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>cat /proc/sys/kernel/osrelease
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>下面是 epoll_create 函数的原型：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/epoll.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">epoll_create</span>(<span style="color:#00688b;font-weight:bold">int</span> size);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回 epoll 的文件描述符，失败时返回 -1
-</span><span style="color:#228b22">size：epoll 实例的大小
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/epoll.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">epoll_create</span>(<span style="color:#00688b;font-weight:bold">int</span> size);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回 epoll 的文件描述符，失败时返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">size：epoll 实例的大小
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>调用 epoll_create 函数时创建的文件描述符保存空间称为「epoll 例程」，但有些情况下名称不同，需要稍加注意。通过参数 size 传递的值决定 epoll 例程的大小，但该值只是向操作系统提出的建议。换言之，size 并不用来决定 epoll 的大小，而仅供操作系统参考。</p>
 <blockquote>
@@ -1256,51 +1255,51 @@ color: #515151;
 <p>epoll_create 函数创建的资源与套接字相同，也由操作系统管理。因此，该函数和创建套接字的情况相同，也会返回文件描述符，也就是说返回的文件描述符主要用于区分 epoll 例程。需要终止时，与其他文件描述符相同，也要调用 close 函数</p>
 <h4 id="1715-epoll_ctl">17.1.5 epoll_ctl</h4>
 <p>生成例程后，应在其内部注册监视对象文件描述符，此时使用 epoll_ctl 函数。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/epoll.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">epoll_ctl</span>(<span style="color:#00688b;font-weight:bold">int</span> epfd, <span style="color:#00688b;font-weight:bold">int</span> op, <span style="color:#00688b;font-weight:bold">int</span> fd, <span style="color:#8b008b;font-weight:bold">struct</span> epoll_event *event);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回 0 ，失败时返回 -1
-</span><span style="color:#228b22">epfd：用于注册监视对象的 epoll 例程的文件描述符
-</span><span style="color:#228b22">op：用于制定监视对象的添加、删除或更改等操作
-</span><span style="color:#228b22">fd：需要注册的监视对象文件描述符
-</span><span style="color:#228b22">event：监视对象的事件类型
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/epoll.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">epoll_ctl</span>(<span style="color:#00688b;font-weight:bold">int</span> epfd, <span style="color:#00688b;font-weight:bold">int</span> op, <span style="color:#00688b;font-weight:bold">int</span> fd, <span style="color:#8b008b;font-weight:bold">struct</span> epoll_event *event);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回 0 ，失败时返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">epfd：用于注册监视对象的 epoll 例程的文件描述符
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">op：用于制定监视对象的添加、删除或更改等操作
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">fd：需要注册的监视对象文件描述符
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">event：监视对象的事件类型
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>与其他 epoll 函数相比，该函数看起来有些复杂，但通过调用语句就很容易理解，假设按照如下形式调用 epoll_ctl 函数：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-CQL" data-lang="CQL">epoll_ctl(A,EPOLL_CTL_ADD,B,C);<span style="color:#bbb">
-</span></code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-CQL" data-lang="CQL"><span style="display:flex;"><span>epoll_ctl(A,EPOLL_CTL_ADD,B,C);<span style="color:#bbb">
+</span></span></span></code></pre></td></tr></table>
 </div>
 </div><p>第二个参数 EPOLL_CTL_ADD 意味着「添加」，上述语句有如下意义：</p>
 <blockquote>
 <p>epoll  例程 A 中注册文件描述符 B ，主要目的是为了监视参数 C 中的事件</p>
 </blockquote>
 <p>再介绍一个调用语句。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">epoll_ctl(A,EPOLL_CTL_DEL,B,<span style="color:#658b00">NULL</span>);
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>epoll_ctl(A,EPOLL_CTL_DEL,B,<span style="color:#658b00">NULL</span>);
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>上述语句中第二个参数意味这「删除」，有以下含义：</p>
 <blockquote>
@@ -1314,23 +1313,23 @@ color: #515151;
 <li>EPOLL_CTL_MOD：更改注册的文件描述符的关注事件发生情况</li>
 </ul>
 <p>epoll_event 结构体用于保存事件的文件描述符结合。但也可以在 epoll 例程中注册文件描述符时，用于注册关注的事件。该函数中 epoll_event 结构体的定义并不显眼，因此通过掉英语剧说明该结构体在 epoll_ctl 函数中的应用。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">struct</span> epoll_event event;
-...
-event.events=EPOLLIN;<span style="color:#228b22">//发生需要读取数据的情况时
-</span><span style="color:#228b22"></span>event.data.fd=sockfd;
-epoll_ctl(epfd,EPOLL_CTL_ADD,sockfd,&amp;event);
-...
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">struct</span> epoll_event event;
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>event.events=EPOLLIN;<span style="color:#228b22">//发生需要读取数据的情况时
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>event.data.fd=sockfd;
+</span></span><span style="display:flex;"><span>epoll_ctl(epfd,EPOLL_CTL_ADD,sockfd,&amp;event);
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>上述代码将 epfd 注册到 epoll 例程 epfd 中，并在需要读取数据的情况下产生相应事件。接下来给出 epoll_event 的成员 events 中可以保存的常量及所指的事件类型。</p>
 <ul>
@@ -1345,50 +1344,50 @@ epoll_ctl(epfd,EPOLL_CTL_ADD,sockfd,&amp;event);
 <p>可通过位运算同事传递多个上述参数。</p>
 <h4 id="1716-epoll_wait">17.1.6 epoll_wait</h4>
 <p>下面是函数原型：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/epoll.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">epoll_wait</span>(<span style="color:#00688b;font-weight:bold">int</span> epfd, <span style="color:#8b008b;font-weight:bold">struct</span> epoll_event *events, <span style="color:#00688b;font-weight:bold">int</span> maxevents, <span style="color:#00688b;font-weight:bold">int</span> timeout);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回发生事件的文件描述符，失败时返回 -1
-</span><span style="color:#228b22">epfd : 表示事件发生监视范围的 epoll 例程的文件描述符
-</span><span style="color:#228b22">events : 保存发生事件的文件描述符集合的结构体地址值
-</span><span style="color:#228b22">maxevents : 第二个参数中可以保存的最大事件数
-</span><span style="color:#228b22">timeout : 以 1/1000 秒为单位的等待时间，传递 -1 时，一直等待直到发生事件
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/epoll.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">epoll_wait</span>(<span style="color:#00688b;font-weight:bold">int</span> epfd, <span style="color:#8b008b;font-weight:bold">struct</span> epoll_event *events, <span style="color:#00688b;font-weight:bold">int</span> maxevents, <span style="color:#00688b;font-weight:bold">int</span> timeout);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回发生事件的文件描述符，失败时返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">epfd : 表示事件发生监视范围的 epoll 例程的文件描述符
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">events : 保存发生事件的文件描述符集合的结构体地址值
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">maxevents : 第二个参数中可以保存的最大事件数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">timeout : 以 1/1000 秒为单位的等待时间，传递 -1 时，一直等待直到发生事件
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>该函数调用方式如下。需要注意的是，第二个参数所指缓冲需要动态分配。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#00688b;font-weight:bold">int</span> event_cnt;
-<span style="color:#8b008b;font-weight:bold">struct</span> epoll_event *ep_events;
-...
-ep_events=malloc(<span style="color:#8b008b;font-weight:bold">sizeof</span>(<span style="color:#8b008b;font-weight:bold">struct</span> epoll_event)*EPOLL_SIZE);<span style="color:#228b22">//EPOLL_SIZE是宏常量
-</span><span style="color:#228b22"></span>...
-event_cnt=epoll_wait(epfd,ep_events,EPOLL_SIZE,-<span style="color:#b452cd">1</span>);
-...
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> event_cnt;
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">struct</span> epoll_event *ep_events;
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>ep_events=malloc(<span style="color:#8b008b;font-weight:bold">sizeof</span>(<span style="color:#8b008b;font-weight:bold">struct</span> epoll_event)*EPOLL_SIZE);<span style="color:#228b22">//EPOLL_SIZE是宏常量
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>...
+</span></span><span style="display:flex;"><span>event_cnt=epoll_wait(epfd,ep_events,EPOLL_SIZE,-<span style="color:#b452cd">1</span>);
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>调用函数后，返回发生事件的文件描述符，同时在第二个参数指向的缓冲中保存发生事件的文件描述符集合。因此，无需像 select 一样插入针对所有文件描述符的循环。</p>
 <h4 id="1717-基于-epoll-的回声服务器端">17.1.7 基于 epoll 的回声服务器端</h4>
@@ -1397,15 +1396,15 @@ event_cnt=epoll_wait(epfd,ep_events,EPOLL_SIZE,-<span style="color:#b452cd">1</s
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch17/echo_epollserv.c">echo_epollserv.c</a></li>
 </ul>
 <p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc echo_epollserv.c -o serv
-./serv <span style="color:#b452cd">9190</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc echo_epollserv.c -o serv
+</span></span><span style="display:flex;"><span>./serv <span style="color:#b452cd">9190</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>运行结果：</p>
 <p><img src="https://i.loli.net/2019/02/01/5c53f5b6d4acf.png" alt=""></p>
@@ -1440,42 +1439,42 @@ event_cnt=epoll_wait(epfd,ep_events,EPOLL_SIZE,-<span style="color:#b452cd">1</s
 </ul>
 <p>上面的代码把调用 read 函数时使用的缓冲大小缩小到了 4 个字节，插入了验证 epoll_wait 调用次数的验证函数。减少缓冲大小是为了阻止服务器端一次性读取接收的数据。换言之，调用 read 函数后，输入缓冲中仍有数据要读取，而且会因此注册新的事件并从 epoll_wait 函数返回时将循环输出「return epoll_wait」字符串。</p>
 <p>编译运行:</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc echo_EPLTserv.c -o serv
-./serv <span style="color:#b452cd">9190</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc echo_EPLTserv.c -o serv
+</span></span><span style="display:flex;"><span>./serv <span style="color:#b452cd">9190</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>运行结果：</p>
 <p><img src="https://i.loli.net/2019/02/01/5c540825ae415.png" alt=""></p>
 <p>从结果可以看出，每当收到客户端数据时，都回注册该事件，并因此调用 epoll_wait 函数。</p>
 <p>下面的代码是修改后的边缘触发方式的代码，仅仅是把上面的代码改为：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"> event.events = EPOLLIN | EPOLLET;
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span> event.events = EPOLLIN | EPOLLET;
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>代码：</p>
 <ul>
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch17/echo_EDGEserv.c">echo_EDGEserv.c</a></li>
 </ul>
 <p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc echo_EDGEserv.c -o serv
-./serv <span style="color:#b452cd">9190</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc echo_EDGEserv.c -o serv
+</span></span><span style="display:flex;"><span>./serv <span style="color:#b452cd">9190</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果：</p>
 <p><img src="https://i.loli.net/2019/02/01/5c54097b6469f.png" alt=""></p>
@@ -1487,49 +1486,49 @@ event_cnt=epoll_wait(epfd,ep_events,EPOLL_SIZE,-<span style="color:#b452cd">1</s
 <li>为了完成非阻塞（Non-blocking）I/O ，更改了套接字特性。</li>
 </ul>
 <p>Linux 套接字相关函数一般通过 -1 通知发生了错误。虽然知道发生了错误，但仅凭这些内容无法得知产生错误的原因。因此，为了在发生错误的时候提额外的信息，Linux 声明了如下全局变量：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#00688b;font-weight:bold">int</span> errno;
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> errno;
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>为了访问该变量，需要引入 <code>error.h</code> 头文件，因此此头文件有上述变量的 extren 声明。另外，每种函数发生错误时，保存在 errno 变量中的值都不同。</p>
 <blockquote>
 <p>read 函数发现输入缓冲中没有数据可读时返回 -1，同时在 errno 中保存 EAGAIN 常量</p>
 </blockquote>
 <p>下面是 Linux 中提供的改变和更改文件属性的办法：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;fcntl.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">fcntl</span>(<span style="color:#00688b;font-weight:bold">int</span> fields, <span style="color:#00688b;font-weight:bold">int</span> cmd, ...);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回 cmd 参数相关值，失败时返回 -1
-</span><span style="color:#228b22">filedes : 属性更改目标的文件描述符
-</span><span style="color:#228b22">cmd : 表示函数调用目的
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;fcntl.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">fcntl</span>(<span style="color:#00688b;font-weight:bold">int</span> fields, <span style="color:#00688b;font-weight:bold">int</span> cmd, ...);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回 cmd 参数相关值，失败时返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">filedes : 属性更改目标的文件描述符
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">cmd : 表示函数调用目的
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>从上述声明可以看出 fcntl 有可变参数的形式。如果向第二个参数传递 F_GETFL ，可以获得第一个参数所指的文件描述符属性（int 型）。反之，如果传递 F_SETFL ，可以更改文件描述符属性。若希望将文件（套接字）改为非阻塞模式，需要如下  2 条语句。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#00688b;font-weight:bold">int</span> flag = fcntl(fd,F_GETFL,<span style="color:#b452cd">0</span>);
-fcntl(fd,F_SETFL | O_NONBLOCK)
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> flag = fcntl(fd,F_GETFL,<span style="color:#b452cd">0</span>);
+</span></span><span style="display:flex;"><span>fcntl(fd,F_SETFL | O_NONBLOCK)
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>通过第一条语句，获取之前设置的属性信息，通过第二条语句在此基础上添加非阻塞 O_NONBLOCK 标志。调用 read/write 函数时，无论是否存在数据，都会形成非阻塞文件（套接字）。fcntl 函数的适用范围很广。</p>
 <h4 id="1724-实现边缘触发回声服务器端">17.2.4 实现边缘触发回声服务器端</h4>
@@ -1544,15 +1543,15 @@ fcntl(fd,F_SETFL | O_NONBLOCK)
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch17/echo_EPETserv.c">echo_EPETserv.c</a></li>
 </ul>
 <p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc echo_EPETserv.c -o serv
-./serv
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc echo_EPETserv.c -o serv
+</span></span><span style="display:flex;"><span>./serv
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果：</p>
 <p><img src="https://i.loli.net/2019/02/01/5c542149c0cee.png" alt=""></p>

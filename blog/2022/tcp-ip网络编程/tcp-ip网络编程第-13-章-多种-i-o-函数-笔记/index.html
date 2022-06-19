@@ -18,8 +18,8 @@
 
 <meta property="og:title" content="《TCP/IP网络编程》第 13 章 多种 I/O 函数 笔记" />
 <meta property="og:description" content="第 13 章 多种 I/O 函数 13.1 send &amp; recv 函数 13.1.1 Linux 中的 send &amp; recv 首先看 sned 函数定义：
-1 2 3 4 5 6 7 8 9  #include &lt;sys/socket.h&gt;ssize_t send(int sockfd, const void *buf, size_t nbytes, int flags); /* 成功时返回发送的字节数，失败时返回 -1 sockfd: 表示与数据传输对象的连接的套接字和文件描述符 buf: 保存带传输数据的缓冲地址值 nbytes: 待传输字节数 flags: 传输数据时指定的可选项信息 */   下面是 recv 函数的定义：
-1 2 3 4 5 6 7 8 9  #include &lt;sys/socket.h&gt;ssize_t recv(int sockfd, void *buf, size_t nbytes, int flags); /* 成功时返回接收的字节数（收到 EOF 返回 0），失败时返回 -1 sockfd: 表示数据接受对象的连接的套接字文件描述符 buf: 保存接受数据的缓冲地址值 nbytes: 可接收的最大字节数 flags: 接收数据时指定的可选项参数 */   send 和 recv 函数都是最后一个参数是收发数据的可选项，该选项可以用位或（bit OR）运算符（| 运算符）同时传递多个信息。" />
+1 2 3 4 5 6 7 8 9 #include &lt;sys/socket.h&gt; ssize_t send(int sockfd, const void *buf, size_t nbytes, int flags); /* 成功时返回发送的字节数，失败时返回 -1 sockfd: 表示与数据传输对象的连接的套接字和文件描述符 buf: 保存带传输数据的缓冲地址值 nbytes: 待传输字节数 flags: 传输数据时指定的可选项信息 */ 下面是 recv 函数的定义：
+1 2 3 4 5 6 7 8 9 #include &lt;sys/socket.h&gt; ssize_t recv(int sockfd, void *buf, size_t nbytes, int flags); /* 成功时返回接收的字节数（收到 EOF 返回 0），失败时返回 -1 sockfd: 表示数据接受对象的连接的套接字文件描述符 buf: 保存接受数据的缓冲地址值 nbytes: 可接收的最大字节数 flags: 接收数据时指定的可选项参数 */ send 和 recv 函数都是最后一个参数是收发数据的可选项，该选项可以用位或（bit OR）运算符（| 运算符）同时传递多个信息。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-13-%E7%AB%A0-%E5%A4%9A%E7%A7%8D-i-o-%E5%87%BD%E6%95%B0-%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="blog" />
 <meta property="article:published_time" content="2022-04-04T23:08:00+08:00" />
@@ -961,7 +961,7 @@ color: #515151;
                             
                             14 min
                             
-                            41 s.
+                            43 s.
                         
                     </div>
                 </div>
@@ -975,54 +975,54 @@ color: #515151;
 <h3 id="131-send--recv-函数">13.1 send &amp; recv 函数</h3>
 <h4 id="1311-linux-中的-send--recv">13.1.1 Linux 中的 send &amp; recv</h4>
 <p>首先看 sned 函数定义：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/socket.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">send</span>(<span style="color:#00688b;font-weight:bold">int</span> sockfd, <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">void</span> *buf, size_t nbytes, <span style="color:#00688b;font-weight:bold">int</span> flags);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回发送的字节数，失败时返回 -1
-</span><span style="color:#228b22">sockfd: 表示与数据传输对象的连接的套接字和文件描述符
-</span><span style="color:#228b22">buf: 保存带传输数据的缓冲地址值
-</span><span style="color:#228b22">nbytes: 待传输字节数
-</span><span style="color:#228b22">flags: 传输数据时指定的可选项信息
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/socket.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">send</span>(<span style="color:#00688b;font-weight:bold">int</span> sockfd, <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">void</span> *buf, size_t nbytes, <span style="color:#00688b;font-weight:bold">int</span> flags);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回发送的字节数，失败时返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">sockfd: 表示与数据传输对象的连接的套接字和文件描述符
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">buf: 保存带传输数据的缓冲地址值
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">nbytes: 待传输字节数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">flags: 传输数据时指定的可选项信息
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>下面是 recv 函数的定义：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/socket.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">recv</span>(<span style="color:#00688b;font-weight:bold">int</span> sockfd, <span style="color:#00688b;font-weight:bold">void</span> *buf, size_t nbytes, <span style="color:#00688b;font-weight:bold">int</span> flags);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回接收的字节数（收到 EOF 返回 0），失败时返回 -1
-</span><span style="color:#228b22">sockfd: 表示数据接受对象的连接的套接字文件描述符
-</span><span style="color:#228b22">buf: 保存接受数据的缓冲地址值
-</span><span style="color:#228b22">nbytes: 可接收的最大字节数
-</span><span style="color:#228b22">flags: 接收数据时指定的可选项参数
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/socket.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">recv</span>(<span style="color:#00688b;font-weight:bold">int</span> sockfd, <span style="color:#00688b;font-weight:bold">void</span> *buf, size_t nbytes, <span style="color:#00688b;font-weight:bold">int</span> flags);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回接收的字节数（收到 EOF 返回 0），失败时返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">sockfd: 表示数据接受对象的连接的套接字文件描述符
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">buf: 保存接受数据的缓冲地址值
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">nbytes: 可接收的最大字节数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">flags: 接收数据时指定的可选项参数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>send 和 recv 函数都是最后一个参数是收发数据的可选项，该选项可以用位或（bit OR）运算符（| 运算符）同时传递多个信息。</p>
 <p>send &amp; recv 函数的可选项意义：</p>
@@ -1075,28 +1075,28 @@ color: #515151;
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch13/oob_send.c">oob_send.c</a></li>
 </ul>
 <p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc oob_send.c -o send
-gcc oob_recv.c -o recv
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc oob_send.c -o send
+</span></span><span style="display:flex;"><span>gcc oob_recv.c -o recv
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>运行结果：</p>
 <p><img src="https://i.loli.net/2019/01/26/5c4bda167ae08.png" alt=""></p>
 <p><img src="https://i.loli.net/2019/01/26/5c4bdb4d99823.png" alt=""></p>
 <p>从运行结果可以看出，send 是客户端，recv 是服务端，客户端给服务端发送消息，服务端接收完消息之后显示出来。可以从图中看出，每次运行的效果，并不是一样的。</p>
 <p>代码中关于:</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">fcntl(recv_sock, F_SETOWN, getpid());
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>fcntl(recv_sock, F_SETOWN, getpid());
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>的意思是：</p>
 <blockquote>
@@ -1116,13 +1116,13 @@ gcc oob_recv.c -o recv
 <p>MSG_OOB 的真正意义在于督促数据接收对象尽快处理数据。这是紧急模式的全部内容，而 TCP 「保持传输顺序」的传输特性依然成立。TCP 的紧急消息无法保证及时到达，但是可以要求急救。下面是 MSG_OOB 可选项状态下的数据传输过程，如图：</p>
 <p><img src="https://i.loli.net/2019/01/26/5c4be222845cc.png" alt=""></p>
 <p>上面是:</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">send(sock, <span style="color:#cd5555">&#34;890&#34;</span>, strlen(<span style="color:#cd5555">&#34;890&#34;</span>), MSG_OOB);
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>send(sock, <span style="color:#cd5555">&#34;890&#34;</span>, strlen(<span style="color:#cd5555">&#34;890&#34;</span>), MSG_OOB);
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>图上是调用这个函数的缓冲状态。如果缓冲最左端的位置视作偏移量 0 。字符 0 保存于偏移量 2 的位置。另外，字符 0 右侧偏移量为 3 的位置存有紧急指针（Urgent Pointer）。紧急指针指向紧急消息的下一个位置（偏移量加一），同时向对方主机传递一下信息：</p>
 <blockquote>
@@ -1158,44 +1158,44 @@ gcc peek_send.c -o send
 <p>对数据进行整合传输及发送的函数</p>
 </blockquote>
 <p>也就是说，通过 writev 函数可以将分散保存在多个缓冲中的数据一并发送，通过 readv 函数可以由多个缓冲分别接收。因此，适用这 2 个函数可以减少 I/O 函数的调用次数。下面先介绍 writev 函数。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/uio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">writev</span>(<span style="color:#00688b;font-weight:bold">int</span> filedes, <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">struct</span> iovec *iov, <span style="color:#00688b;font-weight:bold">int</span> iovcnt);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回发送的字节数，失败时返回 -1
-</span><span style="color:#228b22">filedes: 表示数据传输对象的套接字文件描述符。但该函数并不仅限于套接字，因此，可以像 read 一样向向其传递文件或标准输出描述符.
-</span><span style="color:#228b22">iov: iovec 结构体数组的地址值，结构体 iovec 中包含待发送数据的位置和大小信息
-</span><span style="color:#228b22">iovcnt: 向第二个参数传递数组长度
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/uio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">writev</span>(<span style="color:#00688b;font-weight:bold">int</span> filedes, <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">struct</span> iovec *iov, <span style="color:#00688b;font-weight:bold">int</span> iovcnt);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回发送的字节数，失败时返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">filedes: 表示数据传输对象的套接字文件描述符。但该函数并不仅限于套接字，因此，可以像 read 一样向向其传递文件或标准输出描述符.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">iov: iovec 结构体数组的地址值，结构体 iovec 中包含待发送数据的位置和大小信息
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">iovcnt: 向第二个参数传递数组长度
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>上述第二个参数中出现的数组 iovec 结构体的声明如下：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">struct</span> iovec
-{
-    <span style="color:#00688b;font-weight:bold">void</span> *iov_base; <span style="color:#228b22">//缓冲地址
-</span><span style="color:#228b22"></span>    size_t iov_len; <span style="color:#228b22">//缓冲大小
-</span><span style="color:#228b22"></span>};
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">struct</span> iovec
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">void</span> *iov_base; <span style="color:#228b22">//缓冲地址
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    size_t iov_len; <span style="color:#228b22">//缓冲大小
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>};
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>下图是该函数的使用方法：</p>
 <p><img src="https://i.loli.net/2019/01/26/5c4c61b07d207.png" alt=""></p>
@@ -1204,161 +1204,159 @@ gcc peek_send.c -o send
 <ul>
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch13/writev.c">writev.c</a></li>
 </ul>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/uio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
-{
-    <span style="color:#8b008b;font-weight:bold">struct</span> iovec vec[<span style="color:#b452cd">2</span>];
-    <span style="color:#00688b;font-weight:bold">char</span> buf1[] = <span style="color:#cd5555">&#34;ABCDEFG&#34;</span>;
-    <span style="color:#00688b;font-weight:bold">char</span> buf2[] = <span style="color:#cd5555">&#34;1234567&#34;</span>;
-    <span style="color:#00688b;font-weight:bold">int</span> str_len;
-
-    vec[<span style="color:#b452cd">0</span>].iov_base = buf1;
-    vec[<span style="color:#b452cd">0</span>].iov_len = <span style="color:#b452cd">3</span>;
-    vec[<span style="color:#b452cd">1</span>].iov_base = buf2;
-    vec[<span style="color:#b452cd">1</span>].iov_len = <span style="color:#b452cd">4</span>;
-
-    str_len = writev(<span style="color:#b452cd">1</span>, vec, <span style="color:#b452cd">2</span>);
-    puts(<span style="color:#cd5555">&#34;&#34;</span>);
-    printf(<span style="color:#cd5555">&#34;Write bytes: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, str_len);
-    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
-}
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/uio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">struct</span> iovec vec[<span style="color:#b452cd">2</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">char</span> buf1[] = <span style="color:#cd5555">&#34;ABCDEFG&#34;</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">char</span> buf2[] = <span style="color:#cd5555">&#34;1234567&#34;</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> str_len;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    vec[<span style="color:#b452cd">0</span>].iov_base = buf1;
+</span></span><span style="display:flex;"><span>    vec[<span style="color:#b452cd">0</span>].iov_len = <span style="color:#b452cd">3</span>;
+</span></span><span style="display:flex;"><span>    vec[<span style="color:#b452cd">1</span>].iov_base = buf2;
+</span></span><span style="display:flex;"><span>    vec[<span style="color:#b452cd">1</span>].iov_len = <span style="color:#b452cd">4</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    str_len = writev(<span style="color:#b452cd">1</span>, vec, <span style="color:#b452cd">2</span>);
+</span></span><span style="display:flex;"><span>    puts(<span style="color:#cd5555">&#34;&#34;</span>);
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#cd5555">&#34;Write bytes: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, str_len);
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc writev.c -o writev
-./writevi
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc writev.c -o writev
+</span></span><span style="display:flex;"><span>./writevi
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果：</p>
 <pre tabindex="0"><code>ABC1234
 Write bytes: 7
 </code></pre><p>下面介绍 readv 函数，功能和 writev 函数正好相反.函数为：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/uio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">readv</span>(<span style="color:#00688b;font-weight:bold">int</span> filedes, <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">struct</span> iovc *iov, <span style="color:#00688b;font-weight:bold">int</span> iovcnt);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回接收的字节数，失败时返回 -1
-</span><span style="color:#228b22">filedes: 表示数据传输对象的套接字文件描述符。但该函数并不仅限于套接字，因此，可以像 read 一样向向其传递文件或标准输出描述符.
-</span><span style="color:#228b22">iov: iovec 结构体数组的地址值，结构体 iovec 中包含待发送数据的位置和大小信息
-</span><span style="color:#228b22">iovcnt: 向第二个参数传递数组长度
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/uio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">readv</span>(<span style="color:#00688b;font-weight:bold">int</span> filedes, <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">struct</span> iovc *iov, <span style="color:#00688b;font-weight:bold">int</span> iovcnt);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回接收的字节数，失败时返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">filedes: 表示数据传输对象的套接字文件描述符。但该函数并不仅限于套接字，因此，可以像 read 一样向向其传递文件或标准输出描述符.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">iov: iovec 结构体数组的地址值，结构体 iovec 中包含待发送数据的位置和大小信息
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">iovcnt: 向第二个参数传递数组长度
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>下面是示例代码：</p>
 <ul>
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch13/readv.c">readv.c</a></li>
 </ul>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/uio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#define BUF_SIZE 100
-</span><span style="color:#1e889b"></span>
-<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
-{
-    <span style="color:#8b008b;font-weight:bold">struct</span> iovec vec[<span style="color:#b452cd">2</span>];
-    <span style="color:#00688b;font-weight:bold">char</span> buf1[BUF_SIZE] = {
-        <span style="color:#b452cd">0</span>,
-    };
-    <span style="color:#00688b;font-weight:bold">char</span> buf2[BUF_SIZE] = {
-        <span style="color:#b452cd">0</span>,
-    };
-    <span style="color:#00688b;font-weight:bold">int</span> str_len;
-
-    vec[<span style="color:#b452cd">0</span>].iov_base = buf1;
-    vec[<span style="color:#b452cd">0</span>].iov_len = <span style="color:#b452cd">5</span>;
-    vec[<span style="color:#b452cd">1</span>].iov_base = buf2;
-    vec[<span style="color:#b452cd">1</span>].iov_len = BUF_SIZE;
-
-    str_len = readv(<span style="color:#b452cd">0</span>, vec, <span style="color:#b452cd">2</span>);
-    printf(<span style="color:#cd5555">&#34;Read bytes: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, str_len);
-    printf(<span style="color:#cd5555">&#34;First message: %s </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, buf1);
-    printf(<span style="color:#cd5555">&#34;Second message: %s </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, buf2);
-    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
-}
-
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/uio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#define BUF_SIZE 100
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">struct</span> iovec vec[<span style="color:#b452cd">2</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">char</span> buf1[BUF_SIZE] = {
+</span></span><span style="display:flex;"><span>        <span style="color:#b452cd">0</span>,
+</span></span><span style="display:flex;"><span>    };
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">char</span> buf2[BUF_SIZE] = {
+</span></span><span style="display:flex;"><span>        <span style="color:#b452cd">0</span>,
+</span></span><span style="display:flex;"><span>    };
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> str_len;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    vec[<span style="color:#b452cd">0</span>].iov_base = buf1;
+</span></span><span style="display:flex;"><span>    vec[<span style="color:#b452cd">0</span>].iov_len = <span style="color:#b452cd">5</span>;
+</span></span><span style="display:flex;"><span>    vec[<span style="color:#b452cd">1</span>].iov_base = buf2;
+</span></span><span style="display:flex;"><span>    vec[<span style="color:#b452cd">1</span>].iov_len = BUF_SIZE;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    str_len = readv(<span style="color:#b452cd">0</span>, vec, <span style="color:#b452cd">2</span>);
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#cd5555">&#34;Read bytes: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, str_len);
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#cd5555">&#34;First message: %s </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, buf1);
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#cd5555">&#34;Second message: %s </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, buf2);
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc readv.c -o rv
-./rv
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc readv.c -o rv
+</span></span><span style="display:flex;"><span>./rv
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>运行结果：</p>
 <p><img src="https://i.loli.net/2019/01/26/5c4c718555398.png" alt=""></p>

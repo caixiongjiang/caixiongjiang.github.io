@@ -18,14 +18,14 @@
 
 <meta property="og:title" content="《TCP/IP网络编程》第 10 章 多进程服务器端 笔记" />
 <meta property="og:description" content="第 10 章 多进程服务器端 10.1 进程概念及应用 10.1.1 并发服务端的实现方法 通过改进服务端，使其同时向所有发起请求的客户端提供服务，以提高平均满意度。而且，网络程序中数据通信时间比 CPU 运算时间占比更大，因此，向多个客户端提供服务是一种有效的利用 CPU 的方式。接下来讨论同时向多个客户端提供服务的并发服务器端。下面列出的是具有代表性的并发服务端的实现模型和方法：
- 多进程服务器：通过创建多个进程提供服务 多路复用服务器：通过捆绑并统一管理 I/O 对象提供服务 多线程服务器：通过生成与客户端等量的线程提供服务  先是第一种方法：多进程服务器
+多进程服务器：通过创建多个进程提供服务 多路复用服务器：通过捆绑并统一管理 I/O 对象提供服务 多线程服务器：通过生成与客户端等量的线程提供服务 先是第一种方法：多进程服务器
 10.1.2 理解进程 进程的定义如下：
- 占用内存空间的正在运行的程序
- 假如你下载了一个游戏到电脑上，此时的游戏不是进程，而是程序。只有当游戏被加载到主内存并进入运行状态，这是才可称为进程。
+占用内存空间的正在运行的程序
+假如你下载了一个游戏到电脑上，此时的游戏不是进程，而是程序。只有当游戏被加载到主内存并进入运行状态，这是才可称为进程。
 10.1.3 进程 ID 在说进程创建方法之前，先要简要说明进程 ID。无论进程是如何创建的，所有的进程都会被操作系统分配一个 ID。此 ID 被称为「进程ID」，其值为大于 2 的证书。1 要分配给操作系统启动后的（用于协助操作系统）首个进程，因此用户无法得到 ID 值为 1 。接下来观察在 Linux 中运行的进程。
-1  ps au   通过上面的命令可查看当前运行的所有进程。需要注意的是，该命令同时列出了 PID（进程ID）。参数 a 和 u列出了所有进程的详细信息。
+1 ps au 通过上面的命令可查看当前运行的所有进程。需要注意的是，该命令同时列出了 PID（进程ID）。参数 a 和 u列出了所有进程的详细信息。
 10.1.4 通过调用 fork 函数创建进程 创建进程的方式很多，此处只介绍用于创建多进程服务端的 fork 函数。
-1 2 3  #include &lt;unistd.h&gt;pid_t fork(void); // 成功时返回进程ID,失败时返回 -1   fork 函数将创建调用的进程副本。也就是说，并非根据完全不同的程序创建进程，而是复制正在运行的、调用 fork 函数的进程。另外，两个进程都执行 fork 函数调用后的语句（准确的说是在 fork 函数返回后）。但因为是通过同一个进程、复制相同的内存空间，之后的程序流要根据 fork 函数的返回值加以区分。即利用 fork 函数的如下特点区分程序执行流程。" />
+1 2 3 #include &lt;unistd.h&gt; pid_t fork(void); // 成功时返回进程ID,失败时返回 -1 fork 函数将创建调用的进程副本。也就是说，并非根据完全不同的程序创建进程，而是复制正在运行的、调用 fork 函数的进程。另外，两个进程都执行 fork 函数调用后的语句（准确的说是在 fork 函数返回后）。但因为是通过同一个进程、复制相同的内存空间，之后的程序流要根据 fork 函数的返回值加以区分。即利用 fork 函数的如下特点区分程序执行流程。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-10-%E7%AB%A0-%E5%A4%9A%E8%BF%9B%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF-%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="blog" />
 <meta property="article:published_time" content="2022-03-30T15:59:25+08:00" />
@@ -1495,7 +1495,7 @@ color: #515151;
                             
                             38 min
                             
-                            39 s.
+                            45 s.
                         
                     </div>
                 </div>
@@ -1523,29 +1523,29 @@ color: #515151;
 <p>假如你下载了一个游戏到电脑上，此时的游戏不是进程，而是程序。只有当游戏被加载到主内存并进入运行状态，这是才可称为进程。</p>
 <h4 id="1013-进程-id">10.1.3 进程 ID</h4>
 <p>在说进程创建方法之前，先要简要说明进程 ID。无论进程是如何创建的，所有的进程都会被操作系统分配一个 ID。此 ID 被称为「进程ID」，其值为大于 2 的证书。1 要分配给操作系统启动后的（用于协助操作系统）首个进程，因此用户无法得到 ID 值为 1 。接下来观察在 Linux 中运行的进程。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">ps au
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>ps au
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>通过上面的命令可查看当前运行的所有进程。需要注意的是，该命令同时列出了 PID（进程ID）。参数 a 和 u列出了所有进程的详细信息。</p>
 <p><img src="https://i.loli.net/2019/01/20/5c43d7c1f2a8b.png" alt=""></p>
 <h4 id="1014-通过调用-fork-函数创建进程">10.1.4 通过调用 fork 函数创建进程</h4>
 <p>创建进程的方式很多，此处只介绍用于创建多进程服务端的 fork 函数。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>pid_t <span style="color:#008b45">fork</span>(<span style="color:#00688b;font-weight:bold">void</span>);
-<span style="color:#228b22">// 成功时返回进程ID,失败时返回 -1
-</span></code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>pid_t <span style="color:#008b45">fork</span>(<span style="color:#00688b;font-weight:bold">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// 成功时返回进程ID,失败时返回 -1
+</span></span></span></code></pre></td></tr></table>
 </div>
 </div><p>fork 函数将创建调用的进程副本。也就是说，并非根据完全不同的程序创建进程，而是复制正在运行的、调用 fork 函数的进程。另外，两个进程都执行 fork 函数调用后的语句（准确的说是在 fork 函数返回后）。但因为是通过同一个进程、复制相同的内存空间，之后的程序流要根据 fork 函数的返回值加以区分。即利用 fork 函数的如下特点区分程序执行流程。</p>
 <ul>
@@ -1558,60 +1558,60 @@ color: #515151;
 <ul>
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/fork.c">fork.c</a></li>
 </ul>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> gval = <span style="color:#b452cd">10</span>;
-<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
-{
-    pid_t pid;
-    <span style="color:#00688b;font-weight:bold">int</span> lval = <span style="color:#b452cd">20</span>;
-    gval++, lval += <span style="color:#b452cd">5</span>;
-    pid = fork();
-    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
-        gval += <span style="color:#b452cd">2</span>, lval += <span style="color:#b452cd">2</span>;
-    <span style="color:#8b008b;font-weight:bold">else</span>
-        gval -= <span style="color:#b452cd">2</span>, lval -= <span style="color:#b452cd">2</span>;
-    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
-        printf(<span style="color:#cd5555">&#34;Child Proc: [%d,%d] </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, gval, lval);
-    <span style="color:#8b008b;font-weight:bold">else</span>
-        printf(<span style="color:#cd5555">&#34;Parent Proc: [%d,%d] </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, gval, lval);
-    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
-}
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> gval = <span style="color:#b452cd">10</span>;
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    pid_t pid;
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> lval = <span style="color:#b452cd">20</span>;
+</span></span><span style="display:flex;"><span>    gval++, lval += <span style="color:#b452cd">5</span>;
+</span></span><span style="display:flex;"><span>    pid = fork();
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>        gval += <span style="color:#b452cd">2</span>, lval += <span style="color:#b452cd">2</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">else</span>
+</span></span><span style="display:flex;"><span>        gval -= <span style="color:#b452cd">2</span>, lval -= <span style="color:#b452cd">2</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>        printf(<span style="color:#cd5555">&#34;Child Proc: [%d,%d] </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, gval, lval);
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">else</span>
+</span></span><span style="display:flex;"><span>        printf(<span style="color:#cd5555">&#34;Parent Proc: [%d,%d] </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, gval, lval);
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc fork.c -o fork
-./fork
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc fork.c -o fork
+</span></span><span style="display:flex;"><span>./fork
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>运行结果：</p>
 <p><img src="https://i.loli.net/2019/01/20/5c43e054e7f6f.png" alt=""></p>
@@ -1646,62 +1646,62 @@ color: #515151;
 <ul>
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/zombie.c">zombie.c</a></li>
 </ul>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
-{
-    pid_t pid = fork();
-    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
-    {
-        puts(<span style="color:#cd5555">&#34;Hi, I am a child Process&#34;</span>);
-    }
-    <span style="color:#8b008b;font-weight:bold">else</span>
-    {
-        printf(<span style="color:#cd5555">&#34;Child Process ID: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
-        sleep(<span style="color:#b452cd">30</span>);
-    }
-    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
-        puts(<span style="color:#cd5555">&#34;End child proess&#34;</span>);
-    <span style="color:#8b008b;font-weight:bold">else</span>
-        puts(<span style="color:#cd5555">&#34;End parent process&#34;</span>);
-    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
-}
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    pid_t pid = fork();
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        puts(<span style="color:#cd5555">&#34;Hi, I am a child Process&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">else</span>
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        printf(<span style="color:#cd5555">&#34;Child Process ID: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
+</span></span><span style="display:flex;"><span>        sleep(<span style="color:#b452cd">30</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>        puts(<span style="color:#cd5555">&#34;End child proess&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">else</span>
+</span></span><span style="display:flex;"><span>        puts(<span style="color:#cd5555">&#34;End parent process&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc zombie.c -o zombie
-./zombie
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc zombie.c -o zombie
+</span></span><span style="display:flex;"><span>./zombie
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果：</p>
 <p><img src="https://i.loli.net/2019/01/20/5c443890f1781.png" alt=""></p>
@@ -1713,21 +1713,21 @@ color: #515151;
 </blockquote>
 <h4 id="1023-销毁僵尸进程-1利用-wait-函数">10.2.3 销毁僵尸进程 1：利用 wait 函数</h4>
 <p>如前所述，为了销毁子进程，父进程应该主动请求获取子进程的返回值。下面是发起请求的具体方法。有两种，下面的函数是其中一种。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>pid_t <span style="color:#008b45">wait</span>(<span style="color:#00688b;font-weight:bold">int</span> *statloc);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回终止的子进程 ID ,失败时返回 -1
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>pid_t <span style="color:#008b45">wait</span>(<span style="color:#00688b;font-weight:bold">int</span> *statloc);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回终止的子进程 ID ,失败时返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>调用此函数时如果已有子进程终止，那么子进程终止时传递的返回值（exit 函数的参数返回值，main 函数的 return 返回值）将保存到该函数的参数所指的内存空间。但函数参数指向的单元中还包含其他信息，因此需要用下列宏进行分离：</p>
 <ul>
@@ -1735,116 +1735,116 @@ color: #515151;
 <li>WEXITSTATUS 返回子进程时的返回值</li>
 </ul>
 <p>也就是说，向 wait 函数传递变量 status 的地址时，调用 wait 函数后应编写如下代码：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
-{
-    puts(<span style="color:#cd5555">&#34;Normal termination&#34;</span>);
-    printf(<span style="color:#cd5555">&#34;Child pass num: %d&#34;</span>, WEXITSTATUS(status));
-}
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    puts(<span style="color:#cd5555">&#34;Normal termination&#34;</span>);
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#cd5555">&#34;Child pass num: %d&#34;</span>, WEXITSTATUS(status));
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>根据以上内容，有如下示例：</p>
 <ul>
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/wait.c">wait.c</a></li>
 </ul>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdlib.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>
-<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
-{
-    <span style="color:#00688b;font-weight:bold">int</span> status;
-    pid_t pid = fork(); <span style="color:#228b22">//这里的子进程将在第13行通过 return 语句终止
-</span><span style="color:#228b22"></span>
-    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
-    {
-        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">3</span>;
-    }
-    <span style="color:#8b008b;font-weight:bold">else</span>
-    {
-        printf(<span style="color:#cd5555">&#34;Child PID: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
-        pid = fork(); <span style="color:#228b22">//这里的子进程将在 21 行通过 exit() 函数终止
-</span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
-        {
-            exit(<span style="color:#b452cd">7</span>);
-        }
-        <span style="color:#8b008b;font-weight:bold">else</span>
-        {
-            printf(<span style="color:#cd5555">&#34;Child PID: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
-            wait(&amp;status);         <span style="color:#228b22">//之间终止的子进程相关信息将被保存到 status 中，同时相关子进程被完全销毁
-</span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status)) <span style="color:#228b22">//通过 WIFEXITED 来验证子进程是否正常终止。如果正常终止，则调用 WEXITSTATUS 宏输出子进程返回值
-</span><span style="color:#228b22"></span>                printf(<span style="color:#cd5555">&#34;Child send one: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status));
-
-            wait(&amp;status); <span style="color:#228b22">//因为之前创建了两个进程，所以再次调用 wait 函数和宏
-</span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
-                printf(<span style="color:#cd5555">&#34;Child send two: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status));
-            sleep(<span style="color:#b452cd">30</span>);
-        }
-    }
-    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
-}
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdlib.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> status;
+</span></span><span style="display:flex;"><span>    pid_t pid = fork(); <span style="color:#228b22">//这里的子进程将在第13行通过 return 语句终止
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">3</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">else</span>
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        printf(<span style="color:#cd5555">&#34;Child PID: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
+</span></span><span style="display:flex;"><span>        pid = fork(); <span style="color:#228b22">//这里的子进程将在 21 行通过 exit() 函数终止
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            exit(<span style="color:#b452cd">7</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">else</span>
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            printf(<span style="color:#cd5555">&#34;Child PID: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
+</span></span><span style="display:flex;"><span>            wait(&amp;status);         <span style="color:#228b22">//之间终止的子进程相关信息将被保存到 status 中，同时相关子进程被完全销毁
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status)) <span style="color:#228b22">//通过 WIFEXITED 来验证子进程是否正常终止。如果正常终止，则调用 WEXITSTATUS 宏输出子进程返回值
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                printf(<span style="color:#cd5555">&#34;Child send one: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            wait(&amp;status); <span style="color:#228b22">//因为之前创建了两个进程，所以再次调用 wait 函数和宏
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
+</span></span><span style="display:flex;"><span>                printf(<span style="color:#cd5555">&#34;Child send two: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status));
+</span></span><span style="display:flex;"><span>            sleep(<span style="color:#b452cd">30</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc wait.c -o <span style="color:#658b00">wait</span>
-./wait
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc wait.c -o <span style="color:#658b00">wait</span>
+</span></span><span style="display:flex;"><span>./wait
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果：</p>
 <p><img src="https://i.loli.net/2019/01/20/5c4441951df43.png" alt=""></p>
@@ -1852,98 +1852,98 @@ color: #515151;
 <p>这就是通过 wait 函数消灭僵尸进程的方法，调用 wait 函数时，如果没有已经终止的子进程，那么程序将阻塞（Blocking）直到有子进程终止，因此要谨慎调用该函数。</p>
 <h4 id="1024-销毁僵尸进程-2使用-waitpid-函数">10.2.4 销毁僵尸进程 2：使用 waitpid 函数</h4>
 <p>wait 函数会引起程序阻塞，还可以考虑调用 waitpid 函数。这是防止僵尸进程的第二种方法，也是防止阻塞的方法。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>pid_t <span style="color:#008b45">waitpid</span>(pid_t pid, <span style="color:#00688b;font-weight:bold">int</span> *statloc, <span style="color:#00688b;font-weight:bold">int</span> options);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回终止的子进程ID 或 0 ，失败时返回 -1
-</span><span style="color:#228b22">pid: 等待终止的目标子进程的ID,若传 -1，则与 wait 函数相同，可以等待任意子进程终止
-</span><span style="color:#228b22">statloc: 与 wait 函数的 statloc 参数具有相同含义
-</span><span style="color:#228b22">options: 传递头文件 sys/wait.h 声明的常量 WNOHANG ,即使没有终止的子进程也不会进入阻塞状态，而是返回 0 退出函数。
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>pid_t <span style="color:#008b45">waitpid</span>(pid_t pid, <span style="color:#00688b;font-weight:bold">int</span> *statloc, <span style="color:#00688b;font-weight:bold">int</span> options);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回终止的子进程ID 或 0 ，失败时返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">pid: 等待终止的目标子进程的ID,若传 -1，则与 wait 函数相同，可以等待任意子进程终止
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">statloc: 与 wait 函数的 statloc 参数具有相同含义
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">options: 传递头文件 sys/wait.h 声明的常量 WNOHANG ,即使没有终止的子进程也不会进入阻塞状态，而是返回 0 退出函数。
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>以下是 waitpid 的使用示例：</p>
 <ul>
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/waitpid.c">waitpid.c</a></li>
 </ul>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
-{
-    <span style="color:#00688b;font-weight:bold">int</span> status;
-    pid_t pid = fork();
-    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
-    {
-        sleep(<span style="color:#b452cd">15</span>); <span style="color:#228b22">//用 sleep 推迟子进程的执行
-</span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">24</span>;
-    }
-    <span style="color:#8b008b;font-weight:bold">else</span>
-    {
-        <span style="color:#228b22">//调用waitpid 传递参数 WNOHANG ，这样之前有没有终止的子进程则返回0
-</span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">while</span> (!waitpid(-<span style="color:#b452cd">1</span>, &amp;status, WNOHANG))
-        {
-            sleep(<span style="color:#b452cd">3</span>);
-            puts(<span style="color:#cd5555">&#34;sleep 3 sec.&#34;</span>);
-        }
-        <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
-            printf(<span style="color:#cd5555">&#34;Child send %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status));
-    }
-    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
-}
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> status;
+</span></span><span style="display:flex;"><span>    pid_t pid = fork();
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        sleep(<span style="color:#b452cd">15</span>); <span style="color:#228b22">//用 sleep 推迟子进程的执行
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">24</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">else</span>
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">//调用waitpid 传递参数 WNOHANG ，这样之前有没有终止的子进程则返回0
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">while</span> (!waitpid(-<span style="color:#b452cd">1</span>, &amp;status, WNOHANG))
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            sleep(<span style="color:#b452cd">3</span>);
+</span></span><span style="display:flex;"><span>            puts(<span style="color:#cd5555">&#34;sleep 3 sec.&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
+</span></span><span style="display:flex;"><span>            printf(<span style="color:#cd5555">&#34;Child send %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status));
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc waitpid.c -o waitpid
-./waitpid
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc waitpid.c -o waitpid
+</span></span><span style="display:flex;"><span>./waitpid
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果:</p>
 <p><img src="https://i.loli.net/2019/01/20/5c444785a16ae.png" alt=""></p>
@@ -1963,27 +1963,27 @@ color: #515151;
 <p>操作系统：好的，如果你的子进程终止，我舅帮你调用 zombie_handler 函数，你先把要函数要执行的语句写好。</p>
 </blockquote>
 <p>上述的对话，相当于「注册信号」的过程。即进程发现自己的子进程结束时，请求操作系统调用的特定函数。该请求可以通过如下函数调用完成：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">void</span> (*signal(<span style="color:#00688b;font-weight:bold">int</span> signo, <span style="color:#00688b;font-weight:bold">void</span> (*func)(<span style="color:#00688b;font-weight:bold">int</span>)))(<span style="color:#00688b;font-weight:bold">int</span>);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">为了在产生信号时调用，返回之前注册的函数指针
-</span><span style="color:#228b22">函数名: signal
-</span><span style="color:#228b22">参数：int signo,void(*func)(int)
-</span><span style="color:#228b22">返回类型：参数类型为int型，返回 void 型函数指针
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">void</span> (*signal(<span style="color:#00688b;font-weight:bold">int</span> signo, <span style="color:#00688b;font-weight:bold">void</span> (*func)(<span style="color:#00688b;font-weight:bold">int</span>)))(<span style="color:#00688b;font-weight:bold">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">为了在产生信号时调用，返回之前注册的函数指针
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">函数名: signal
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">参数：int signo,void(*func)(int)
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">返回类型：参数类型为int型，返回 void 型函数指针
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>调用上述函数时，第一个参数为特殊情况信息，第二个参数为特殊情况下将要调用的函数的地址值（指针）。发生第一个参数代表的情况时，调用第二个参数所指的函数。下面给出可以在 signal 函数中注册的部分特殊情况和对应的函数。</p>
 <ul>
@@ -1996,13 +1996,13 @@ color: #515151;
 <p>「子进程终止则调用 mychild 函数」</p>
 </blockquote>
 <p>此时 mychild 函数的参数应为 int ，返回值类型应为 void 。只有这样才能称为 signal 函数的第二个参数。另外，常数 SIGCHLD 定义了子进程终止的情况，应成为 signal 函数的第一个参数。也就是说，signal 函数调用语句如下：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">signal(SIGCHLD , mychild);
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>signal(SIGCHLD , mychild);
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>接下来编写 signal 函数的调用语句，分别完成如下两个请求：</p>
 <ol>
@@ -2010,105 +2010,105 @@ color: #515151;
 <li>输入 ctrl+c 时调用 keycontrol 函数</li>
 </ol>
 <p>代表这 2 种情况的常数分别为 SIGALRM 和 SIGINT ，因此按如下方式调用 signal 函数。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">signal(SIGALRM , timeout);
-signal(SIGINT , keycontrol);
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>signal(SIGALRM , timeout);
+</span></span><span style="display:flex;"><span>signal(SIGINT , keycontrol);
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>以上就是信号注册过程。注册好信号之后，发生注册信号时（注册的情况发生时），操作系统将调用该信号对应的函数。先介绍 alarm 函数。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">alarm</span>(<span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">int</span> seconds);
-<span style="color:#228b22">// 返回0或以秒为单位的距 SIGALRM 信号发生所剩时间
-</span></code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">alarm</span>(<span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">int</span> seconds);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// 返回0或以秒为单位的距 SIGALRM 信号发生所剩时间
+</span></span></span></code></pre></td></tr></table>
 </div>
 </div><p>如果调用该函数的同时向它传递一个正整型参数，相应时间后（以秒为单位）将产生 SIGALRM 信号。若向该函数传递为 0 ，则之前对 SIGALRM 信号的预约将取消。如果通过改函数预约信号后未指定该信号对应的处理函数，则（通过调用 signal 函数）终止进程，不做任何处理。</p>
 <ul>
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/signal.c">signal.c</a></li>
 </ul>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">timeout</span>(<span style="color:#00688b;font-weight:bold">int</span> sig) <span style="color:#228b22">//信号处理器
-</span><span style="color:#228b22"></span>{
-    <span style="color:#8b008b;font-weight:bold">if</span> (sig == SIGALRM)
-        puts(<span style="color:#cd5555">&#34;Time out!&#34;</span>);
-    alarm(<span style="color:#b452cd">2</span>); <span style="color:#228b22">//为了每隔 2 秒重复产生 SIGALRM 信号，在信号处理器中调用 alarm 函数
-</span><span style="color:#228b22"></span>}
-<span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">keycontrol</span>(<span style="color:#00688b;font-weight:bold">int</span> sig) <span style="color:#228b22">//信号处理器
-</span><span style="color:#228b22"></span>{
-    <span style="color:#8b008b;font-weight:bold">if</span> (sig == SIGINT)
-        puts(<span style="color:#cd5555">&#34;CTRL+C pressed&#34;</span>);
-}
-<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
-{
-    <span style="color:#00688b;font-weight:bold">int</span> i;
-    signal(SIGALRM, timeout); <span style="color:#228b22">//注册信号及相应处理器
-</span><span style="color:#228b22"></span>    signal(SIGINT, keycontrol);
-    alarm(<span style="color:#b452cd">2</span>); <span style="color:#228b22">//预约 2 秒候发生 SIGALRM 信号
-</span><span style="color:#228b22"></span>
-    <span style="color:#8b008b;font-weight:bold">for</span> (i = <span style="color:#b452cd">0</span>; i &lt; <span style="color:#b452cd">3</span>; i++)
-    {
-        puts(<span style="color:#cd5555">&#34;wait...&#34;</span>);
-        sleep(<span style="color:#b452cd">100</span>);
-    }
-    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
-}
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">timeout</span>(<span style="color:#00688b;font-weight:bold">int</span> sig) <span style="color:#228b22">//信号处理器
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (sig == SIGALRM)
+</span></span><span style="display:flex;"><span>        puts(<span style="color:#cd5555">&#34;Time out!&#34;</span>);
+</span></span><span style="display:flex;"><span>    alarm(<span style="color:#b452cd">2</span>); <span style="color:#228b22">//为了每隔 2 秒重复产生 SIGALRM 信号，在信号处理器中调用 alarm 函数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">keycontrol</span>(<span style="color:#00688b;font-weight:bold">int</span> sig) <span style="color:#228b22">//信号处理器
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (sig == SIGINT)
+</span></span><span style="display:flex;"><span>        puts(<span style="color:#cd5555">&#34;CTRL+C pressed&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> i;
+</span></span><span style="display:flex;"><span>    signal(SIGALRM, timeout); <span style="color:#228b22">//注册信号及相应处理器
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    signal(SIGINT, keycontrol);
+</span></span><span style="display:flex;"><span>    alarm(<span style="color:#b452cd">2</span>); <span style="color:#228b22">//预约 2 秒候发生 SIGALRM 信号
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> (i = <span style="color:#b452cd">0</span>; i &lt; <span style="color:#b452cd">3</span>; i++)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        puts(<span style="color:#cd5555">&#34;wait...&#34;</span>);
+</span></span><span style="display:flex;"><span>        sleep(<span style="color:#b452cd">100</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc signal.c -o signal
-./signal
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc signal.c -o signal
+</span></span><span style="display:flex;"><span>./signal
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果：</p>
 <p><img src="https://i.loli.net/2019/01/20/5c446c877acb7.png" alt=""></p>
@@ -2126,128 +2126,126 @@ signal(SIGINT , keycontrol);
 <p>signal 函数在 Unix 系列的不同操作系统可能存在区别，但 sigaction 函数完全相同</p>
 </blockquote>
 <p>实际上现在很少用 signal 函数编写程序，他只是为了保持对旧程序的兼容，下面介绍 sigaction 函数，只讲解可以替换 signal 函数的功能。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>
-<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">sigaction</span>(<span style="color:#00688b;font-weight:bold">int</span> signo, <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">struct</span> sigaction *act, <span style="color:#8b008b;font-weight:bold">struct</span> sigaction *oldact);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回 0 ，失败时返回 -1
-</span><span style="color:#228b22">act: 对于第一个参数的信号处理函数（信号处理器）信息。
-</span><span style="color:#228b22">oldact: 通过此参数获取之前注册的信号处理函数指针，若不需要则传递 0
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">sigaction</span>(<span style="color:#00688b;font-weight:bold">int</span> signo, <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">struct</span> sigaction *act, <span style="color:#8b008b;font-weight:bold">struct</span> sigaction *oldact);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回 0 ，失败时返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">act: 对于第一个参数的信号处理函数（信号处理器）信息。
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">oldact: 通过此参数获取之前注册的信号处理函数指针，若不需要则传递 0
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>声明并初始化 sigaction 结构体变量以调用上述函数，该结构体定义如下：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8b008b;font-weight:bold">struct</span> sigaction
-{
-    <span style="color:#00688b;font-weight:bold">void</span> (*sa_handler)(<span style="color:#00688b;font-weight:bold">int</span>);
-    sigset_t sa_mask;
-    <span style="color:#00688b;font-weight:bold">int</span> sa_flags;
-};
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">struct</span> sigaction
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">void</span> (*sa_handler)(<span style="color:#00688b;font-weight:bold">int</span>);
+</span></span><span style="display:flex;"><span>    sigset_t sa_mask;
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> sa_flags;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>此结构体的成员 sa_handler 保存信号处理的函数指针值（地址值）。sa_mask 和 sa_flags 的所有位初始化 0 即可。这 2 个成员用于指定信号相关的选项和特性，而我们的目的主要是防止产生僵尸进程，故省略。</p>
 <p>下面的示例是关于 sigaction 函数的使用方法。</p>
 <ul>
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/sigaction.c">sigaction.c</a></li>
 </ul>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>
-<span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">timeout</span>(<span style="color:#00688b;font-weight:bold">int</span> sig)
-{
-    <span style="color:#8b008b;font-weight:bold">if</span> (sig == SIGALRM)
-        puts(<span style="color:#cd5555">&#34;Time out!&#34;</span>);
-    alarm(<span style="color:#b452cd">2</span>);
-}
-
-<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
-{
-    <span style="color:#00688b;font-weight:bold">int</span> i;
-    <span style="color:#8b008b;font-weight:bold">struct</span> sigaction act;
-    act.sa_handler = timeout;    <span style="color:#228b22">//保存函数指针
-</span><span style="color:#228b22"></span>    sigemptyset(&amp;act.sa_mask);   <span style="color:#228b22">//将 sa_mask 函数的所有位初始化成0
-</span><span style="color:#228b22"></span>    act.sa_flags = <span style="color:#b452cd">0</span>;            <span style="color:#228b22">//sa_flags 同样初始化成 0
-</span><span style="color:#228b22"></span>    sigaction(SIGALRM, &amp;act, <span style="color:#b452cd">0</span>); <span style="color:#228b22">//注册 SIGALRM 信号的处理器。
-</span><span style="color:#228b22"></span>
-    alarm(<span style="color:#b452cd">2</span>); <span style="color:#228b22">//2 秒后发生 SIGALRM 信号
-</span><span style="color:#228b22"></span>
-    <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = <span style="color:#b452cd">0</span>; i &lt; <span style="color:#b452cd">3</span>; i++)
-    {
-        puts(<span style="color:#cd5555">&#34;wait...&#34;</span>);
-        sleep(<span style="color:#b452cd">100</span>);
-    }
-    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
-}
-
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">timeout</span>(<span style="color:#00688b;font-weight:bold">int</span> sig)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (sig == SIGALRM)
+</span></span><span style="display:flex;"><span>        puts(<span style="color:#cd5555">&#34;Time out!&#34;</span>);
+</span></span><span style="display:flex;"><span>    alarm(<span style="color:#b452cd">2</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> i;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">struct</span> sigaction act;
+</span></span><span style="display:flex;"><span>    act.sa_handler = timeout;    <span style="color:#228b22">//保存函数指针
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    sigemptyset(&amp;act.sa_mask);   <span style="color:#228b22">//将 sa_mask 函数的所有位初始化成0
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    act.sa_flags = <span style="color:#b452cd">0</span>;            <span style="color:#228b22">//sa_flags 同样初始化成 0
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    sigaction(SIGALRM, &amp;act, <span style="color:#b452cd">0</span>); <span style="color:#228b22">//注册 SIGALRM 信号的处理器。
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>
+</span></span><span style="display:flex;"><span>    alarm(<span style="color:#b452cd">2</span>); <span style="color:#228b22">//2 秒后发生 SIGALRM 信号
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = <span style="color:#b452cd">0</span>; i &lt; <span style="color:#b452cd">3</span>; i++)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        puts(<span style="color:#cd5555">&#34;wait...&#34;</span>);
+</span></span><span style="display:flex;"><span>        sleep(<span style="color:#b452cd">100</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc sigaction.c -o sigaction
-./sigaction
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc sigaction.c -o sigaction
+</span></span><span style="display:flex;"><span>./sigaction
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果：</p>
 <pre tabindex="0"><code>wait...
@@ -2262,141 +2260,141 @@ Time out!
 <ul>
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/remove_zomebie.c">remove_zomebie.c</a></li>
 </ul>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdlib.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>
-<span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">read_childproc</span>(<span style="color:#00688b;font-weight:bold">int</span> sig)
-{
-    <span style="color:#00688b;font-weight:bold">int</span> status;
-    pid_t id = waitpid(-<span style="color:#b452cd">1</span>, &amp;status, WNOHANG);
-    <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
-    {
-        printf(<span style="color:#cd5555">&#34;Removed proc id: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, id);             <span style="color:#228b22">//子进程的 pid
-</span><span style="color:#228b22"></span>        printf(<span style="color:#cd5555">&#34;Child send: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status)); <span style="color:#228b22">//子进程的返回值
-</span><span style="color:#228b22"></span>    }
-}
-
-<span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
-{
-    pid_t pid;
-    <span style="color:#8b008b;font-weight:bold">struct</span> sigaction act;
-    act.sa_handler = read_childproc;
-    sigemptyset(&amp;act.sa_mask);
-    act.sa_flags = <span style="color:#b452cd">0</span>;
-    sigaction(SIGCHLD, &amp;act, <span style="color:#b452cd">0</span>);
-
-    pid = fork();
-    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>) <span style="color:#228b22">//子进程执行阶段
-</span><span style="color:#228b22"></span>    {
-        puts(<span style="color:#cd5555">&#34;Hi I&#39;m child process&#34;</span>);
-        sleep(<span style="color:#b452cd">10</span>);
-        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">12</span>;
-    }
-    <span style="color:#8b008b;font-weight:bold">else</span> <span style="color:#228b22">//父进程执行阶段
-</span><span style="color:#228b22"></span>    {
-        printf(<span style="color:#cd5555">&#34;Child proc id: %d</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
-        pid = fork();
-        <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
-        {
-            puts(<span style="color:#cd5555">&#34;Hi! I&#39;m child process&#34;</span>);
-            sleep(<span style="color:#b452cd">10</span>);
-            exit(<span style="color:#b452cd">24</span>);
-        }
-        <span style="color:#8b008b;font-weight:bold">else</span>
-        {
-            <span style="color:#00688b;font-weight:bold">int</span> i;
-            printf(<span style="color:#cd5555">&#34;Child proc id: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
-            <span style="color:#8b008b;font-weight:bold">for</span> (i = <span style="color:#b452cd">0</span>; i &lt; <span style="color:#b452cd">5</span>; i++)
-            {
-                puts(<span style="color:#cd5555">&#34;wait&#34;</span>);
-                sleep(<span style="color:#b452cd">5</span>);
-            }
-        }
-    }
-    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
-}
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdlib.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;unistd.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;signal.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/wait.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">read_childproc</span>(<span style="color:#00688b;font-weight:bold">int</span> sig)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> status;
+</span></span><span style="display:flex;"><span>    pid_t id = waitpid(-<span style="color:#b452cd">1</span>, &amp;status, WNOHANG);
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (WIFEXITED(status))
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        printf(<span style="color:#cd5555">&#34;Removed proc id: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, id);             <span style="color:#228b22">//子进程的 pid
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        printf(<span style="color:#cd5555">&#34;Child send: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, WEXITSTATUS(status)); <span style="color:#228b22">//子进程的返回值
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>(<span style="color:#00688b;font-weight:bold">int</span> argc, <span style="color:#00688b;font-weight:bold">char</span> *argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    pid_t pid;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">struct</span> sigaction act;
+</span></span><span style="display:flex;"><span>    act.sa_handler = read_childproc;
+</span></span><span style="display:flex;"><span>    sigemptyset(&amp;act.sa_mask);
+</span></span><span style="display:flex;"><span>    act.sa_flags = <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>    sigaction(SIGCHLD, &amp;act, <span style="color:#b452cd">0</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    pid = fork();
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>) <span style="color:#228b22">//子进程执行阶段
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    {
+</span></span><span style="display:flex;"><span>        puts(<span style="color:#cd5555">&#34;Hi I&#39;m child process&#34;</span>);
+</span></span><span style="display:flex;"><span>        sleep(<span style="color:#b452cd">10</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">12</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">else</span> <span style="color:#228b22">//父进程执行阶段
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    {
+</span></span><span style="display:flex;"><span>        printf(<span style="color:#cd5555">&#34;Child proc id: %d</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
+</span></span><span style="display:flex;"><span>        pid = fork();
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> (pid == <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            puts(<span style="color:#cd5555">&#34;Hi! I&#39;m child process&#34;</span>);
+</span></span><span style="display:flex;"><span>            sleep(<span style="color:#b452cd">10</span>);
+</span></span><span style="display:flex;"><span>            exit(<span style="color:#b452cd">24</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">else</span>
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#00688b;font-weight:bold">int</span> i;
+</span></span><span style="display:flex;"><span>            printf(<span style="color:#cd5555">&#34;Child proc id: %d </span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, pid);
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> (i = <span style="color:#b452cd">0</span>; i &lt; <span style="color:#b452cd">5</span>; i++)
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                puts(<span style="color:#cd5555">&#34;wait&#34;</span>);
+</span></span><span style="display:flex;"><span>                sleep(<span style="color:#b452cd">5</span>);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc remove_zomebie.c -o zombie
-./zombie
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc remove_zomebie.c -o zombie
+</span></span><span style="display:flex;"><span>./zombie
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果：</p>
 <pre tabindex="0"><code>Child proc id: 11211
-Hi I'm child process
+Hi I&#39;m child process
 Child proc id: 11212 
 wait
-Hi! I'm child process
+Hi! I&#39;m child process
 
 wait
 
@@ -2425,15 +2423,15 @@ wait
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch10/echo_mpserv.c">echo_mpserv.c</a></li>
 </ul>
 <p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc echo_mpserv.c -o eserver
-./eserver
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc echo_mpserv.c -o eserver
+</span></span><span style="display:flex;"><span>./eserver
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果：</p>
 <p>和第四章的几乎一样，可以自己测试，此时的服务端支持同时给多个客户端进行服务，每有一个客户端连接服务端，就会多开一个子进程，所以可以同时提供服务。</p>
@@ -2462,15 +2460,15 @@ wait
 </ul>
 <p>可以配合刚才的并发服务器进行执行。</p>
 <p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc echo_mpclient.c -o eclient
-./eclient 127.0.0.1 <span style="color:#b452cd">9190</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc echo_mpclient.c -o eclient
+</span></span><span style="display:flex;"><span>./eclient 127.0.0.1 <span style="color:#b452cd">9190</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果：</p>
 <p><img src="https://s2.ax1x.com/2019/01/21/kPOcXn.png" alt=""></p>

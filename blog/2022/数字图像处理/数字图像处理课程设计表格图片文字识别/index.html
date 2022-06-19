@@ -1253,677 +1253,673 @@ color: #515151;
 <li>注意添加数据的函数，因为需要识别多张图片进行多次添加数据，每次添加时索引需要重新定位没有数据的第一行位置。</li>
 </ul>
 <h3 id="源码">源码</h3>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 28
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 29
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 30
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 31
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 32
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 33
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 34
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 35
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 36
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 37
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 38
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 39
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 40
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 41
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 42
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 43
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 44
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 45
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 46
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 47
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 48
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 49
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 50
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 51
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 52
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 53
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 54
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 55
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 56
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 57
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 58
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 59
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 60
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 61
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 62
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 63
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 64
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 65
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 66
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 67
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 68
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 69
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 70
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 71
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 72
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 73
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 74
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 75
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 76
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 77
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 78
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 79
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 80
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 81
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 82
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 83
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 84
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 85
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 86
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 87
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 88
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 89
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 90
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 91
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 92
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 93
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 94
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 95
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 96
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 97
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 98
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 99
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">100
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">101
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">102
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">103
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">104
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">105
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">106
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">107
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">108
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">109
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">110
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">111
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">112
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">113
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">114
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">115
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">116
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">117
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">118
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">119
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">120
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">121
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">122
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">123
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">124
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">125
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">126
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">127
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">128
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">129
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">130
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">131
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">132
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">133
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">134
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">135
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">136
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">137
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">138
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">139
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">140
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">141
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">142
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">143
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">144
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">145
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">146
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">147
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">148
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">149
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">150
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">151
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">152
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">153
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">154
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">155
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">156
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">157
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">158
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">159
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">160
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">161
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">162
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">163
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">164
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">165
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">166
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">167
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">168
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">169
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">170
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">171
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">172
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">173
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">174
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">175
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">176
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">177
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">178
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">179
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">180
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">181
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">182
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">183
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">184
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">185
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">186
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">187
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">188
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">189
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">190
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">191
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">192
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">193
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">194
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">195
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">196
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">197
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">198
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">199
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">200
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">201
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">202
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">203
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">204
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">205
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">206
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">207
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">208
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">209
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">210
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">211
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">212
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">213
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">214
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">215
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">216
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">217
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">218
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">219
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">220
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">221
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">222
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">223
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">224
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">225
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">226
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">227
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">228
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">229
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">230
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">231
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">232
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">233
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">234
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">235
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">236
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">237
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">238
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">239
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">240
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">241
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">242
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">243
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">244
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">245
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">246
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">247
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">248
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">249
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">250
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">251
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">252
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">253
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">254
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">255
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">256
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">257
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">258
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">259
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">260
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">261
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">262
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">263
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">264
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">265
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">266
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">267
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">268
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">269
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">270
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">271
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">272
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">273
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">274
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">275
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">276
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">277
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">278
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">279
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">280
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">281
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">282
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">283
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">284
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">285
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">286
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">287
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">288
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">289
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">290
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">291
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">292
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">293
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">294
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">295
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">296
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">297
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">298
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">299
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">300
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">301
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">302
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">303
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">304
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">305
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">306
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">307
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">308
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">309
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">310
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">311
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">312
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">313
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">314
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">315
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">316
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">317
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">318
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">319
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">320
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">321
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">322
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">323
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">324
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">325
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">326
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">327
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">328
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">329
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">330
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">331
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">332
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">333
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 63
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 64
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 65
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 66
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 67
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 68
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 69
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 70
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 71
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 72
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 73
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 74
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 75
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 76
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 77
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 78
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 79
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 80
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 81
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 82
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 83
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 84
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 85
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 86
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 87
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 88
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 89
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 90
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 91
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 92
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 93
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 94
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 95
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 96
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 97
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 98
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 99
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">100
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">101
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">102
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">103
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">104
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">105
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">106
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">107
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">108
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">109
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">110
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">111
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">112
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">113
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">114
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">115
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">116
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">117
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">118
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">119
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">120
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">121
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">122
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">123
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">124
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">125
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">126
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">127
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">128
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">129
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">130
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">131
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">132
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">133
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">134
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">135
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">136
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">137
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">138
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">139
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">140
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">141
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">142
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">143
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">144
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">145
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">146
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">147
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">148
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">149
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">150
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">151
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">152
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">153
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">154
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">155
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">156
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">157
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">158
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">159
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">160
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">161
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">162
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">163
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">164
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">165
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">166
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">167
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">168
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">169
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">170
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">171
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">172
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">173
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">174
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">175
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">176
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">177
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">178
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">179
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">180
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">181
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">182
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">183
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">184
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">185
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">186
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">187
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">188
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">189
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">190
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">191
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">192
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">193
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">194
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">195
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">196
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">197
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">198
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">199
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">200
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">201
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">202
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">203
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">204
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">205
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">206
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">207
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">208
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">209
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">210
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">211
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">212
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">213
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">214
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">215
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">216
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">217
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">218
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">219
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">220
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">221
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">222
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">223
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">224
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">225
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">226
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">227
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">228
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">229
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">230
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">231
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">232
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">233
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">234
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">235
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">236
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">237
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">238
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">239
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">240
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">241
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">242
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">243
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">244
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">245
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">246
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">247
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">248
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">249
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">250
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">251
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">252
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">253
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">254
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">255
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">256
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">257
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">258
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">259
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">260
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">261
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">262
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">263
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">264
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">265
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">266
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">267
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">268
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">269
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">270
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">271
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">272
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">273
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">274
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">275
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">276
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">277
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">278
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">279
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">280
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">281
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">282
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">283
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">284
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">285
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">286
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">287
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">288
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">289
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">290
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">291
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">292
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">293
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">294
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">295
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">296
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">297
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">298
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">299
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">300
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">301
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">302
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">303
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">304
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">305
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">306
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">307
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">308
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">309
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">310
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">311
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">312
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">313
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">314
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">315
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">316
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">317
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">318
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">319
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">320
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">321
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">322
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">323
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">324
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">325
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">326
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">327
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">328
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">329
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">330
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">331
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">math</span>
-<span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">cv2</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">cv</span>
-<span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">openpyxl</span>
-
-<span style="color:#228b22">#图像二值化</span>
-<span style="color:#cd5555">&#39;&#39;&#39;
-</span><span style="color:#cd5555">使用自适应阈值分割：
-</span><span style="color:#cd5555">它的思想不是计算全局图像的阈值，而是根据图像不同区域亮度分布，计算其局部阈值，所以对于图像不同区域，能够自适应计算不同的阈值，因此被称为自适应阈值法。
-</span><span style="color:#cd5555">如何确定局部阈值呢？可以计算某个邻域(局部)的均值、中值、高斯加权平均(高斯滤波)来确定阈值。
-</span><span style="color:#cd5555">
-</span><span style="color:#cd5555">cv2.adaptiveThreshold(src, maxValue, adaptiveMethod, thresholdType, blockSize, C, dst=None)
-</span><span style="color:#cd5555">src：灰度化的图片
-</span><span style="color:#cd5555">maxValue：满足条件的像素点需要设置的灰度值
-</span><span style="color:#cd5555">adaptiveMethod：自适应方法。有2种：ADAPTIVE_THRESH_MEAN_C 或 ADAPTIVE_THRESH_GAUSSIAN_C（均值和高斯）
-</span><span style="color:#cd5555">thresholdType：二值化方法，可以设置为THRESH_BINARY或者THRESH_BINARY_INV  （大于阈值部分取maxval，否则取0）；另一个为反向
-</span><span style="color:#cd5555">blockSize：分割计算的区域大小，取奇数
-</span><span style="color:#cd5555">C：常数，每个区域计算出的阈值的基础上在减去这个常数作为这个区域的最终阈值，可以为负数
-</span><span style="color:#cd5555">dst：输出图像，可选
-</span><span style="color:#cd5555">&#39;&#39;&#39;</span>
-<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">binary_img</span>(img):
-    <span style="color:#228b22">#传入函数的图片先进行取反（255-原像素值）</span>
-    <span style="color:#228b22">#使用高斯函数滤波进行阈值选取</span>
-    binary = cv.adaptiveThreshold(~img, <span style="color:#b452cd">255</span>, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, <span style="color:#b452cd">11</span>, -<span style="color:#b452cd">5</span>)<span style="color:#228b22">#dst选择默认值为None</span>
-    <span style="color:#8b008b;font-weight:bold">return</span> binary
-
-<span style="color:#228b22">#识别横线和竖线</span>
-<span style="color:#cd5555">&#39;&#39;&#39;
-</span><span style="color:#cd5555">形态学腐蚀：
-</span><span style="color:#cd5555">使用模版在图像上移动，如果发现有像素等于目标图像，就将其模板中心原点位置置为1
-</span><span style="color:#cd5555">&#39;&#39;&#39;</span>
-
-<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">spot</span>(img):
-    <span style="color:#228b22">#腐蚀算法的色块大小，一般用长和宽的平方根为基数效果最好</span>
-    rows, cols = img.shape
-    col_k = <span style="color:#658b00">int</span>(math.sqrt(cols) * <span style="color:#b452cd">1.2</span>) <span style="color:#228b22">#宽</span>
-    row_k = <span style="color:#658b00">int</span>(math.sqrt(rows) * <span style="color:#b452cd">1.2</span>) <span style="color:#228b22">#高</span>
-
-    <span style="color:#228b22">#通过基于图形学的腐蚀和膨胀操作识别横线</span>
-    horizontal_line = cv.getStructuringElement(cv.MORPH_RECT, (col_k, <span style="color:#b452cd">1</span>)) <span style="color:#228b22">#构造一个类似于横线的方形结构元素</span>
-    eroded_col = cv.erode(img, horizontal_line, iterations=<span style="color:#b452cd">1</span>) <span style="color:#228b22">#使用横线模版进行腐蚀</span>
-    dilatedcol = cv.dilate(eroded_col, horizontal_line, iterations=<span style="color:#b452cd">1</span>)
-    <span style="color:#228b22">#cv_show(&#34;识别的横线&#34;, dilatedcol)</span>
-
-    <span style="color:#228b22">#通过腐蚀识别竖线</span>
-    vertical_line = cv.getStructuringElement(cv.MORPH_RECT, (<span style="color:#b452cd">1</span>, row_k)) <span style="color:#228b22">#构造一个类似于竖线的方块结构元素</span>
-    eroded_row = cv.erode(img, vertical_line, iterations=<span style="color:#b452cd">1</span>) <span style="color:#228b22">#使用竖线模板进行腐蚀</span>
-    dilatedrow = cv.dilate(eroded_row, vertical_line, iterations=<span style="color:#b452cd">1</span>)
-    <span style="color:#228b22">#cv_show(&#34;识别的竖线&#34;, dilatedrow)</span>
-
-    <span style="color:#228b22">#识别横线竖线的交点</span>
-    bitwiseAnd = cv.bitwise_and(dilatedcol, dilatedrow)
-
-    <span style="color:#228b22">#识别表格：将横线图片和竖线图片相加</span>
-    table = dilatedcol + dilatedrow
-    <span style="color:#228b22">#cv_show(&#34;表格图片&#34;, table)</span>
-
-    <span style="color:#8b008b;font-weight:bold">return</span> bitwiseAnd, table
-
-<span style="color:#228b22">#存储横线和竖线的交点</span>
-<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">side_point</span>(img):
-    list_x = []
-    list_y = []
-    x, y = img.shape
-    index = <span style="color:#b452cd">0</span>
-    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(x):
-        <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(y):
-            <span style="color:#8b008b;font-weight:bold">if</span> img[i][j] == <span style="color:#b452cd">255</span>:
-                <span style="color:#228b22">#通过打印结果得到，一个交点刚好只占一个像素（如果交点过大，需要进行过滤）</span>
-                <span style="color:#8b008b;font-weight:bold">if</span> index != <span style="color:#b452cd">0</span>:
-                    <span style="color:#8b008b;font-weight:bold">if</span> i == list_x[-<span style="color:#b452cd">1</span>] <span style="color:#8b008b">and</span> j - list_y[-<span style="color:#b452cd">1</span>] &lt; <span style="color:#b452cd">10</span>:
-                        <span style="color:#8b008b;font-weight:bold">continue</span>
-                <span style="color:#8b008b;font-weight:bold">if</span> index != <span style="color:#b452cd">0</span>:
-                    <span style="color:#8b008b;font-weight:bold">if</span> i != list_x[-<span style="color:#b452cd">1</span>] <span style="color:#8b008b">and</span> i - list_x[-<span style="color:#b452cd">1</span>] &lt; <span style="color:#b452cd">10</span>:
-                        <span style="color:#8b008b;font-weight:bold">continue</span>
-                list_x.append(i)
-                list_y.append(j)
-                index += <span style="color:#b452cd">1</span>
-    <span style="color:#8b008b;font-weight:bold">return</span> list_x, list_y
-
-<span style="color:#228b22">#根据交点的位置对表格图片进行分割</span>
-<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">split_table</span>(list_x, list_y, img):
-    index = <span style="color:#b452cd">0</span>
-    y = <span style="color:#b452cd">0</span>
-    ROI = []
-    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(list_x) - <span style="color:#b452cd">1</span>):
-        <span style="color:#8b008b;font-weight:bold">if</span> list_x[i] == <span style="color:#b452cd">1</span> <span style="color:#8b008b">or</span> list_x[i] == <span style="color:#b452cd">0</span>:
-            <span style="color:#8b008b;font-weight:bold">continue</span>
-        <span style="color:#8b008b;font-weight:bold">if</span> list_x[i] == list_x[i + <span style="color:#b452cd">1</span>]:
-            <span style="color:#8b008b;font-weight:bold">if</span> index == <span style="color:#b452cd">0</span>:
-                ROI.append(img[<span style="color:#b452cd">0</span>: list_x[i], list_y[i]: list_y[i + <span style="color:#b452cd">1</span>]])
-            <span style="color:#8b008b;font-weight:bold">else</span>:
-                <span style="color:#8b008b;font-weight:bold">if</span> y == <span style="color:#b452cd">0</span>:
-                    temp = list_x[i - <span style="color:#b452cd">1</span>]
-                ROI.append(img[temp: list_x[i], list_y[i]: list_y[i + <span style="color:#b452cd">1</span>]])
-                y += <span style="color:#b452cd">1</span>
-        <span style="color:#8b008b;font-weight:bold">else</span>:
-            y = <span style="color:#b452cd">0</span>
-            index += <span style="color:#b452cd">1</span>
-    <span style="color:#8b008b;font-weight:bold">return</span> ROI
-
-<span style="color:#228b22">#文字识别(第一张图，带字段)</span>
-<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">ocr1</span>(img_list):
-    <span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">cnocr</span> <span style="color:#8b008b;font-weight:bold">import</span> CnOcr  <span style="color:#228b22"># 中文文字识别</span>
-    cn_ocr = CnOcr()
-    <span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">pytesseract</span>  <span style="color:#228b22"># OCR英文文字识别库(数字)</span>
-    pytesseract.pytesseract.tesseract_cmd = <span style="color:#cd5555">r</span><span style="color:#cd5555">&#39;C:\Program Files\Tesseract-OCR\tesseract.exe&#39;</span>
-
-    name_list = []
-    number_list = []
-    admit_list = []
-    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">0</span>, <span style="color:#658b00">len</span>(img_list) - <span style="color:#b452cd">1</span>, <span style="color:#b452cd">4</span>): <span style="color:#228b22">#步长为4的循环</span>
-        index = <span style="color:#b452cd">0</span>
-        <span style="color:#8b008b;font-weight:bold">if</span> i &lt; <span style="color:#b452cd">4</span>: <span style="color:#228b22">#直接将第一行信息跳过</span>
-            <span style="color:#8b008b;font-weight:bold">continue</span>
-        x, y = img_list[i + <span style="color:#b452cd">1</span>].shape
-        x1, y1 = img_list[i + <span style="color:#b452cd">3</span>].shape
-        img1 = img_list[i + <span style="color:#b452cd">1</span>][<span style="color:#b452cd">0</span>: x // <span style="color:#b452cd">2</span>, <span style="color:#b452cd">0</span>: y // <span style="color:#b452cd">2</span>]
-        img2 = img_list[i + <span style="color:#b452cd">1</span>][x // <span style="color:#b452cd">2</span>: , <span style="color:#b452cd">0</span>: y // <span style="color:#b452cd">2</span>]
-        img3 = img_list[i + <span style="color:#b452cd">3</span>][<span style="color:#b452cd">10</span> : x1 - <span style="color:#b452cd">10</span>, :]
-        temp1 = cn_ocr.ocr(img1) <span style="color:#228b22">#对应第二栏的信息上半部分（名字为2个字还得另外筛选）</span>
-        temp2 = cn_ocr.ocr(img2) <span style="color:#228b22">#对应第二栏信息下半部分</span>
-        number_el = pytesseract.image_to_string(img3,  lang=<span style="color:#cd5555">&#39;eng&#39;</span>) <span style="color:#228b22">#对应第四栏的信息</span>
-        number = <span style="color:#cd5555">&#34;&#34;</span>
-        <span style="color:#8b008b;font-weight:bold">for</span> x <span style="color:#8b008b">in</span> number_el:
-            <span style="color:#8b008b;font-weight:bold">if</span> x &gt;= <span style="color:#cd5555">&#39;0&#39;</span> <span style="color:#8b008b">and</span> x &lt;= <span style="color:#cd5555">&#39;9&#39;</span>:
-                number += x
-        <span style="color:#228b22">#print(temp1)</span>
-        <span style="color:#228b22">#print(number)</span>
-        <span style="color:#228b22">#print(temp2)</span>
-
-        <span style="color:#228b22">#对名字信息进行处理</span>
-        <span style="color:#8b008b;font-weight:bold">for</span> temp <span style="color:#8b008b">in</span> temp1:
-            <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(temp)):
-                <span style="color:#8b008b;font-weight:bold">if</span> j == <span style="color:#b452cd">0</span>:
-                    name = <span style="color:#cd5555">&#34;&#34;</span>
-                    <span style="color:#8b008b;font-weight:bold">for</span> y <span style="color:#8b008b">in</span> temp[j]:
-                        <span style="color:#8b008b;font-weight:bold">if</span> y.isdigit(): <span style="color:#228b22">#为数字字符串则跳过</span>
-                            <span style="color:#8b008b;font-weight:bold">continue</span>
-                        name += y
-                    name_list.append(name)
-
-        <span style="color:#228b22">#放入准考证号信息</span>
-        number_list.append(<span style="color:#658b00">str</span>(number))
-
-        <span style="color:#228b22">#填入录取信息</span>
-        <span style="color:#8b008b;font-weight:bold">for</span> temp <span style="color:#8b008b">in</span> temp2:
-            <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(temp)):
-                <span style="color:#8b008b;font-weight:bold">if</span> j == <span style="color:#b452cd">0</span>:
-                    admit_information = <span style="color:#cd5555">&#34;&#34;</span>
-                    <span style="color:#8b008b;font-weight:bold">for</span> y <span style="color:#8b008b">in</span> temp[j]:
-                        <span style="color:#8b008b;font-weight:bold">if</span> y == <span style="color:#cd5555">&#39;[&#39;</span>:
-                            <span style="color:#8b008b;font-weight:bold">continue</span>
-                        admit_information += y
-                    admit_list.append(admit_information)
-    index += <span style="color:#b452cd">1</span>
-    <span style="color:#8b008b;font-weight:bold">return</span> name_list, number_list, admit_list
-
-<span style="color:#228b22">#文字识别(第二张图)</span>
-<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">ocr2</span>(img_list):
-    <span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">cnocr</span> <span style="color:#8b008b;font-weight:bold">import</span> CnOcr  <span style="color:#228b22"># 中文文字识别</span>
-    cn_ocr = CnOcr()
-    <span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">pytesseract</span>  <span style="color:#228b22"># OCR英文文字识别库(数字)</span>
-    pytesseract.pytesseract.tesseract_cmd = <span style="color:#cd5555">r</span><span style="color:#cd5555">&#39;C:\Program Files\Tesseract-OCR\tesseract.exe&#39;</span>
-
-    name_list = []
-    number_list = []
-    admit_list = []
-    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">0</span>, <span style="color:#658b00">len</span>(img_list) - <span style="color:#b452cd">1</span>, <span style="color:#b452cd">3</span>): <span style="color:#228b22">#步长为3的循环</span>
-        index = <span style="color:#b452cd">0</span>
-        x, y = img_list[i].shape
-        x1, y1 = img_list[i + <span style="color:#b452cd">2</span>].shape
-        img1 = img_list[i][<span style="color:#b452cd">0</span>: x // <span style="color:#b452cd">2</span>, <span style="color:#b452cd">0</span>: y // <span style="color:#b452cd">2</span>]
-        img2 = img_list[i][x // <span style="color:#b452cd">2</span>: , <span style="color:#b452cd">0</span>: y // <span style="color:#b452cd">2</span>]
-        img3 = img_list[i][<span style="color:#b452cd">10</span> : x1 - <span style="color:#b452cd">10</span>, :]
-        temp1 = cn_ocr.ocr(img1) <span style="color:#228b22">#对应第二栏的信息上半部分（名字为2个字还得另外筛选）</span>
-        temp2 = cn_ocr.ocr(img2) <span style="color:#228b22">#对应第二栏信息下半部分</span>
-        number_el = pytesseract.image_to_string(img3,  lang=<span style="color:#cd5555">&#39;eng&#39;</span>) <span style="color:#228b22">#对应第三栏的信息</span>
-        number = <span style="color:#cd5555">&#34;&#34;</span>
-        <span style="color:#8b008b;font-weight:bold">for</span> x <span style="color:#8b008b">in</span> number_el:
-            <span style="color:#8b008b;font-weight:bold">if</span> x &gt;= <span style="color:#cd5555">&#39;0&#39;</span> <span style="color:#8b008b">and</span> x &lt;= <span style="color:#cd5555">&#39;9&#39;</span>:
-                number += x
-
-
-        <span style="color:#228b22">#print(temp1)</span>
-        <span style="color:#228b22">#print(number)</span>
-        <span style="color:#228b22">#print(temp2)</span>
-
-        <span style="color:#228b22">#对名字信息进行处理</span>
-        <span style="color:#8b008b;font-weight:bold">for</span> temp <span style="color:#8b008b">in</span> temp1:
-            <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(temp)):
-                <span style="color:#8b008b;font-weight:bold">if</span> j == <span style="color:#b452cd">0</span>:
-                    name = <span style="color:#cd5555">&#34;&#34;</span>
-                    <span style="color:#8b008b;font-weight:bold">for</span> y <span style="color:#8b008b">in</span> temp[j]:
-                        <span style="color:#8b008b;font-weight:bold">if</span> y.isdigit(): <span style="color:#228b22">#为数字字符串则跳过</span>
-                            <span style="color:#8b008b;font-weight:bold">continue</span>
-                        name += y
-                    name_list.append(name)
-
-        <span style="color:#228b22">#放入准考证号信息</span>
-        number_list.append(<span style="color:#658b00">str</span>(number))
-
-        <span style="color:#228b22">#填入录取信息</span>
-        <span style="color:#8b008b;font-weight:bold">for</span> temp <span style="color:#8b008b">in</span> temp2:
-            <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(temp)):
-                <span style="color:#8b008b;font-weight:bold">if</span> j == <span style="color:#b452cd">0</span>:
-                    admit_information = <span style="color:#cd5555">&#34;&#34;</span>
-                    <span style="color:#8b008b;font-weight:bold">for</span> y <span style="color:#8b008b">in</span> temp[j]:
-                        <span style="color:#8b008b;font-weight:bold">if</span> y == <span style="color:#cd5555">&#39;[&#39;</span>:
-                            <span style="color:#8b008b;font-weight:bold">continue</span>
-                        admit_information += y
-                    admit_list.append(admit_information)
-    index += <span style="color:#b452cd">1</span>
-    <span style="color:#8b008b;font-weight:bold">return</span> name_list, number_list, admit_list
-
-<span style="color:#228b22">#添加数据（考虑多次添加的情况）</span>
-<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">edit_exTable</span>(table_name, sheet_name, list1, list2, list3):
-    workbook = openpyxl.load_workbook(table_name)
-    sheet = workbook[sheet_name]
-    <span style="color:#228b22">#定位到新空白的单元格中(计算偏移量)</span>
-    offset1 = <span style="color:#b452cd">0</span>
-    offset2 = <span style="color:#b452cd">0</span>
-    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">1000</span>):
-        <span style="color:#8b008b;font-weight:bold">if</span> sheet.cell(i + <span style="color:#b452cd">1</span>, <span style="color:#b452cd">1</span>).value != <span style="color:#8b008b;font-weight:bold">None</span>:
-            offset1 += <span style="color:#b452cd">1</span>
-        <span style="color:#8b008b;font-weight:bold">else</span>:
-            <span style="color:#8b008b;font-weight:bold">break</span>
-
-    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(list1)):
-        <span style="color:#8b008b;font-weight:bold">if</span> sheet.cell(<span style="color:#b452cd">1</span>, <span style="color:#b452cd">1</span>).value != <span style="color:#8b008b;font-weight:bold">None</span>:
-            <span style="color:#8b008b;font-weight:bold">if</span> sheet.cell(i + offset1, <span style="color:#b452cd">1</span>).value == list1[i]: <span style="color:#228b22">#防止上一次的图片末尾和新的图片头部有重复</span>
-                offset2 += <span style="color:#b452cd">1</span>
-                <span style="color:#8b008b;font-weight:bold">continue</span>
-        sheet.cell(i + <span style="color:#b452cd">1</span> + offset1 - offset2, <span style="color:#b452cd">1</span>).value = list1[i]
-        sheet.cell(i + <span style="color:#b452cd">1</span> + offset1 - offset2, <span style="color:#b452cd">2</span>).value = list2[i]
-        sheet.cell(i + <span style="color:#b452cd">1</span> + offset1 - offset2, <span style="color:#b452cd">3</span>).value = list3[i]
-    workbook.save(table_name)
-    workbook.close()
-
-<span style="color:#228b22">#在已有表格中标注并增加已录取(名字在第7栏)</span>
-<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">mark_exTable</span>(table_name, sheet_name, list1, list2, list3):
-    workbook = openpyxl.load_workbook(table_name)
-    sheet = workbook[sheet_name]
-    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(list1)):
-        <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">1000</span>):
-            <span style="color:#8b008b;font-weight:bold">if</span> sheet.cell(j + <span style="color:#b452cd">1</span>, <span style="color:#b452cd">9</span>).value == list3[i]: <span style="color:#228b22">#找到名字相等的情况</span>
-                sheet.cell(j + <span style="color:#b452cd">1</span>, <span style="color:#b452cd">7</span>).value = list1[i] + <span style="color:#cd5555">&#34;[&#34;</span> + list2[i] + <span style="color:#cd5555">&#34;]&#34;</span>
-                <span style="color:#8b008b;font-weight:bold">break</span>
-    workbook.save(table_name)
-    workbook.close()
-
-
-<span style="color:#228b22"># 显示图像</span>
-<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">cv_show</span>(name, img):
-    cv.imshow(name, img)
-    cv.waitKey(<span style="color:#b452cd">0</span>)
-    cv.destroyAllWindows()
-
-
-
-<span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">main</span>():
-    <span style="color:#228b22">#采集灰度图片</span>
-    img1 = cv.imread(<span style="color:#cd5555">&#34;1.png&#34;</span>, <span style="color:#b452cd">0</span>)
-    img2 = cv.imread(<span style="color:#cd5555">&#34;2.png&#34;</span>, <span style="color:#b452cd">0</span>)
-    <span style="color:#228b22">#cv_show(&#34;第一张图&#34;, img1)</span>
-    <span style="color:#228b22">#cv_show(&#34;第二张图&#34;, img2)</span>
-
-    <span style="color:#228b22">#图像二值化</span>
-    binary1 = binary_img(img1)
-    binary2 = binary_img(img2)
-    <span style="color:#228b22">#cv_show(&#34;二值化后的图1&#34;,binary1)</span>
-    <span style="color:#228b22">#cv_show(&#34;二值化后的图2&#34;, binary2)</span>
-
-    <span style="color:#228b22">#横线竖线交点图片识别和表格识别</span>
-    intersection_img1, table1 = spot(binary1)
-    intersection_img2, table2 = spot(binary2)
-    cv_show(<span style="color:#cd5555">&#34;交点图片1&#34;</span>, intersection_img1)
-    cv_show(<span style="color:#cd5555">&#34;交点图片2&#34;</span>, intersection_img2)
-    <span style="color:#658b00">print</span>(intersection_img1)
-
-    <span style="color:#228b22">#进行减法运算，提取纯文字图片</span>
-    character_img1 = binary1 - table1
-    character_img2 = binary2 - table2
-    cv_show(<span style="color:#cd5555">&#34;纯文字图片1&#34;</span>, character_img1)
-    cv_show(<span style="color:#cd5555">&#34;纯文字图片2&#34;</span>, character_img2)
-
-    <span style="color:#228b22">#通过交点图片提取出交点像素</span>
-    myList_x1, myList_y1 = side_point(intersection_img1)  <span style="color:#228b22">#x代表行，y代表列</span>
-    myList_x2, myList_y2 = side_point(intersection_img2)
-    <span style="color:#228b22"># print(myList_x1)</span>
-    <span style="color:#228b22"># print(myList_y1)</span>
-    <span style="color:#228b22"># print(myList_x2)</span>
-    <span style="color:#228b22"># print(myList_y2)</span>
-
-    <span style="color:#228b22">#根据交点位置分割表格</span>
-    img_list1 = split_table(myList_x1, myList_y1, character_img1)
-    img_list2 = split_table(myList_x2, myList_y2, character_img2)
-
-    <span style="color:#228b22">#分割图片效果检测</span>
-    <span style="color:#228b22"># for img in img_list1:</span>
-    <span style="color:#228b22">#     cv_show(&#34;&#34;, img)</span>
-    <span style="color:#228b22"># for img in img_list2:</span>
-    <span style="color:#228b22">#     cv_show(&#34;&#34;, img)</span>
-
-    <span style="color:#228b22">#对分割好的图片进行文字识别</span>
-    name_text1, number_text1, admit_text1 = ocr1(img_list1)
-    name_text2, number_text2, admit_text2 = ocr2(img_list2)
-    <span style="color:#228b22"># print(name_text1)</span>
-    <span style="color:#228b22"># print(admit_text1)</span>
-    <span style="color:#228b22"># print(name_text2)</span>
-    <span style="color:#228b22"># print(admit_text2)</span>
-
-    <span style="color:#228b22">#新建表格并保存名字</span>
-    workbook = openpyxl.Workbook()
-    workbook.create_sheet(<span style="color:#cd5555">&#39;录取情况&#39;</span>)
-    sheet = workbook[<span style="color:#cd5555">&#39;录取情况&#39;</span>]
-    sheet.cell(<span style="color:#b452cd">1</span>, <span style="color:#b452cd">1</span>).value = <span style="color:#cd5555">&#39;姓名&#39;</span>
-    sheet.cell(<span style="color:#b452cd">1</span>, <span style="color:#b452cd">2</span>).value = <span style="color:#cd5555">&#39;准考证号&#39;</span>
-    sheet.cell(<span style="color:#b452cd">1</span>, <span style="color:#b452cd">3</span>).value = <span style="color:#cd5555">&#39;录取情况&#39;</span>
-    workbook.save(<span style="color:#cd5555">u</span><span style="color:#cd5555">&#39;接收复试同学已录取情况.xlsx&#39;</span>)
-
-    <span style="color:#228b22">#编辑表格并输入信息</span>
-    edit_exTable(<span style="color:#cd5555">u</span><span style="color:#cd5555">&#39;接收复试同学已录取情况.xlsx&#39;</span>, <span style="color:#cd5555">&#39;录取情况&#39;</span>, name_text1, number_text1, admit_text1)
-    edit_exTable(<span style="color:#cd5555">u</span><span style="color:#cd5555">&#39;接收复试同学已录取情况.xlsx&#39;</span>, <span style="color:#cd5555">&#39;录取情况&#39;</span>, name_text2, number_text2, admit_text2)
-
-    <span style="color:#228b22">#在已有表格中查找并进行标注（通过名字查找）</span>
-    mark_exTable(<span style="color:#cd5555">u</span><span style="color:#cd5555">&#39;接收复试通知名单_副本.xlsx&#39;</span>, <span style="color:#cd5555">&#39;YZ_SYTJ_SBMCJ_085046761&#39;</span>, name_text1, number_text1, admit_text1)
-    mark_exTable(<span style="color:#cd5555">u</span><span style="color:#cd5555">&#39;接收复试通知名单_副本.xlsx&#39;</span>, <span style="color:#cd5555">&#39;YZ_SYTJ_SBMCJ_085046761&#39;</span>, name_text2, number_text2, admit_text2)
-
-
-<span style="color:#8b008b;font-weight:bold">if</span> __name__ == <span style="color:#cd5555">&#39;__main__&#39;</span>:
-    main()
-
-
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">math</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">cv2</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">cv</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">openpyxl</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">#图像二值化</span>
+</span></span><span style="display:flex;"><span><span style="color:#cd5555">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">使用自适应阈值分割：
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">它的思想不是计算全局图像的阈值，而是根据图像不同区域亮度分布，计算其局部阈值，所以对于图像不同区域，能够自适应计算不同的阈值，因此被称为自适应阈值法。
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">如何确定局部阈值呢？可以计算某个邻域(局部)的均值、中值、高斯加权平均(高斯滤波)来确定阈值。
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">cv2.adaptiveThreshold(src, maxValue, adaptiveMethod, thresholdType, blockSize, C, dst=None)
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">src：灰度化的图片
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">maxValue：满足条件的像素点需要设置的灰度值
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">adaptiveMethod：自适应方法。有2种：ADAPTIVE_THRESH_MEAN_C 或 ADAPTIVE_THRESH_GAUSSIAN_C（均值和高斯）
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">thresholdType：二值化方法，可以设置为THRESH_BINARY或者THRESH_BINARY_INV  （大于阈值部分取maxval，否则取0）；另一个为反向
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">blockSize：分割计算的区域大小，取奇数
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">C：常数，每个区域计算出的阈值的基础上在减去这个常数作为这个区域的最终阈值，可以为负数
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">dst：输出图像，可选
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">&#39;&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">binary_img</span>(img):
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#传入函数的图片先进行取反（255-原像素值）</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#使用高斯函数滤波进行阈值选取</span>
+</span></span><span style="display:flex;"><span>    binary = cv.adaptiveThreshold(~img, <span style="color:#b452cd">255</span>, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, <span style="color:#b452cd">11</span>, -<span style="color:#b452cd">5</span>)<span style="color:#228b22">#dst选择默认值为None</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> binary
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">#识别横线和竖线</span>
+</span></span><span style="display:flex;"><span><span style="color:#cd5555">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">形态学腐蚀：
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">使用模版在图像上移动，如果发现有像素等于目标图像，就将其模板中心原点位置置为1
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">&#39;&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">spot</span>(img):
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#腐蚀算法的色块大小，一般用长和宽的平方根为基数效果最好</span>
+</span></span><span style="display:flex;"><span>    rows, cols = img.shape
+</span></span><span style="display:flex;"><span>    col_k = <span style="color:#658b00">int</span>(math.sqrt(cols) * <span style="color:#b452cd">1.2</span>) <span style="color:#228b22">#宽</span>
+</span></span><span style="display:flex;"><span>    row_k = <span style="color:#658b00">int</span>(math.sqrt(rows) * <span style="color:#b452cd">1.2</span>) <span style="color:#228b22">#高</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#通过基于图形学的腐蚀和膨胀操作识别横线</span>
+</span></span><span style="display:flex;"><span>    horizontal_line = cv.getStructuringElement(cv.MORPH_RECT, (col_k, <span style="color:#b452cd">1</span>)) <span style="color:#228b22">#构造一个类似于横线的方形结构元素</span>
+</span></span><span style="display:flex;"><span>    eroded_col = cv.erode(img, horizontal_line, iterations=<span style="color:#b452cd">1</span>) <span style="color:#228b22">#使用横线模版进行腐蚀</span>
+</span></span><span style="display:flex;"><span>    dilatedcol = cv.dilate(eroded_col, horizontal_line, iterations=<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#cv_show(&#34;识别的横线&#34;, dilatedcol)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#通过腐蚀识别竖线</span>
+</span></span><span style="display:flex;"><span>    vertical_line = cv.getStructuringElement(cv.MORPH_RECT, (<span style="color:#b452cd">1</span>, row_k)) <span style="color:#228b22">#构造一个类似于竖线的方块结构元素</span>
+</span></span><span style="display:flex;"><span>    eroded_row = cv.erode(img, vertical_line, iterations=<span style="color:#b452cd">1</span>) <span style="color:#228b22">#使用竖线模板进行腐蚀</span>
+</span></span><span style="display:flex;"><span>    dilatedrow = cv.dilate(eroded_row, vertical_line, iterations=<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#cv_show(&#34;识别的竖线&#34;, dilatedrow)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#识别横线竖线的交点</span>
+</span></span><span style="display:flex;"><span>    bitwiseAnd = cv.bitwise_and(dilatedcol, dilatedrow)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#识别表格：将横线图片和竖线图片相加</span>
+</span></span><span style="display:flex;"><span>    table = dilatedcol + dilatedrow
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#cv_show(&#34;表格图片&#34;, table)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> bitwiseAnd, table
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">#存储横线和竖线的交点</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">side_point</span>(img):
+</span></span><span style="display:flex;"><span>    list_x = []
+</span></span><span style="display:flex;"><span>    list_y = []
+</span></span><span style="display:flex;"><span>    x, y = img.shape
+</span></span><span style="display:flex;"><span>    index = <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(x):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(y):
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> img[i][j] == <span style="color:#b452cd">255</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#228b22">#通过打印结果得到，一个交点刚好只占一个像素（如果交点过大，需要进行过滤）</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> index != <span style="color:#b452cd">0</span>:
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">if</span> i == list_x[-<span style="color:#b452cd">1</span>] <span style="color:#8b008b">and</span> j - list_y[-<span style="color:#b452cd">1</span>] &lt; <span style="color:#b452cd">10</span>:
+</span></span><span style="display:flex;"><span>                        <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> index != <span style="color:#b452cd">0</span>:
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">if</span> i != list_x[-<span style="color:#b452cd">1</span>] <span style="color:#8b008b">and</span> i - list_x[-<span style="color:#b452cd">1</span>] &lt; <span style="color:#b452cd">10</span>:
+</span></span><span style="display:flex;"><span>                        <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>                list_x.append(i)
+</span></span><span style="display:flex;"><span>                list_y.append(j)
+</span></span><span style="display:flex;"><span>                index += <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> list_x, list_y
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">#根据交点的位置对表格图片进行分割</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">split_table</span>(list_x, list_y, img):
+</span></span><span style="display:flex;"><span>    index = <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>    y = <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>    ROI = []
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(list_x) - <span style="color:#b452cd">1</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> list_x[i] == <span style="color:#b452cd">1</span> <span style="color:#8b008b">or</span> list_x[i] == <span style="color:#b452cd">0</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> list_x[i] == list_x[i + <span style="color:#b452cd">1</span>]:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> index == <span style="color:#b452cd">0</span>:
+</span></span><span style="display:flex;"><span>                ROI.append(img[<span style="color:#b452cd">0</span>: list_x[i], list_y[i]: list_y[i + <span style="color:#b452cd">1</span>]])
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">else</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> y == <span style="color:#b452cd">0</span>:
+</span></span><span style="display:flex;"><span>                    temp = list_x[i - <span style="color:#b452cd">1</span>]
+</span></span><span style="display:flex;"><span>                ROI.append(img[temp: list_x[i], list_y[i]: list_y[i + <span style="color:#b452cd">1</span>]])
+</span></span><span style="display:flex;"><span>                y += <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">else</span>:
+</span></span><span style="display:flex;"><span>            y = <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>            index += <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> ROI
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">#文字识别(第一张图，带字段)</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">ocr1</span>(img_list):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">cnocr</span> <span style="color:#8b008b;font-weight:bold">import</span> CnOcr  <span style="color:#228b22"># 中文文字识别</span>
+</span></span><span style="display:flex;"><span>    cn_ocr = CnOcr()
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">pytesseract</span>  <span style="color:#228b22"># OCR英文文字识别库(数字)</span>
+</span></span><span style="display:flex;"><span>    pytesseract.pytesseract.tesseract_cmd = <span style="color:#cd5555">r</span><span style="color:#cd5555">&#39;C:\Program Files\Tesseract-OCR\tesseract.exe&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    name_list = []
+</span></span><span style="display:flex;"><span>    number_list = []
+</span></span><span style="display:flex;"><span>    admit_list = []
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">0</span>, <span style="color:#658b00">len</span>(img_list) - <span style="color:#b452cd">1</span>, <span style="color:#b452cd">4</span>): <span style="color:#228b22">#步长为4的循环</span>
+</span></span><span style="display:flex;"><span>        index = <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> i &lt; <span style="color:#b452cd">4</span>: <span style="color:#228b22">#直接将第一行信息跳过</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>        x, y = img_list[i + <span style="color:#b452cd">1</span>].shape
+</span></span><span style="display:flex;"><span>        x1, y1 = img_list[i + <span style="color:#b452cd">3</span>].shape
+</span></span><span style="display:flex;"><span>        img1 = img_list[i + <span style="color:#b452cd">1</span>][<span style="color:#b452cd">0</span>: x // <span style="color:#b452cd">2</span>, <span style="color:#b452cd">0</span>: y // <span style="color:#b452cd">2</span>]
+</span></span><span style="display:flex;"><span>        img2 = img_list[i + <span style="color:#b452cd">1</span>][x // <span style="color:#b452cd">2</span>: , <span style="color:#b452cd">0</span>: y // <span style="color:#b452cd">2</span>]
+</span></span><span style="display:flex;"><span>        img3 = img_list[i + <span style="color:#b452cd">3</span>][<span style="color:#b452cd">10</span> : x1 - <span style="color:#b452cd">10</span>, :]
+</span></span><span style="display:flex;"><span>        temp1 = cn_ocr.ocr(img1) <span style="color:#228b22">#对应第二栏的信息上半部分（名字为2个字还得另外筛选）</span>
+</span></span><span style="display:flex;"><span>        temp2 = cn_ocr.ocr(img2) <span style="color:#228b22">#对应第二栏信息下半部分</span>
+</span></span><span style="display:flex;"><span>        number_el = pytesseract.image_to_string(img3,  lang=<span style="color:#cd5555">&#39;eng&#39;</span>) <span style="color:#228b22">#对应第四栏的信息</span>
+</span></span><span style="display:flex;"><span>        number = <span style="color:#cd5555">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> x <span style="color:#8b008b">in</span> number_el:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> x &gt;= <span style="color:#cd5555">&#39;0&#39;</span> <span style="color:#8b008b">and</span> x &lt;= <span style="color:#cd5555">&#39;9&#39;</span>:
+</span></span><span style="display:flex;"><span>                number += x
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#print(temp1)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#print(number)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#print(temp2)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#对名字信息进行处理</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> temp <span style="color:#8b008b">in</span> temp1:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(temp)):
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> j == <span style="color:#b452cd">0</span>:
+</span></span><span style="display:flex;"><span>                    name = <span style="color:#cd5555">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">for</span> y <span style="color:#8b008b">in</span> temp[j]:
+</span></span><span style="display:flex;"><span>                        <span style="color:#8b008b;font-weight:bold">if</span> y.isdigit(): <span style="color:#228b22">#为数字字符串则跳过</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>                        name += y
+</span></span><span style="display:flex;"><span>                    name_list.append(name)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#放入准考证号信息</span>
+</span></span><span style="display:flex;"><span>        number_list.append(<span style="color:#658b00">str</span>(number))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#填入录取信息</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> temp <span style="color:#8b008b">in</span> temp2:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(temp)):
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> j == <span style="color:#b452cd">0</span>:
+</span></span><span style="display:flex;"><span>                    admit_information = <span style="color:#cd5555">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">for</span> y <span style="color:#8b008b">in</span> temp[j]:
+</span></span><span style="display:flex;"><span>                        <span style="color:#8b008b;font-weight:bold">if</span> y == <span style="color:#cd5555">&#39;[&#39;</span>:
+</span></span><span style="display:flex;"><span>                            <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>                        admit_information += y
+</span></span><span style="display:flex;"><span>                    admit_list.append(admit_information)
+</span></span><span style="display:flex;"><span>    index += <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> name_list, number_list, admit_list
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">#文字识别(第二张图)</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">ocr2</span>(img_list):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">cnocr</span> <span style="color:#8b008b;font-weight:bold">import</span> CnOcr  <span style="color:#228b22"># 中文文字识别</span>
+</span></span><span style="display:flex;"><span>    cn_ocr = CnOcr()
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">pytesseract</span>  <span style="color:#228b22"># OCR英文文字识别库(数字)</span>
+</span></span><span style="display:flex;"><span>    pytesseract.pytesseract.tesseract_cmd = <span style="color:#cd5555">r</span><span style="color:#cd5555">&#39;C:\Program Files\Tesseract-OCR\tesseract.exe&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    name_list = []
+</span></span><span style="display:flex;"><span>    number_list = []
+</span></span><span style="display:flex;"><span>    admit_list = []
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">0</span>, <span style="color:#658b00">len</span>(img_list) - <span style="color:#b452cd">1</span>, <span style="color:#b452cd">3</span>): <span style="color:#228b22">#步长为3的循环</span>
+</span></span><span style="display:flex;"><span>        index = <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>        x, y = img_list[i].shape
+</span></span><span style="display:flex;"><span>        x1, y1 = img_list[i + <span style="color:#b452cd">2</span>].shape
+</span></span><span style="display:flex;"><span>        img1 = img_list[i][<span style="color:#b452cd">0</span>: x // <span style="color:#b452cd">2</span>, <span style="color:#b452cd">0</span>: y // <span style="color:#b452cd">2</span>]
+</span></span><span style="display:flex;"><span>        img2 = img_list[i][x // <span style="color:#b452cd">2</span>: , <span style="color:#b452cd">0</span>: y // <span style="color:#b452cd">2</span>]
+</span></span><span style="display:flex;"><span>        img3 = img_list[i][<span style="color:#b452cd">10</span> : x1 - <span style="color:#b452cd">10</span>, :]
+</span></span><span style="display:flex;"><span>        temp1 = cn_ocr.ocr(img1) <span style="color:#228b22">#对应第二栏的信息上半部分（名字为2个字还得另外筛选）</span>
+</span></span><span style="display:flex;"><span>        temp2 = cn_ocr.ocr(img2) <span style="color:#228b22">#对应第二栏信息下半部分</span>
+</span></span><span style="display:flex;"><span>        number_el = pytesseract.image_to_string(img3,  lang=<span style="color:#cd5555">&#39;eng&#39;</span>) <span style="color:#228b22">#对应第三栏的信息</span>
+</span></span><span style="display:flex;"><span>        number = <span style="color:#cd5555">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> x <span style="color:#8b008b">in</span> number_el:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> x &gt;= <span style="color:#cd5555">&#39;0&#39;</span> <span style="color:#8b008b">and</span> x &lt;= <span style="color:#cd5555">&#39;9&#39;</span>:
+</span></span><span style="display:flex;"><span>                number += x
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#print(temp1)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#print(number)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#print(temp2)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#对名字信息进行处理</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> temp <span style="color:#8b008b">in</span> temp1:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(temp)):
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> j == <span style="color:#b452cd">0</span>:
+</span></span><span style="display:flex;"><span>                    name = <span style="color:#cd5555">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">for</span> y <span style="color:#8b008b">in</span> temp[j]:
+</span></span><span style="display:flex;"><span>                        <span style="color:#8b008b;font-weight:bold">if</span> y.isdigit(): <span style="color:#228b22">#为数字字符串则跳过</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>                        name += y
+</span></span><span style="display:flex;"><span>                    name_list.append(name)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#放入准考证号信息</span>
+</span></span><span style="display:flex;"><span>        number_list.append(<span style="color:#658b00">str</span>(number))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#填入录取信息</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> temp <span style="color:#8b008b">in</span> temp2:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(temp)):
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> j == <span style="color:#b452cd">0</span>:
+</span></span><span style="display:flex;"><span>                    admit_information = <span style="color:#cd5555">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">for</span> y <span style="color:#8b008b">in</span> temp[j]:
+</span></span><span style="display:flex;"><span>                        <span style="color:#8b008b;font-weight:bold">if</span> y == <span style="color:#cd5555">&#39;[&#39;</span>:
+</span></span><span style="display:flex;"><span>                            <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>                        admit_information += y
+</span></span><span style="display:flex;"><span>                    admit_list.append(admit_information)
+</span></span><span style="display:flex;"><span>    index += <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> name_list, number_list, admit_list
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">#添加数据（考虑多次添加的情况）</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">edit_exTable</span>(table_name, sheet_name, list1, list2, list3):
+</span></span><span style="display:flex;"><span>    workbook = openpyxl.load_workbook(table_name)
+</span></span><span style="display:flex;"><span>    sheet = workbook[sheet_name]
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#定位到新空白的单元格中(计算偏移量)</span>
+</span></span><span style="display:flex;"><span>    offset1 = <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>    offset2 = <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">1000</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> sheet.cell(i + <span style="color:#b452cd">1</span>, <span style="color:#b452cd">1</span>).value != <span style="color:#8b008b;font-weight:bold">None</span>:
+</span></span><span style="display:flex;"><span>            offset1 += <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">else</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">break</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(list1)):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> sheet.cell(<span style="color:#b452cd">1</span>, <span style="color:#b452cd">1</span>).value != <span style="color:#8b008b;font-weight:bold">None</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> sheet.cell(i + offset1, <span style="color:#b452cd">1</span>).value == list1[i]: <span style="color:#228b22">#防止上一次的图片末尾和新的图片头部有重复</span>
+</span></span><span style="display:flex;"><span>                offset2 += <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>        sheet.cell(i + <span style="color:#b452cd">1</span> + offset1 - offset2, <span style="color:#b452cd">1</span>).value = list1[i]
+</span></span><span style="display:flex;"><span>        sheet.cell(i + <span style="color:#b452cd">1</span> + offset1 - offset2, <span style="color:#b452cd">2</span>).value = list2[i]
+</span></span><span style="display:flex;"><span>        sheet.cell(i + <span style="color:#b452cd">1</span> + offset1 - offset2, <span style="color:#b452cd">3</span>).value = list3[i]
+</span></span><span style="display:flex;"><span>    workbook.save(table_name)
+</span></span><span style="display:flex;"><span>    workbook.close()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">#在已有表格中标注并增加已录取(名字在第7栏)</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">mark_exTable</span>(table_name, sheet_name, list1, list2, list3):
+</span></span><span style="display:flex;"><span>    workbook = openpyxl.load_workbook(table_name)
+</span></span><span style="display:flex;"><span>    sheet = workbook[sheet_name]
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#658b00">len</span>(list1)):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> j <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">1000</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> sheet.cell(j + <span style="color:#b452cd">1</span>, <span style="color:#b452cd">9</span>).value == list3[i]: <span style="color:#228b22">#找到名字相等的情况</span>
+</span></span><span style="display:flex;"><span>                sheet.cell(j + <span style="color:#b452cd">1</span>, <span style="color:#b452cd">7</span>).value = list1[i] + <span style="color:#cd5555">&#34;[&#34;</span> + list2[i] + <span style="color:#cd5555">&#34;]&#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">break</span>
+</span></span><span style="display:flex;"><span>    workbook.save(table_name)
+</span></span><span style="display:flex;"><span>    workbook.close()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 显示图像</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">cv_show</span>(name, img):
+</span></span><span style="display:flex;"><span>    cv.imshow(name, img)
+</span></span><span style="display:flex;"><span>    cv.waitKey(<span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>    cv.destroyAllWindows()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">main</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#采集灰度图片</span>
+</span></span><span style="display:flex;"><span>    img1 = cv.imread(<span style="color:#cd5555">&#34;1.png&#34;</span>, <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>    img2 = cv.imread(<span style="color:#cd5555">&#34;2.png&#34;</span>, <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#cv_show(&#34;第一张图&#34;, img1)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#cv_show(&#34;第二张图&#34;, img2)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#图像二值化</span>
+</span></span><span style="display:flex;"><span>    binary1 = binary_img(img1)
+</span></span><span style="display:flex;"><span>    binary2 = binary_img(img2)
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#cv_show(&#34;二值化后的图1&#34;,binary1)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#cv_show(&#34;二值化后的图2&#34;, binary2)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#横线竖线交点图片识别和表格识别</span>
+</span></span><span style="display:flex;"><span>    intersection_img1, table1 = spot(binary1)
+</span></span><span style="display:flex;"><span>    intersection_img2, table2 = spot(binary2)
+</span></span><span style="display:flex;"><span>    cv_show(<span style="color:#cd5555">&#34;交点图片1&#34;</span>, intersection_img1)
+</span></span><span style="display:flex;"><span>    cv_show(<span style="color:#cd5555">&#34;交点图片2&#34;</span>, intersection_img2)
+</span></span><span style="display:flex;"><span>    <span style="color:#658b00">print</span>(intersection_img1)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#进行减法运算，提取纯文字图片</span>
+</span></span><span style="display:flex;"><span>    character_img1 = binary1 - table1
+</span></span><span style="display:flex;"><span>    character_img2 = binary2 - table2
+</span></span><span style="display:flex;"><span>    cv_show(<span style="color:#cd5555">&#34;纯文字图片1&#34;</span>, character_img1)
+</span></span><span style="display:flex;"><span>    cv_show(<span style="color:#cd5555">&#34;纯文字图片2&#34;</span>, character_img2)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#通过交点图片提取出交点像素</span>
+</span></span><span style="display:flex;"><span>    myList_x1, myList_y1 = side_point(intersection_img1)  <span style="color:#228b22">#x代表行，y代表列</span>
+</span></span><span style="display:flex;"><span>    myList_x2, myList_y2 = side_point(intersection_img2)
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># print(myList_x1)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># print(myList_y1)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># print(myList_x2)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># print(myList_y2)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#根据交点位置分割表格</span>
+</span></span><span style="display:flex;"><span>    img_list1 = split_table(myList_x1, myList_y1, character_img1)
+</span></span><span style="display:flex;"><span>    img_list2 = split_table(myList_x2, myList_y2, character_img2)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#分割图片效果检测</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># for img in img_list1:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#     cv_show(&#34;&#34;, img)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># for img in img_list2:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#     cv_show(&#34;&#34;, img)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#对分割好的图片进行文字识别</span>
+</span></span><span style="display:flex;"><span>    name_text1, number_text1, admit_text1 = ocr1(img_list1)
+</span></span><span style="display:flex;"><span>    name_text2, number_text2, admit_text2 = ocr2(img_list2)
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># print(name_text1)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># print(admit_text1)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># print(name_text2)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># print(admit_text2)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#新建表格并保存名字</span>
+</span></span><span style="display:flex;"><span>    workbook = openpyxl.Workbook()
+</span></span><span style="display:flex;"><span>    workbook.create_sheet(<span style="color:#cd5555">&#39;录取情况&#39;</span>)
+</span></span><span style="display:flex;"><span>    sheet = workbook[<span style="color:#cd5555">&#39;录取情况&#39;</span>]
+</span></span><span style="display:flex;"><span>    sheet.cell(<span style="color:#b452cd">1</span>, <span style="color:#b452cd">1</span>).value = <span style="color:#cd5555">&#39;姓名&#39;</span>
+</span></span><span style="display:flex;"><span>    sheet.cell(<span style="color:#b452cd">1</span>, <span style="color:#b452cd">2</span>).value = <span style="color:#cd5555">&#39;准考证号&#39;</span>
+</span></span><span style="display:flex;"><span>    sheet.cell(<span style="color:#b452cd">1</span>, <span style="color:#b452cd">3</span>).value = <span style="color:#cd5555">&#39;录取情况&#39;</span>
+</span></span><span style="display:flex;"><span>    workbook.save(<span style="color:#cd5555">u</span><span style="color:#cd5555">&#39;接收复试同学已录取情况.xlsx&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#编辑表格并输入信息</span>
+</span></span><span style="display:flex;"><span>    edit_exTable(<span style="color:#cd5555">u</span><span style="color:#cd5555">&#39;接收复试同学已录取情况.xlsx&#39;</span>, <span style="color:#cd5555">&#39;录取情况&#39;</span>, name_text1, number_text1, admit_text1)
+</span></span><span style="display:flex;"><span>    edit_exTable(<span style="color:#cd5555">u</span><span style="color:#cd5555">&#39;接收复试同学已录取情况.xlsx&#39;</span>, <span style="color:#cd5555">&#39;录取情况&#39;</span>, name_text2, number_text2, admit_text2)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">#在已有表格中查找并进行标注（通过名字查找）</span>
+</span></span><span style="display:flex;"><span>    mark_exTable(<span style="color:#cd5555">u</span><span style="color:#cd5555">&#39;接收复试通知名单_副本.xlsx&#39;</span>, <span style="color:#cd5555">&#39;YZ_SYTJ_SBMCJ_085046761&#39;</span>, name_text1, number_text1, admit_text1)
+</span></span><span style="display:flex;"><span>    mark_exTable(<span style="color:#cd5555">u</span><span style="color:#cd5555">&#39;接收复试通知名单_副本.xlsx&#39;</span>, <span style="color:#cd5555">&#39;YZ_SYTJ_SBMCJ_085046761&#39;</span>, name_text2, number_text2, admit_text2)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> __name__ == <span style="color:#cd5555">&#39;__main__&#39;</span>:
+</span></span><span style="display:flex;"><span>    main()
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h3 id="结果">结果</h3>
 <h4 id="原图给定表格部分截图">原图&amp;给定表格部分截图</h4>

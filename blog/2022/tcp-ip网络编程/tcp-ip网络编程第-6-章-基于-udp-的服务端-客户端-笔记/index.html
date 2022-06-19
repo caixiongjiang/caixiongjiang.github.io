@@ -1201,7 +1201,7 @@ color: #515151;
                             
                             17 min
                             
-                            13 s.
+                            14 s.
                         
                     </div>
                 </div>
@@ -1238,66 +1238,66 @@ color: #515151;
 <p>图中展示了 1 个 UDP 套接字与 2 个不同主机交换数据的过程。也就是说，只需 1 个 UDP 套接字就能和多台主机进行通信。</p>
 <h4 id="623-基于-udp-的数据-io-函数">6.2.3 基于 UDP 的数据 I/O 函数</h4>
 <p>创建好 TCP 套接字以后，传输数据时无需加上地址信息。因为 TCP 套接字将保持与对方套接字的连接。换言之，TCP 套接字知道目标地址信息。但 UDP 套接字不会保持连接状态（UDP 套接字只有简单的邮筒功能），因此每次传输数据时都需要添加目标的地址信息。这相当于寄信前在信件中填写地址。接下来是 UDP 的相关函数：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/socket.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">sendto</span>(<span style="color:#00688b;font-weight:bold">int</span> sock, <span style="color:#00688b;font-weight:bold">void</span> *buff, size_t nbytes, <span style="color:#00688b;font-weight:bold">int</span> flags,
-               <span style="color:#8b008b;font-weight:bold">struct</span> sockaddr *to, socklen_t addrlen);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回传输的字节数，失败是返回 -1
-</span><span style="color:#228b22">sock: 用于传输数据的 UDP 套接字
-</span><span style="color:#228b22">buff: 保存待传输数据的缓冲地址值
-</span><span style="color:#228b22">nbytes: 待传输的数据长度，以字节为单位
-</span><span style="color:#228b22">flags: 可选项参数，若没有则传递 0
-</span><span style="color:#228b22">to: 存有目标地址的 sockaddr 结构体变量的地址值
-</span><span style="color:#228b22">addrlen: 传递给参数 to 的地址值结构体变量长度
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/socket.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">sendto</span>(<span style="color:#00688b;font-weight:bold">int</span> sock, <span style="color:#00688b;font-weight:bold">void</span> *buff, size_t nbytes, <span style="color:#00688b;font-weight:bold">int</span> flags,
+</span></span><span style="display:flex;"><span>               <span style="color:#8b008b;font-weight:bold">struct</span> sockaddr *to, socklen_t addrlen);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回传输的字节数，失败是返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">sock: 用于传输数据的 UDP 套接字
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">buff: 保存待传输数据的缓冲地址值
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">nbytes: 待传输的数据长度，以字节为单位
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">flags: 可选项参数，若没有则传递 0
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">to: 存有目标地址的 sockaddr 结构体变量的地址值
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">addrlen: 传递给参数 to 的地址值结构体变量长度
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>上述函数与之前的 TCP 输出函数最大的区别在于，此函数需要向它传递目标地址信息。接下来介绍接收 UDP 数据的函数。UDP 数据的发送并不固定，因此该函数定义为可接受发送端信息的形式，也就是将同时返回 UDP 数据包中的发送端信息。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/socket.h&gt;</span><span style="color:#1e889b">
-</span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">recvfrom</span>(<span style="color:#00688b;font-weight:bold">int</span> sock, <span style="color:#00688b;font-weight:bold">void</span> *buff, size_t nbytes, <span style="color:#00688b;font-weight:bold">int</span> flags,
-                 <span style="color:#8b008b;font-weight:bold">struct</span> sockaddr *from, socklen_t *addrlen);
-<span style="color:#228b22">/*
-</span><span style="color:#228b22">成功时返回传输的字节数，失败是返回 -1
-</span><span style="color:#228b22">sock: 用于传输数据的 UDP 套接字
-</span><span style="color:#228b22">buff: 保存待传输数据的缓冲地址值
-</span><span style="color:#228b22">nbytes: 待传输的数据长度，以字节为单位
-</span><span style="color:#228b22">flags: 可选项参数，若没有则传递 0
-</span><span style="color:#228b22">from: 存有发送端地址信息的 sockaddr 结构体变量的地址值
-</span><span style="color:#228b22">addrlen: 保存参数 from 的结构体变量长度的变量地址值。
-</span><span style="color:#228b22">*/</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;sys/socket.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>ssize_t <span style="color:#008b45">recvfrom</span>(<span style="color:#00688b;font-weight:bold">int</span> sock, <span style="color:#00688b;font-weight:bold">void</span> *buff, size_t nbytes, <span style="color:#00688b;font-weight:bold">int</span> flags,
+</span></span><span style="display:flex;"><span>                 <span style="color:#8b008b;font-weight:bold">struct</span> sockaddr *from, socklen_t *addrlen);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">成功时返回传输的字节数，失败是返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">sock: 用于传输数据的 UDP 套接字
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">buff: 保存待传输数据的缓冲地址值
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">nbytes: 待传输的数据长度，以字节为单位
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">flags: 可选项参数，若没有则传递 0
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">from: 存有发送端地址信息的 sockaddr 结构体变量的地址值
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">addrlen: 保存参数 from 的结构体变量长度的变量地址值。
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>编写 UDP 程序的最核心的部分就在于上述两个函数，这也说明二者在 UDP 数据传输中的地位。</p>
 <h4 id="624-基于-udp-的回声服务器端客户端">6.2.4 基于 UDP 的回声服务器端/客户端</h4>
@@ -1308,19 +1308,19 @@ color: #515151;
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch06/uecho_server.c">uecho_server.c</a></li>
 </ul>
 <p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc uecho_client.c -o uclient
-gcc uecho_server.c -o userver
-./server <span style="color:#b452cd">9190</span>
-./uclient 127.0.0.1 <span style="color:#b452cd">9190</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc uecho_client.c -o uclient
+</span></span><span style="display:flex;"><span>gcc uecho_server.c -o userver
+</span></span><span style="display:flex;"><span>./server <span style="color:#b452cd">9190</span>
+</span></span><span style="display:flex;"><span>./uclient 127.0.0.1 <span style="color:#b452cd">9190</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>结果：</p>
 <p><img src="https://i.loli.net/2019/01/17/5c3feb85baa83.png" alt=""></p>
@@ -1338,19 +1338,19 @@ gcc uecho_server.c -o userver
 <li><a href="https://github.com/caixiongjiang/TCPIP/blob/master/ch06/bound_host2.c">bound_host2.c</a></li>
 </ul>
 <p>编译运行：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">gcc bound_host1.c -o host1
-gcc bound_host2.c -o host2
-./host1 <span style="color:#b452cd">9190</span>
-./host2 127.0.0.1 <span style="color:#b452cd">9190</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc bound_host1.c -o host1
+</span></span><span style="display:flex;"><span>gcc bound_host2.c -o host2
+</span></span><span style="display:flex;"><span>./host1 <span style="color:#b452cd">9190</span>
+</span></span><span style="display:flex;"><span>./host2 127.0.0.1 <span style="color:#b452cd">9190</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>运行结果：</p>
 <p><img src="https://i.loli.net/2019/01/17/5c3ff966a8d34.png" alt=""></p>
@@ -1366,23 +1366,23 @@ gcc bound_host2.c -o host2
 <p>每次调用 sendto 函数时重复上述过程。每次都变更目标地址，因此可以重复利用同一 UDP 套接字向不同目标传递数据。这种未注册目标地址信息的套接字称为未连接套接字，反之，注册了目标地址的套接字称为连接 connected 套接字。显然，UDP 套接字默认属于未连接套接字。当一台主机向另一台主机传输很多信息时，上述的三个阶段中，第一个阶段和第三个阶段占整个通信过程中近三分之一的时间，缩短这部分的时间将会大大提高整体性能。</p>
 <h4 id="633-创建已连接-udp-套接字">6.3.3 创建已连接 UDP 套接字</h4>
 <p>创建已连接 UDP 套接字过程格外简单，只需针对 UDP 套接字调用 connect 函数。</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">sock = socket(PF_INET, SOCK_DGRAM, <span style="color:#b452cd">0</span>);
-memset(&amp;adr, <span style="color:#b452cd">0</span>, <span style="color:#8b008b;font-weight:bold">sizeof</span>(adr));
-adr.sin_family = AF_INET;
-adr.sin_addr.s_addr = inet_addr(argv[<span style="color:#b452cd">1</span>]);
-adr.sin_port = htons(atoi(argv[<span style="color:#b452cd">2</span>]));
-connect(sock, (<span style="color:#8b008b;font-weight:bold">struct</span> sockaddr *)&amp;adr, <span style="color:#8b008b;font-weight:bold">sizeof</span>(adr));
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>sock = socket(PF_INET, SOCK_DGRAM, <span style="color:#b452cd">0</span>);
+</span></span><span style="display:flex;"><span>memset(&amp;adr, <span style="color:#b452cd">0</span>, <span style="color:#8b008b;font-weight:bold">sizeof</span>(adr));
+</span></span><span style="display:flex;"><span>adr.sin_family = AF_INET;
+</span></span><span style="display:flex;"><span>adr.sin_addr.s_addr = inet_addr(argv[<span style="color:#b452cd">1</span>]);
+</span></span><span style="display:flex;"><span>adr.sin_port = htons(atoi(argv[<span style="color:#b452cd">2</span>]));
+</span></span><span style="display:flex;"><span>connect(sock, (<span style="color:#8b008b;font-weight:bold">struct</span> sockaddr *)&amp;adr, <span style="color:#8b008b;font-weight:bold">sizeof</span>(adr));
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>上述代码看似与 TCP 套接字创建过程一致，但 socket 函数的第二个参数分明是 SOCK_DGRAM 。也就是说，创建的的确是 UDP 套接字。当然针对 UDP 调用 connect 函数并不是意味着要与对方 UDP 套接字连接，这只是向 UDP 套接字注册目标IP和端口信息。</p>
 <p>之后就与 TCP 套接字一致，每次调用 sendto 函数时只需传递信息数据。因为已经指定了收发对象，所以不仅可以使用 sendto、recvfrom 函数，还可以使用 write、read 函数进行通信。</p>

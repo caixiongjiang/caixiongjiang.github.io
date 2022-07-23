@@ -6,7 +6,35 @@
     <description>Recent content in Deep_learning on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 19 Jul 2022 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/tags/deep_learning/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 22 Jul 2022 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/tags/deep_learning/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>深度学习笔记（6-7节） </title>
+      <link>https://caixiongjiang.github.io/blog/2022/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B06-7%E8%8A%82/</link>
+      <pubDate>Fri, 22 Jul 2022 18:18:05 +0800</pubDate>
+      
+      <guid>https://caixiongjiang.github.io/blog/2022/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B06-7%E8%8A%82/</guid>
+      <description>深度学习（6-7节） 优化算法 Mini-batch梯度下降法 假设我们的样本数量为500w个，那么在进行梯度下降之前，我们需要先将500w个数据整合成一个大的向量$X$。Mini-batch的做法为将500w个样本按照每个子集为1000个样本等分。每个子集标记为$X^{\left{ 1\right} }X^{\left{ 2\right} },\dots,X^{\left{ 5000\right} }$。相应的，除了需要拆分$X$，也需要拆分标签$Y$，拆分的方法和$X$相同。
+Mini-batch的原理是将同时原本对所有样本和标签同时进行梯度下降转变为同时只对一个子集进行梯度下降处理，处理5000次。需要注意代价函数也要改变，因为每次训练的样本个数改变了。
+当你的训练集大小很大的时候，mini-batch梯度下降法比batch梯度下降法运行地更快。
+batch梯度下降法和Mini-batch梯度下降法的代价随迭代的图像如下：
+右边的图像出现波动的原因是：每次实现梯度下降的样本集不同，可能$X^{\left{ 1\right} }$和$Y^{\left{ 1\right} }$需要花费的代价更大，而$X^{\left{ 2\right} }$和$Y^{\left{ 2\right} }$花费的代价更少，从而形成一个噪声的现象。
+那么mini-bash的大小如何决定呢？
+先看两种极端情况：
+如果子集的大小为m，那么mini-bash梯度下降就变成了batch梯度下降；
+如果子集的大小为1，那么mini-bash梯度下降就变成了随机梯度下降法，每个样本都是一个子集；
+batch梯度下降每次下降的噪声会小一点，幅度会大一点（这里的噪声是指梯度下降的方向偏离目标）；而随机梯度下降大部分时间会向着全局最小值逼近，但有时候会远离最小值（刚好该样本是一个&amp;rsquo;&amp;lsquo;坏&amp;rsquo;&amp;lsquo;样本），随机梯度下降法永远不会收敛，而是会一直在最小值附近波动。
+batch梯度下降在训练数据很大的时候，单次训练迭代时间过长，如果训练数据量较小的情况下效果较好；而随机梯度下降单次迭代很快，但却无法使用向量化技术对运算进行加速。我们的目的就是选择一个不大不小的size，使得我们的学习速率达到最快（梯度下降）。
+最优的情况就是，单次选取的size大小的数据分布比较符合整体数据的分布，这样使得学习速率和运行效率都比较高。
+指数加权平均 指数加权平均也称指数加权移动平均，通过它可以来计算局部的平均值，来描述数值的变化趋势，下面通过一个温度的例子来详细介绍一下。
+上图是温度随时间变化的图像，我们通过温度的局部平均值（移动平均值）来描述温度的变化趋势，计算公式如下： $$ v_t=\beta v_{t-1}+(1-\beta)\theta_{t}\ v_0=0\ v_1=0.9v_0+0.1\theta_1\ v_2=0.9v_1+0.1\theta_2\ \theta 代表当天的温度，v代表局部平均值 $$ 当$\beta$为0.9时，可以将$v_t$看作$\frac{1}{1-\beta}=\frac{1}{1-0.9}=10$天的平均值。
+当$\beta$变得越小，移动平均值的波动越大。
+通过上面的公式往下推到，可以得到$v_{100}$的表达式： $$ v_{100}=0.1\times\theta_{100}+0.1\times0.9\times\theta_{99}+\dots+0.1\times0.9^{99}\times\theta_1\ =0.1\times\sum_{i=1}^{100}0.9^{100-i}\times\theta_i $$ 当$\epsilon=1-\beta$时，$(1-\beta)^{\frac{1}{\epsilon}}\approx\frac{1}{e}\approx\frac{1}{1-\beta}$，所以可以将$v_t$看作$\frac{1}{1-\beta}=\frac{1}{1-0.9}=10$天的平均值。
+简单来说，普通的加权求平均值的方法每一项的权重是$\frac{1}{n}$，指数加权平均每一项的权重是指数递减的。
+指数加权平均的偏差修正 由于我们初始设置的$v_0$为0，这样会使前面几个$v_1,v_2\dots$的值与实际值相比偏小，我们通常会采取以下的办法来修正偏差： $$ v_t=\frac{\beta v_{t-1}+(1-\beta)\theta_t}{1-\beta^t} $$ 这样修正的效果为随着t的增加，分母越来越接近1。相当于时间越短，修正的幅度越大，所以这个公式主要是为了修正早期的偏差。
+动量梯度下降法 我们将上面所说的指数加权平均的做法应用于神经网络的反向传播过程，如下： $$ V_{dW}=\beta V_{dW}+(1-\beta)dW\ V_{db}=\beta V_{db}+(1-\beta)db\ W:=W-\alpha V_{dW},b:=b-\alpha V_{db} $$ 这样做可以减缓梯度下降的幅度，因为梯度下降不一定朝着最快的方向前进。如下图所示：
+原本为蓝色的梯度下降会变成红色，纵轴摆动的方向变小了且上下摆动的幅度均值大概为0。这样一来，即使我增加学习率或者步长也不会出现紫色线这种偏离函数的情况。</description>
+    </item>
+    
     <item>
       <title>深度学习笔记（4-5节） </title>
       <link>https://caixiongjiang.github.io/blog/2022/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B04-5%E8%8A%82/</link>

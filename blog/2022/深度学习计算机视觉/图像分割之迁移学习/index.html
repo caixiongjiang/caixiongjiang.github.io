@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html><head>
+<title>图像分割之迁移学习</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="使用迁移学习，进行模型修改，替换主干网络">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="图像分割之迁移学习" />
+<meta property="og:description" content="使用迁移学习，进行模型修改，替换主干网络" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://caixiongjiang.github.io/blog/2022/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E4%B9%8B%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2022-09-02T18:18:05+08:00" />
+<meta property="article:modified_time" content="2022-09-01T09:19:06+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/avater.jfif">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.5.11/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://caixiongjiang.github.io/">
+    
+        <div class="nav-title">
+            🌀Jarson Cai&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            头脑是日用品，不是装饰品
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://github.com/caixiongjiang">
+    GitHub
+</a>
+<br>
+
+<a href="https://jarson-cai.gitee.io/jarson-cai-blog">
+    MiFeng
+</a>
+<br>
+
+<a href="nau_cxj@163.com">
+    Email
+</a>
+<br>
+
+<a href="https://leetcode-cn.com/u/cai-xiong-jiang/">
+    Leetcode
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2022 🌀Jarson Cai&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#unetattention_unet%e7%bd%91%e7%bb%9c%e4%bf%ae%e6%94%b9%e4%b9%8b%e6%9b%bf%e6%8d%a2%e4%b8%bb%e5%b9%b2%e7%bd%91%e7%bb%9c" onclick="onNavClick(`#unetattention_unet网络修改之替换主干网络-nav`)" id="unetattention_unet网络修改之替换主干网络-nav">
+									Unet，Attention_Unet网络修改之替换主干网络
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#unet%e7%9a%84%e4%bf%ae%e6%94%b9%e7%89%b9%e5%be%81%e6%8f%90%e5%8f%96%e7%bd%91%e7%bb%9c%e6%9b%bf%e6%8d%a2%e6%88%90vgg" onclick="onNavClick(`#unet的修改特征提取网络替换成vgg-nav`)" id="unet的修改特征提取网络替换成vgg-nav">
+									Unet的修改——特征提取网络替换成VGG
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#unet%e7%9a%84%e4%bf%ae%e6%94%b9%e7%89%b9%e5%be%81%e6%8f%90%e5%8f%96%e7%bd%91%e7%bb%9c%e6%9b%bf%e6%8d%a2%e6%88%90resnet50" onclick="onNavClick(`#unet的修改特征提取网络替换成resnet50-nav`)" id="unet的修改特征提取网络替换成resnet50-nav">
+									Unet的修改——特征提取网络替换成Resnet50
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#attention_unet%e7%9a%84%e4%bf%ae%e6%94%b9%e7%89%b9%e5%be%81%e6%8f%90%e5%8f%96%e7%bd%91%e7%bb%9c%e6%9b%bf%e6%8d%a2%e6%88%90vgg" onclick="onNavClick(`#attention_unet的修改特征提取网络替换成vgg-nav`)" id="attention_unet的修改特征提取网络替换成vgg-nav">
+									Attention_Unet的修改——特征提取网络替换成VGG
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#unetattention_unet%e7%bd%91%e7%bb%9c%e4%bf%ae%e6%94%b9%e4%b9%8b%e6%9b%bf%e6%8d%a2%e4%b8%bb%e5%b9%b2%e7%bd%91%e7%bb%9c" onclick="onNavClick(`#unetattention_unet网络修改之替换主干网络-nav`)" id="unetattention_unet网络修改之替换主干网络-nav">
+									Unet，Attention_Unet网络修改之替换主干网络
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#unet%e7%9a%84%e4%bf%ae%e6%94%b9%e7%89%b9%e5%be%81%e6%8f%90%e5%8f%96%e7%bd%91%e7%bb%9c%e6%9b%bf%e6%8d%a2%e6%88%90vgg" onclick="onNavClick(`#unet的修改特征提取网络替换成vgg-nav`)" id="unet的修改特征提取网络替换成vgg-nav">
+									Unet的修改——特征提取网络替换成VGG
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#unet%e7%9a%84%e4%bf%ae%e6%94%b9%e7%89%b9%e5%be%81%e6%8f%90%e5%8f%96%e7%bd%91%e7%bb%9c%e6%9b%bf%e6%8d%a2%e6%88%90resnet50" onclick="onNavClick(`#unet的修改特征提取网络替换成resnet50-nav`)" id="unet的修改特征提取网络替换成resnet50-nav">
+									Unet的修改——特征提取网络替换成Resnet50
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#attention_unet%e7%9a%84%e4%bf%ae%e6%94%b9%e7%89%b9%e5%be%81%e6%8f%90%e5%8f%96%e7%bd%91%e7%bb%9c%e6%9b%bf%e6%8d%a2%e6%88%90vgg" onclick="onNavClick(`#attention_unet的修改特征提取网络替换成vgg-nav`)" id="attention_unet的修改特征提取网络替换成vgg-nav">
+									Attention_Unet的修改——特征提取网络替换成VGG
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://caixiongjiang.github.io/">
+            🌀Jarson Cai&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://caixiongjiang.github.io/">
+        <div class="single-column-header-title">🌀Jarson Cai&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">头脑是日用品，不是装饰品</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img_title.jpg')"
+                    
+                
+            >
+                <div class="post-title">
+                    图像分割之迁移学习
+                    
+                    <div class="post-subtitle">
+                        使用迁移学习，进行模型修改，替换主干网络
+                    </div>
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2022-09-02 18:18
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/">[深度学习 图像分割]</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/deep_learning">Deep_learning</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            11 min
+                            
+                            29 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h2 id="unetattention_unet网络修改之替换主干网络">Unet，Attention_Unet网络修改之替换主干网络</h2>
+<p>对于算力有限的机器来说，从零开始训练实际效果并不好。使用迁移学习的预训练权重对于缺少参数调优的机器的炼丹人是非常重要的！</p>
+<p>为了使用预训练权重，就需要将特征提取网络替换成知名的主干网络，比如<code>VGG</code>，<code>Resnet</code>，<code>mobilenet</code>等</p>
+<h3 id="unet的修改特征提取网络替换成vgg">Unet的修改——特征提取网络替换成VGG</h3>
+<p>Unet论文地址：<a href="https://arxiv.org/abs/1505.04597">https://arxiv.org/abs/1505.04597</a></p>
+<p>为了使替换主干网络后，保持维度匹配，需要对网络结构进行修改。所以我重构了网络结构图：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img70.jpg" alt=""></p>
+<p>代码如下：</p>
+<p>vgg.py:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">68
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">69
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">70
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">71
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">72
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">73
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">74
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">75
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">torch.nn</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">nn</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">torch.hub</span> <span style="color:#8b008b;font-weight:bold">import</span> load_state_dict_from_url
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">VGG</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, features, num_classes=<span style="color:#b452cd">1000</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(VGG, self).__init__()
+</span></span><span style="display:flex;"><span>        self.features = features
+</span></span><span style="display:flex;"><span>        self.avgpool = nn.AdaptiveAvgPool2d((<span style="color:#b452cd">7</span>, <span style="color:#b452cd">7</span>))
+</span></span><span style="display:flex;"><span>        self.classifier = nn.Sequential(
+</span></span><span style="display:flex;"><span>            nn.Linear(<span style="color:#b452cd">512</span> * <span style="color:#b452cd">7</span> * <span style="color:#b452cd">7</span>, <span style="color:#b452cd">4096</span>),
+</span></span><span style="display:flex;"><span>            nn.ReLU(<span style="color:#8b008b;font-weight:bold">True</span>),
+</span></span><span style="display:flex;"><span>            nn.Dropout(),
+</span></span><span style="display:flex;"><span>            nn.Linear(<span style="color:#b452cd">4096</span>, <span style="color:#b452cd">4096</span>),
+</span></span><span style="display:flex;"><span>            nn.ReLU(<span style="color:#8b008b;font-weight:bold">True</span>),
+</span></span><span style="display:flex;"><span>            nn.Dropout(),
+</span></span><span style="display:flex;"><span>            nn.Linear(<span style="color:#b452cd">4096</span>, num_classes),
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        self._initialize_weights()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, x):
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.features(x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.avgpool(x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = torch.flatten(x, 1)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.classifier(x)</span>
+</span></span><span style="display:flex;"><span>        feat1 = self.features[  :<span style="color:#b452cd">4</span> ](x)
+</span></span><span style="display:flex;"><span>        feat2 = self.features[<span style="color:#b452cd">4</span> :<span style="color:#b452cd">9</span> ](feat1)
+</span></span><span style="display:flex;"><span>        feat3 = self.features[<span style="color:#b452cd">9</span> :<span style="color:#b452cd">16</span>](feat2)
+</span></span><span style="display:flex;"><span>        feat4 = self.features[<span style="color:#b452cd">16</span>:<span style="color:#b452cd">23</span>](feat3)
+</span></span><span style="display:flex;"><span>        feat5 = self.features[<span style="color:#b452cd">23</span>:-<span style="color:#b452cd">1</span>](feat4)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> [feat1, feat2, feat3, feat4, feat5]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">_initialize_weights</span>(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> m <span style="color:#8b008b">in</span> self.modules():
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> <span style="color:#658b00">isinstance</span>(m, nn.Conv2d):
+</span></span><span style="display:flex;"><span>                nn.init.kaiming_normal_(m.weight, mode=<span style="color:#cd5555">&#39;fan_out&#39;</span>, nonlinearity=<span style="color:#cd5555">&#39;relu&#39;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> m.bias <span style="color:#8b008b">is</span> <span style="color:#8b008b">not</span> <span style="color:#8b008b;font-weight:bold">None</span>:
+</span></span><span style="display:flex;"><span>                    nn.init.constant_(m.bias, <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">elif</span> <span style="color:#658b00">isinstance</span>(m, nn.BatchNorm2d):
+</span></span><span style="display:flex;"><span>                nn.init.constant_(m.weight, <span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>                nn.init.constant_(m.bias, <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">elif</span> <span style="color:#658b00">isinstance</span>(m, nn.Linear):
+</span></span><span style="display:flex;"><span>                nn.init.normal_(m.weight, <span style="color:#b452cd">0</span>, <span style="color:#b452cd">0.01</span>)
+</span></span><span style="display:flex;"><span>                nn.init.constant_(m.bias, <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">make_layers</span>(cfg, batch_norm=<span style="color:#8b008b;font-weight:bold">False</span>, in_channels = <span style="color:#b452cd">3</span>):
+</span></span><span style="display:flex;"><span>    layers = []
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> v <span style="color:#8b008b">in</span> cfg:
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> v == <span style="color:#cd5555">&#39;M&#39;</span>:
+</span></span><span style="display:flex;"><span>            layers += [nn.MaxPool2d(kernel_size=<span style="color:#b452cd">2</span>, stride=<span style="color:#b452cd">2</span>)]
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">else</span>:
+</span></span><span style="display:flex;"><span>            conv2d = nn.Conv2d(in_channels, v, kernel_size=<span style="color:#b452cd">3</span>, padding=<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> batch_norm:
+</span></span><span style="display:flex;"><span>                layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=<span style="color:#8b008b;font-weight:bold">True</span>)]
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">else</span>:
+</span></span><span style="display:flex;"><span>                layers += [conv2d, nn.ReLU(inplace=<span style="color:#8b008b;font-weight:bold">True</span>)]
+</span></span><span style="display:flex;"><span>            in_channels = v
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> nn.Sequential(*layers)
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 512,512,3 -&gt; 512,512,64 -&gt; 256,256,64 -&gt; 256,256,128 -&gt; 128,128,128 -&gt; 128,128,256 -&gt; 64,64,256</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 64,64,512 -&gt; 32,32,512 -&gt; 32,32,512</span>
+</span></span><span style="display:flex;"><span>cfgs = {
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#39;D&#39;</span>: [<span style="color:#b452cd">64</span>, <span style="color:#b452cd">64</span>, <span style="color:#cd5555">&#39;M&#39;</span>, <span style="color:#b452cd">128</span>, <span style="color:#b452cd">128</span>, <span style="color:#cd5555">&#39;M&#39;</span>, <span style="color:#b452cd">256</span>, <span style="color:#b452cd">256</span>, <span style="color:#b452cd">256</span>, <span style="color:#cd5555">&#39;M&#39;</span>, <span style="color:#b452cd">512</span>, <span style="color:#b452cd">512</span>, <span style="color:#b452cd">512</span>, <span style="color:#cd5555">&#39;M&#39;</span>, <span style="color:#b452cd">512</span>, <span style="color:#b452cd">512</span>, <span style="color:#b452cd">512</span>, <span style="color:#cd5555">&#39;M&#39;</span>]
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">VGG16</span>(pretrained, in_channels = <span style="color:#b452cd">3</span>, **kwargs):
+</span></span><span style="display:flex;"><span>    model = VGG(make_layers(cfgs[<span style="color:#cd5555">&#34;D&#34;</span>], batch_norm = <span style="color:#8b008b;font-weight:bold">False</span>, in_channels = in_channels), **kwargs)
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> pretrained:
+</span></span><span style="display:flex;"><span>        state_dict = load_state_dict_from_url(<span style="color:#cd5555">&#34;https://download.pytorch.org/models/vgg16-397923af.pth&#34;</span>, model_dir=<span style="color:#cd5555">&#34;./model_data&#34;</span>)
+</span></span><span style="display:flex;"><span>        model.load_state_dict(state_dict)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">del</span> model.avgpool
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">del</span> model.classifier
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> model
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Unet.py:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">68
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">69
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">70
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">71
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">72
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">73
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">74
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">75
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">76
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">77
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">78
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">79
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">80
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">81
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">82
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">83
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">84
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">85
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">86
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">87
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">88
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">89
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">90
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">91
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">92
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">93
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">94
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">torch</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">torch.nn</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">nn</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">nets.resnet</span> <span style="color:#8b008b;font-weight:bold">import</span> resnet50
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">nets.vgg</span> <span style="color:#8b008b;font-weight:bold">import</span> VGG16
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">unetUp</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, in_size, out_size):
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(unetUp, self).__init__()
+</span></span><span style="display:flex;"><span>        self.conv1  = nn.Conv2d(in_size, out_size, kernel_size = <span style="color:#b452cd">3</span>, padding = <span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>        self.conv2  = nn.Conv2d(out_size, out_size, kernel_size = <span style="color:#b452cd">3</span>, padding = <span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>        self.up     = nn.UpsamplingBilinear2d(scale_factor = <span style="color:#b452cd">2</span>)
+</span></span><span style="display:flex;"><span>        self.relu   = nn.ReLU(inplace = <span style="color:#8b008b;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, inputs1, inputs2):
+</span></span><span style="display:flex;"><span>        outputs = torch.cat([inputs1, self.up(inputs2)], <span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>        outputs = self.conv1(outputs)
+</span></span><span style="display:flex;"><span>        outputs = self.relu(outputs)
+</span></span><span style="display:flex;"><span>        outputs = self.conv2(outputs)
+</span></span><span style="display:flex;"><span>        outputs = self.relu(outputs)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> outputs
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">Unet</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, num_classes = <span style="color:#b452cd">21</span>, pretrained = <span style="color:#8b008b;font-weight:bold">False</span>, backbone = <span style="color:#cd5555">&#39;vgg&#39;</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(Unet, self).__init__()
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> backbone == <span style="color:#cd5555">&#39;vgg&#39;</span>:
+</span></span><span style="display:flex;"><span>            self.vgg    = VGG16(pretrained = pretrained)
+</span></span><span style="display:flex;"><span>            in_filters  = [<span style="color:#b452cd">192</span>, <span style="color:#b452cd">384</span>, <span style="color:#b452cd">768</span>, <span style="color:#b452cd">1024</span>]
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">elif</span> backbone == <span style="color:#cd5555">&#34;resnet50&#34;</span>:
+</span></span><span style="display:flex;"><span>            self.resnet = resnet50(pretrained = pretrained)
+</span></span><span style="display:flex;"><span>            in_filters  = [<span style="color:#b452cd">192</span>, <span style="color:#b452cd">512</span>, <span style="color:#b452cd">1024</span>, <span style="color:#b452cd">3072</span>]
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">else</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">raise</span> <span style="color:#008b45;font-weight:bold">ValueError</span>(<span style="color:#cd5555">&#39;Unsupported backbone - `</span><span style="color:#cd5555">{}</span><span style="color:#cd5555">`, Use vgg, resnet50.&#39;</span>.format(backbone))
+</span></span><span style="display:flex;"><span>        out_filters = [<span style="color:#b452cd">64</span>, <span style="color:#b452cd">128</span>, <span style="color:#b452cd">256</span>, <span style="color:#b452cd">512</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># upsampling</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 64,64,512</span>
+</span></span><span style="display:flex;"><span>        self.up_concat4 = unetUp(in_filters[<span style="color:#b452cd">3</span>], out_filters[<span style="color:#b452cd">3</span>])
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 128,128,256</span>
+</span></span><span style="display:flex;"><span>        self.up_concat3 = unetUp(in_filters[<span style="color:#b452cd">2</span>], out_filters[<span style="color:#b452cd">2</span>])
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 256,256,128</span>
+</span></span><span style="display:flex;"><span>        self.up_concat2 = unetUp(in_filters[<span style="color:#b452cd">1</span>], out_filters[<span style="color:#b452cd">1</span>])
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 512,512,64</span>
+</span></span><span style="display:flex;"><span>        self.up_concat1 = unetUp(in_filters[<span style="color:#b452cd">0</span>], out_filters[<span style="color:#b452cd">0</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> backbone == <span style="color:#cd5555">&#39;resnet50&#39;</span>:
+</span></span><span style="display:flex;"><span>            self.up_conv = nn.Sequential(
+</span></span><span style="display:flex;"><span>                nn.UpsamplingBilinear2d(scale_factor = <span style="color:#b452cd">2</span>), 
+</span></span><span style="display:flex;"><span>                nn.Conv2d(out_filters[<span style="color:#b452cd">0</span>], out_filters[<span style="color:#b452cd">0</span>], kernel_size = <span style="color:#b452cd">3</span>, padding = <span style="color:#b452cd">1</span>),
+</span></span><span style="display:flex;"><span>                nn.ReLU(),
+</span></span><span style="display:flex;"><span>                nn.Conv2d(out_filters[<span style="color:#b452cd">0</span>], out_filters[<span style="color:#b452cd">0</span>], kernel_size = <span style="color:#b452cd">3</span>, padding = <span style="color:#b452cd">1</span>),
+</span></span><span style="display:flex;"><span>                nn.ReLU(),
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">else</span>:
+</span></span><span style="display:flex;"><span>            self.up_conv = <span style="color:#8b008b;font-weight:bold">None</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self.final = nn.Conv2d(out_filters[<span style="color:#b452cd">0</span>], num_classes, <span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self.backbone = backbone
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, inputs):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> self.backbone == <span style="color:#cd5555">&#34;vgg&#34;</span>:
+</span></span><span style="display:flex;"><span>            [feat1, feat2, feat3, feat4, feat5] = self.vgg.forward(inputs)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">elif</span> self.backbone == <span style="color:#cd5555">&#34;resnet50&#34;</span>:
+</span></span><span style="display:flex;"><span>            [feat1, feat2, feat3, feat4, feat5] = self.resnet.forward(inputs)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        up4 = self.up_concat4(feat4, feat5)
+</span></span><span style="display:flex;"><span>        up3 = self.up_concat3(feat3, up4)
+</span></span><span style="display:flex;"><span>        up2 = self.up_concat2(feat2, up3)
+</span></span><span style="display:flex;"><span>        up1 = self.up_concat1(feat1, up2)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> self.up_conv != <span style="color:#8b008b;font-weight:bold">None</span>:
+</span></span><span style="display:flex;"><span>            up1 = self.up_conv(up1)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        final = self.final(up1)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> final
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">freeze_backbone</span>(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> self.backbone == <span style="color:#cd5555">&#34;vgg&#34;</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> param <span style="color:#8b008b">in</span> self.vgg.parameters():
+</span></span><span style="display:flex;"><span>                param.requires_grad = <span style="color:#8b008b;font-weight:bold">False</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">elif</span> self.backbone == <span style="color:#cd5555">&#34;resnet50&#34;</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> param <span style="color:#8b008b">in</span> self.resnet.parameters():
+</span></span><span style="display:flex;"><span>                param.requires_grad = <span style="color:#8b008b;font-weight:bold">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">unfreeze_backbone</span>(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> self.backbone == <span style="color:#cd5555">&#34;vgg&#34;</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> param <span style="color:#8b008b">in</span> self.vgg.parameters():
+</span></span><span style="display:flex;"><span>                param.requires_grad = <span style="color:#8b008b;font-weight:bold">True</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">elif</span> self.backbone == <span style="color:#cd5555">&#34;resnet50&#34;</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> param <span style="color:#8b008b">in</span> self.resnet.parameters():
+</span></span><span style="display:flex;"><span>                param.requires_grad = <span style="color:#8b008b;font-weight:bold">True</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="unet的修改特征提取网络替换成resnet50">Unet的修改——特征提取网络替换成Resnet50</h3>
+<p>代码如下：</p>
+<p>resnet.py:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 63
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 64
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 65
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 66
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 67
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 68
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 69
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 70
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 71
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 72
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 73
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 74
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 75
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 76
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 77
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 78
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 79
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 80
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 81
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 82
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 83
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 84
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 85
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 86
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 87
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 88
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 89
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 90
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 91
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 92
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 93
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 94
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 95
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 96
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 97
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 98
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 99
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">100
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">101
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">102
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">103
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">104
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">105
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">106
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">107
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">108
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">109
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">110
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">111
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">112
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">113
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">114
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">115
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">116
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">117
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">118
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">119
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">120
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">121
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">122
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">123
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">124
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">125
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">126
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">127
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">128
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">129
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">130
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">131
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">132
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">133
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">134
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">135
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">136
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">137
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">138
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">139
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">140
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">141
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">142
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">143
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">144
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">145
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">146
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">147
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">148
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">149
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">150
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">151
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">152
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">153
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">154
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">155
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">156
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">157
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">158
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">159
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">160
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">161
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">162
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">163
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">164
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">165
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">166
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">167
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">168
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">169
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">170
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">171
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">172
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">173
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">174
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">175
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">176
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">177
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">178
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">179
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">180
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">181
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">182
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">183
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">184
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">185
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">math</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">torch.nn</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">nn</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">torch.utils.model_zoo</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">model_zoo</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">conv3x3</span>(in_planes, out_planes, stride=<span style="color:#b452cd">1</span>, groups=<span style="color:#b452cd">1</span>, dilation=<span style="color:#b452cd">1</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> nn.Conv2d(in_planes, out_planes, kernel_size=<span style="color:#b452cd">3</span>, stride=stride,
+</span></span><span style="display:flex;"><span>                     padding=dilation, groups=groups, bias=<span style="color:#8b008b;font-weight:bold">False</span>, dilation=dilation)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">conv1x1</span>(in_planes, out_planes, stride=<span style="color:#b452cd">1</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> nn.Conv2d(in_planes, out_planes, kernel_size=<span style="color:#b452cd">1</span>, stride=stride, bias=<span style="color:#8b008b;font-weight:bold">False</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">BasicBlock</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    expansion = <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, inplanes, planes, stride=<span style="color:#b452cd">1</span>, downsample=<span style="color:#8b008b;font-weight:bold">None</span>, groups=<span style="color:#b452cd">1</span>,
+</span></span><span style="display:flex;"><span>                 base_width=<span style="color:#b452cd">64</span>, dilation=<span style="color:#b452cd">1</span>, norm_layer=<span style="color:#8b008b;font-weight:bold">None</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(BasicBlock, self).__init__()
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> norm_layer <span style="color:#8b008b">is</span> <span style="color:#8b008b;font-weight:bold">None</span>:
+</span></span><span style="display:flex;"><span>            norm_layer = nn.BatchNorm2d
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> groups != <span style="color:#b452cd">1</span> <span style="color:#8b008b">or</span> base_width != <span style="color:#b452cd">64</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">raise</span> <span style="color:#008b45;font-weight:bold">ValueError</span>(<span style="color:#cd5555">&#39;BasicBlock only supports groups=1 and base_width=64&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> dilation &gt; <span style="color:#b452cd">1</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">raise</span> <span style="color:#008b45;font-weight:bold">NotImplementedError</span>(<span style="color:#cd5555">&#34;Dilation &gt; 1 not supported in BasicBlock&#34;</span>)
+</span></span><span style="display:flex;"><span>        self.conv1 = conv3x3(inplanes, planes, stride)
+</span></span><span style="display:flex;"><span>        self.bn1 = norm_layer(planes)
+</span></span><span style="display:flex;"><span>        self.relu = nn.ReLU(inplace=<span style="color:#8b008b;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>        self.conv2 = conv3x3(planes, planes)
+</span></span><span style="display:flex;"><span>        self.bn2 = norm_layer(planes)
+</span></span><span style="display:flex;"><span>        self.downsample = downsample
+</span></span><span style="display:flex;"><span>        self.stride = stride
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, x):
+</span></span><span style="display:flex;"><span>        identity = x
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        out = self.conv1(x)
+</span></span><span style="display:flex;"><span>        out = self.bn1(out)
+</span></span><span style="display:flex;"><span>        out = self.relu(out)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        out = self.conv2(out)
+</span></span><span style="display:flex;"><span>        out = self.bn2(out)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> self.downsample <span style="color:#8b008b">is</span> <span style="color:#8b008b">not</span> <span style="color:#8b008b;font-weight:bold">None</span>:
+</span></span><span style="display:flex;"><span>            identity = self.downsample(x)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        out += identity
+</span></span><span style="display:flex;"><span>        out = self.relu(out)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> out
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">Bottleneck</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    expansion = <span style="color:#b452cd">4</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, inplanes, planes, stride=<span style="color:#b452cd">1</span>, downsample=<span style="color:#8b008b;font-weight:bold">None</span>, groups=<span style="color:#b452cd">1</span>,
+</span></span><span style="display:flex;"><span>                 base_width=<span style="color:#b452cd">64</span>, dilation=<span style="color:#b452cd">1</span>, norm_layer=<span style="color:#8b008b;font-weight:bold">None</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(Bottleneck, self).__init__()
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> norm_layer <span style="color:#8b008b">is</span> <span style="color:#8b008b;font-weight:bold">None</span>:
+</span></span><span style="display:flex;"><span>            norm_layer = nn.BatchNorm2d
+</span></span><span style="display:flex;"><span>        width = <span style="color:#658b00">int</span>(planes * (base_width / <span style="color:#b452cd">64.</span>)) * groups
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 利用1x1卷积下降通道数</span>
+</span></span><span style="display:flex;"><span>        self.conv1 = conv1x1(inplanes, width)
+</span></span><span style="display:flex;"><span>        self.bn1 = norm_layer(width)
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 利用3x3卷积进行特征提取</span>
+</span></span><span style="display:flex;"><span>        self.conv2 = conv3x3(width, width, stride, groups, dilation)
+</span></span><span style="display:flex;"><span>        self.bn2 = norm_layer(width)
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 利用1x1卷积上升通道数</span>
+</span></span><span style="display:flex;"><span>        self.conv3 = conv1x1(width, planes * self.expansion)
+</span></span><span style="display:flex;"><span>        self.bn3 = norm_layer(planes * self.expansion)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self.relu = nn.ReLU(inplace=<span style="color:#8b008b;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>        self.downsample = downsample
+</span></span><span style="display:flex;"><span>        self.stride = stride
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, x):
+</span></span><span style="display:flex;"><span>        identity = x
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        out = self.conv1(x)
+</span></span><span style="display:flex;"><span>        out = self.bn1(out)
+</span></span><span style="display:flex;"><span>        out = self.relu(out)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        out = self.conv2(out)
+</span></span><span style="display:flex;"><span>        out = self.bn2(out)
+</span></span><span style="display:flex;"><span>        out = self.relu(out)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        out = self.conv3(out)
+</span></span><span style="display:flex;"><span>        out = self.bn3(out)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> self.downsample <span style="color:#8b008b">is</span> <span style="color:#8b008b">not</span> <span style="color:#8b008b;font-weight:bold">None</span>:
+</span></span><span style="display:flex;"><span>            identity = self.downsample(x)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        out += identity
+</span></span><span style="display:flex;"><span>        out = self.relu(out)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> out
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">ResNet</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, block, layers, num_classes=<span style="color:#b452cd">1000</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#-----------------------------------------------------------#</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#   假设输入图像为600,600,3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#   当我们使用resnet50的时候</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">#-----------------------------------------------------------#</span>
+</span></span><span style="display:flex;"><span>        self.inplanes = <span style="color:#b452cd">64</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(ResNet, self).__init__()
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 600,600,3 -&gt; 300,300,64</span>
+</span></span><span style="display:flex;"><span>        self.conv1  = nn.Conv2d(<span style="color:#b452cd">3</span>, <span style="color:#b452cd">64</span>, kernel_size=<span style="color:#b452cd">7</span>, stride=<span style="color:#b452cd">2</span>, padding=<span style="color:#b452cd">3</span>, bias=<span style="color:#8b008b;font-weight:bold">False</span>)
+</span></span><span style="display:flex;"><span>        self.bn1    = nn.BatchNorm2d(<span style="color:#b452cd">64</span>)
+</span></span><span style="display:flex;"><span>        self.relu   = nn.ReLU(inplace=<span style="color:#8b008b;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 300,300,64 -&gt; 150,150,64</span>
+</span></span><span style="display:flex;"><span>        self.maxpool = nn.MaxPool2d(kernel_size=<span style="color:#b452cd">3</span>, stride=<span style="color:#b452cd">2</span>, padding=<span style="color:#b452cd">0</span>, ceil_mode=<span style="color:#8b008b;font-weight:bold">True</span>) <span style="color:#228b22"># change</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 150,150,64 -&gt; 150,150,256</span>
+</span></span><span style="display:flex;"><span>        self.layer1 = self._make_layer(block, <span style="color:#b452cd">64</span>, layers[<span style="color:#b452cd">0</span>])
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 150,150,256 -&gt; 75,75,512</span>
+</span></span><span style="display:flex;"><span>        self.layer2 = self._make_layer(block, <span style="color:#b452cd">128</span>, layers[<span style="color:#b452cd">1</span>], stride=<span style="color:#b452cd">2</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 75,75,512 -&gt; 38,38,1024</span>
+</span></span><span style="display:flex;"><span>        self.layer3 = self._make_layer(block, <span style="color:#b452cd">256</span>, layers[<span style="color:#b452cd">2</span>], stride=<span style="color:#b452cd">2</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 38,38,1024 -&gt; 19,19,2048</span>
+</span></span><span style="display:flex;"><span>        self.layer4 = self._make_layer(block, <span style="color:#b452cd">512</span>, layers[<span style="color:#b452cd">3</span>], stride=<span style="color:#b452cd">2</span>)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        self.avgpool = nn.AvgPool2d(<span style="color:#b452cd">7</span>)
+</span></span><span style="display:flex;"><span>        self.fc = nn.Linear(<span style="color:#b452cd">512</span> * block.expansion, num_classes)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> m <span style="color:#8b008b">in</span> self.modules():
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> <span style="color:#658b00">isinstance</span>(m, nn.Conv2d):
+</span></span><span style="display:flex;"><span>                n = m.kernel_size[<span style="color:#b452cd">0</span>] * m.kernel_size[<span style="color:#b452cd">1</span>] * m.out_channels
+</span></span><span style="display:flex;"><span>                m.weight.data.normal_(<span style="color:#b452cd">0</span>, math.sqrt(<span style="color:#b452cd">2.</span> / n))
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">elif</span> <span style="color:#658b00">isinstance</span>(m, nn.BatchNorm2d):
+</span></span><span style="display:flex;"><span>                m.weight.data.fill_(<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>                m.bias.data.zero_()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">_make_layer</span>(self, block, planes, blocks, stride=<span style="color:#b452cd">1</span>):
+</span></span><span style="display:flex;"><span>        downsample = <span style="color:#8b008b;font-weight:bold">None</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> stride != <span style="color:#b452cd">1</span> <span style="color:#8b008b">or</span> self.inplanes != planes * block.expansion:
+</span></span><span style="display:flex;"><span>            downsample = nn.Sequential(
+</span></span><span style="display:flex;"><span>                nn.Conv2d(self.inplanes, planes * block.expansion,
+</span></span><span style="display:flex;"><span>                    kernel_size=<span style="color:#b452cd">1</span>, stride=stride, bias=<span style="color:#8b008b;font-weight:bold">False</span>),
+</span></span><span style="display:flex;"><span>            nn.BatchNorm2d(planes * block.expansion),
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        layers = []
+</span></span><span style="display:flex;"><span>        layers.append(block(self.inplanes, planes, stride, downsample))
+</span></span><span style="display:flex;"><span>        self.inplanes = planes * block.expansion
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(<span style="color:#b452cd">1</span>, blocks):
+</span></span><span style="display:flex;"><span>            layers.append(block(self.inplanes, planes))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> nn.Sequential(*layers)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, x):
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.conv1(x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.bn1(x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.relu(x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.maxpool(x)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.layer1(x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.layer2(x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.layer3(x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.layer4(x)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.avgpool(x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = x.view(x.size(0), -1)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># x = self.fc(x)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        x       = self.conv1(x)
+</span></span><span style="display:flex;"><span>        x       = self.bn1(x)
+</span></span><span style="display:flex;"><span>        feat1   = self.relu(x)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        x       = self.maxpool(feat1)
+</span></span><span style="display:flex;"><span>        feat2   = self.layer1(x)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        feat3   = self.layer2(feat2)
+</span></span><span style="display:flex;"><span>        feat4   = self.layer3(feat3)
+</span></span><span style="display:flex;"><span>        feat5   = self.layer4(feat4)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> [feat1, feat2, feat3, feat4, feat5]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">resnet50</span>(pretrained=<span style="color:#8b008b;font-weight:bold">False</span>, **kwargs):
+</span></span><span style="display:flex;"><span>    model = ResNet(Bottleneck, [<span style="color:#b452cd">3</span>, <span style="color:#b452cd">4</span>, <span style="color:#b452cd">6</span>, <span style="color:#b452cd">3</span>], **kwargs)
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> pretrained:
+</span></span><span style="display:flex;"><span>        model.load_state_dict(model_zoo.load_url(<span style="color:#cd5555">&#39;https://s3.amazonaws.com/pytorch/models/resnet50-19c8e357.pth&#39;</span>, model_dir=<span style="color:#cd5555">&#39;model_data&#39;</span>), strict=<span style="color:#8b008b;font-weight:bold">False</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">del</span> model.avgpool
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">del</span> model.fc
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> model
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Unet.py:同上</p>
+<h3 id="attention_unet的修改特征提取网络替换成vgg">Attention_Unet的修改——特征提取网络替换成VGG</h3>
+<p>Attention_Unet论文地址：<a href="https://arxiv.org/abs/1505.04597">https://arxiv.org/abs/1505.04597</a></p>
+<p>网络结构图如下：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img71.jpg" alt=""></p>
+<p>代码如下：</p>
+<p>vgg.py:同上</p>
+<p>Att_Unet.py:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 63
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 64
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 65
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 66
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 67
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 68
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 69
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 70
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 71
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 72
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 73
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 74
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 75
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 76
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 77
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 78
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 79
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 80
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 81
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 82
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 83
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 84
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 85
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 86
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 87
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 88
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 89
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 90
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 91
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 92
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 93
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 94
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 95
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 96
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 97
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 98
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 99
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">100
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">101
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">102
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">103
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">104
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">105
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">106
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">107
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">108
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">109
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">110
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">111
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">112
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">113
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">114
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">115
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">116
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">117
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">118
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">119
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">120
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">121
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">122
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">123
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">124
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">125
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">126
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">127
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">128
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">129
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">130
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">131
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">132
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">133
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">134
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">135
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">136
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">137
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">138
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">139
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">140
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">141
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">142
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">143
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">144
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">145
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">146
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">147
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">148
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">149
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">150
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">151
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">152
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">153
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">154
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">155
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">156
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">157
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">158
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">159
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">160
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">161
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">162
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">163
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">164
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">165
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">166
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">167
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">168
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">169
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">170
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">171
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">172
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">173
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">174
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">175
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">176
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">177
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">178
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">torch</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">torch.nn</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">nn</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">nets.vgg</span> <span style="color:#8b008b;font-weight:bold">import</span> VGG16
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">conv_block</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">    Convolution Block
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, in_ch, out_ch):
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(conv_block, self).__init__()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self.conv = nn.Sequential(
+</span></span><span style="display:flex;"><span>            nn.Conv2d(in_ch, out_ch, kernel_size=<span style="color:#b452cd">3</span>, stride=<span style="color:#b452cd">1</span>, padding=<span style="color:#b452cd">1</span>, bias=<span style="color:#8b008b;font-weight:bold">True</span>),
+</span></span><span style="display:flex;"><span>            nn.BatchNorm2d(out_ch),
+</span></span><span style="display:flex;"><span>            nn.ReLU(inplace=<span style="color:#8b008b;font-weight:bold">True</span>),
+</span></span><span style="display:flex;"><span>            nn.Conv2d(out_ch, out_ch, kernel_size=<span style="color:#b452cd">3</span>, stride=<span style="color:#b452cd">1</span>, padding=<span style="color:#b452cd">1</span>, bias=<span style="color:#8b008b;font-weight:bold">True</span>),
+</span></span><span style="display:flex;"><span>            nn.BatchNorm2d(out_ch),
+</span></span><span style="display:flex;"><span>            nn.ReLU(inplace=<span style="color:#8b008b;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, x):
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        out = self.conv(x)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> out
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">up_conv</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">    Up Convolution Block
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, in_ch, out_ch):
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(up_conv, self).__init__()
+</span></span><span style="display:flex;"><span>        self.up = nn.Sequential(
+</span></span><span style="display:flex;"><span>            nn.Upsample(scale_factor=<span style="color:#b452cd">2</span>),
+</span></span><span style="display:flex;"><span>            nn.Conv2d(in_ch, out_ch, kernel_size=<span style="color:#b452cd">3</span>, stride=<span style="color:#b452cd">1</span>, padding=<span style="color:#b452cd">1</span>, bias=<span style="color:#8b008b;font-weight:bold">True</span>),
+</span></span><span style="display:flex;"><span>            nn.BatchNorm2d(out_ch),
+</span></span><span style="display:flex;"><span>            nn.ReLU(inplace=<span style="color:#8b008b;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, x):
+</span></span><span style="display:flex;"><span>        out = self.up(x)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> out
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">Attention_block</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">    Attention Block
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, F_g, F_l, F_int):
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(Attention_block, self).__init__()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self.W_g = nn.Sequential(
+</span></span><span style="display:flex;"><span>            nn.Conv2d(F_l, F_int, kernel_size=<span style="color:#b452cd">1</span>, stride=<span style="color:#b452cd">1</span>, padding=<span style="color:#b452cd">0</span>, bias=<span style="color:#8b008b;font-weight:bold">True</span>),
+</span></span><span style="display:flex;"><span>            nn.BatchNorm2d(F_int)
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self.W_x = nn.Sequential(
+</span></span><span style="display:flex;"><span>            nn.Conv2d(F_g, F_int, kernel_size=<span style="color:#b452cd">1</span>, stride=<span style="color:#b452cd">1</span>, padding=<span style="color:#b452cd">0</span>, bias=<span style="color:#8b008b;font-weight:bold">True</span>),
+</span></span><span style="display:flex;"><span>            nn.BatchNorm2d(F_int)
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self.psi = nn.Sequential(
+</span></span><span style="display:flex;"><span>            nn.Conv2d(F_int, <span style="color:#b452cd">1</span>, kernel_size=<span style="color:#b452cd">1</span>, stride=<span style="color:#b452cd">1</span>, padding=<span style="color:#b452cd">0</span>, bias=<span style="color:#8b008b;font-weight:bold">True</span>),
+</span></span><span style="display:flex;"><span>            nn.BatchNorm2d(<span style="color:#b452cd">1</span>),
+</span></span><span style="display:flex;"><span>            nn.Sigmoid()
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self.relu = nn.ReLU(inplace=<span style="color:#8b008b;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, g, x):
+</span></span><span style="display:flex;"><span>        g1 = self.W_g(g)
+</span></span><span style="display:flex;"><span>        x1 = self.W_x(x)
+</span></span><span style="display:flex;"><span>        psi = self.relu(g1 + x1)
+</span></span><span style="display:flex;"><span>        psi = self.psi(psi)
+</span></span><span style="display:flex;"><span>        out = x * psi
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> out
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">Att_Unet</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, num_classes=<span style="color:#b452cd">21</span>, pretrained=<span style="color:#8b008b;font-weight:bold">True</span>, backbone=<span style="color:#cd5555">&#34;vgg&#34;</span>, base_size=<span style="color:#b452cd">64</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(Att_Unet, self).__init__()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        filters = [base_size, base_size * <span style="color:#b452cd">2</span>, base_size * <span style="color:#b452cd">4</span>, base_size * <span style="color:#b452cd">8</span>, base_size * <span style="color:#b452cd">16</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> backbone == <span style="color:#cd5555">&#34;vgg&#34;</span>:
+</span></span><span style="display:flex;"><span>            self.vgg = VGG16(pretrained=pretrained)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">else</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">raise</span> <span style="color:#008b45;font-weight:bold">ValueError</span>(<span style="color:#cd5555">&#39;Unsupported backbone - `</span><span style="color:#cd5555">{}</span><span style="color:#cd5555">`, Use vgg.&#39;</span>.format(backbone))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self.Connection_Conv = nn.Conv2d(<span style="color:#b452cd">512</span>, <span style="color:#b452cd">1024</span>, kernel_size=<span style="color:#b452cd">3</span>, stride=<span style="color:#b452cd">1</span>, padding=<span style="color:#b452cd">1</span>, bias=<span style="color:#8b008b;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 32,32,1024-&gt;64,64,512</span>
+</span></span><span style="display:flex;"><span>        self.Up5 = up_conv(filters[<span style="color:#b452cd">4</span>], filters[<span style="color:#b452cd">3</span>])
+</span></span><span style="display:flex;"><span>        self.Att5 = Attention_block(F_g=filters[<span style="color:#b452cd">3</span>], F_l=filters[<span style="color:#b452cd">3</span>], F_int=filters[<span style="color:#b452cd">2</span>])
+</span></span><span style="display:flex;"><span>        self.Conv_block5 = conv_block(filters[<span style="color:#b452cd">4</span>], filters[<span style="color:#b452cd">3</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 64,64,512-&gt;128,128,256</span>
+</span></span><span style="display:flex;"><span>        self.Up4 = up_conv(filters[<span style="color:#b452cd">3</span>], filters[<span style="color:#b452cd">2</span>])
+</span></span><span style="display:flex;"><span>        self.Att4 = Attention_block(F_g=filters[<span style="color:#b452cd">2</span>], F_l=filters[<span style="color:#b452cd">2</span>], F_int=filters[<span style="color:#b452cd">1</span>])
+</span></span><span style="display:flex;"><span>        self.Conv_block4 = conv_block(filters[<span style="color:#b452cd">3</span>], filters[<span style="color:#b452cd">2</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 128,128,256-&gt;256,256,128</span>
+</span></span><span style="display:flex;"><span>        self.Up3 = up_conv(filters[<span style="color:#b452cd">2</span>], filters[<span style="color:#b452cd">1</span>])
+</span></span><span style="display:flex;"><span>        self.Att3 = Attention_block(F_g=filters[<span style="color:#b452cd">1</span>], F_l=filters[<span style="color:#b452cd">1</span>], F_int=filters[<span style="color:#b452cd">0</span>])
+</span></span><span style="display:flex;"><span>        self.Conv_block3 = conv_block(filters[<span style="color:#b452cd">2</span>], filters[<span style="color:#b452cd">1</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># 256,256,128-&gt;512,512,64</span>
+</span></span><span style="display:flex;"><span>        self.Up2 = up_conv(filters[<span style="color:#b452cd">1</span>], filters[<span style="color:#b452cd">0</span>])
+</span></span><span style="display:flex;"><span>        self.Att2 = Attention_block(F_g=filters[<span style="color:#b452cd">0</span>], F_l=filters[<span style="color:#b452cd">0</span>], F_int=filters[<span style="color:#b452cd">0</span>] // <span style="color:#b452cd">2</span>)
+</span></span><span style="display:flex;"><span>        self.Conv_block2 = conv_block(filters[<span style="color:#b452cd">1</span>], filters[<span style="color:#b452cd">0</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self.final = nn.Conv2d(filters[<span style="color:#b452cd">0</span>], num_classes, kernel_size=<span style="color:#b452cd">1</span>, stride=<span style="color:#b452cd">1</span>, padding=<span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self.backbone = backbone
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, inputs):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> self.backbone == <span style="color:#cd5555">&#34;vgg&#34;</span>:
+</span></span><span style="display:flex;"><span>            [feat1, feat2, feat3, feat4, feat5] = self.vgg.forward(inputs)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># print(feat1.shape)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># print(feat2.shape)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># print(feat3.shape)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># print(feat4.shape)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># print(feat5.shape)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        connection_temp = self.Connection_Conv(feat5)
+</span></span><span style="display:flex;"><span>        d5 = self.Up5(connection_temp)
+</span></span><span style="display:flex;"><span>        e4 = self.Att5(g=d5, x=feat4)
+</span></span><span style="display:flex;"><span>        d5 = torch.cat((e4, d5), dim=<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>        a4 = self.Conv_block5(d5)
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># print(a4.shape)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        d4 = self.Up4(a4)
+</span></span><span style="display:flex;"><span>        e3 = self.Att4(g=d4, x=feat3)
+</span></span><span style="display:flex;"><span>        d4 = torch.cat((e3, d4), dim=<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>        a3 = self.Conv_block4(d4)
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># print(a3.shape)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        d3 = self.Up3(a3)
+</span></span><span style="display:flex;"><span>        e2 = self.Att3(g=d3, x=feat2)
+</span></span><span style="display:flex;"><span>        d3 = torch.cat((e2, d3), dim=<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>        a2 = self.Conv_block3(d3)
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># print(a2.shape)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        d2 = self.Up2(a2)
+</span></span><span style="display:flex;"><span>        e1 = self.Att2(g=d2, x=feat1)
+</span></span><span style="display:flex;"><span>        d2 = torch.cat((e1, d2), dim=<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>        a1 = self.Conv_block2(d2)
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22"># print(a1.shape)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        out = self.final(a1)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> out
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">freeze_backbone</span>(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> self.backbone == <span style="color:#cd5555">&#34;vgg&#34;</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> param <span style="color:#8b008b">in</span> self.vgg.parameters():
+</span></span><span style="display:flex;"><span>                param.requires_grad = <span style="color:#8b008b;font-weight:bold">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">unfreeze_backbone</span>(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> self.backbone == <span style="color:#cd5555">&#34;vgg&#34;</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> param <span style="color:#8b008b">in</span> self.vgg.parameters():
+</span></span><span style="display:flex;"><span>                param.requires_grad = <span style="color:#8b008b;font-weight:bold">True</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> __name__ == <span style="color:#cd5555">&#39;__main__&#39;</span>:
+</span></span><span style="display:flex;"><span>    x = torch.randn((<span style="color:#b452cd">3</span>, <span style="color:#b452cd">3</span>, <span style="color:#b452cd">512</span>, <span style="color:#b452cd">512</span>))
+</span></span><span style="display:flex;"><span>    model = Att_Unet(num_classes=<span style="color:#b452cd">4</span>, pretrained=<span style="color:#8b008b;font-weight:bold">False</span>, backbone=<span style="color:#cd5555">&#34;vgg&#34;</span>, base_size=<span style="color:#b452cd">64</span>)
+</span></span><span style="display:flex;"><span>    pred = model(x)
+</span></span><span style="display:flex;"><span>    <span style="color:#658b00">print</span>(x.shape)
+</span></span><span style="display:flex;"><span>    <span style="color:#658b00">print</span>(pred.shape)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>高清网络结构图，自取<a href="https://github.com/caixiongjiang/deep-learning-computer-vision">模型结构.xlsx</a></p>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2022-09-01</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+			下回<br>已经到头啦。
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2022/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E7%9A%84%E8%BE%B9%E8%A7%92%E6%96%99%E7%9F%A5%E8%AF%86/">
+			上回<br>图像分割的边角料
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2022 🌀Jarson Cai&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "https://twikoo-rho-olive.vercel.app/",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

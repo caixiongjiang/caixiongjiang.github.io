@@ -5,9 +5,154 @@
     <description>Recent content on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 09 Sep 2022 18:18:05 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 13 Oct 2022 18:18:05 +0800</lastBuildDate>
     
         <atom:link href="https://caixiongjiang.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+        <item>
+        <title>第十一讲：set/multiset &amp; map/multimap深度探索</title>
+        <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC11%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
+        <pubDate>Tue, 10 May 2022 08:18:05 +0800</pubDate>
+        
+        <guid>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC11%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</guid>
+        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC11%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ -&lt;h2 id=&#34;第十一讲setmultiset--mapmultimap深度探索&#34;&gt;第十一讲：set/multiset &amp;amp; map/multimap深度探索&lt;/h2&gt;
+&lt;h3 id=&#34;set和multiset特性&#34;&gt;set和multiset特性&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;set/multiset以红黑树为底层结构，因此有自动排序的特性，排序的依据是key，而set和multiset的value和key
+是合二为一的：value就是key（key和data合成value）&lt;/li&gt;
+&lt;li&gt;set和multiset提供遍历的操作以及iterator，按照正常的规则遍历就能获得排序状态。&lt;/li&gt;
+&lt;li&gt;无法使用iterator来改变元素值（&lt;strong&gt;底层为将iterator设为const&lt;/strong&gt;），因为key有其严谨的排序规则。&lt;/li&gt;
+&lt;li&gt;set的key必须独一无二，因此其insert()用的是rb_tree的insert_unique()&lt;/li&gt;
+&lt;li&gt;multiset元素的key可以重复，因此其insert()用的是rb_tree的insert_equal()&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;set容器&#34;&gt;set容器&lt;/h3&gt;
+&lt;p&gt;模版定义：（GNU2.9）&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;//set默认采用key值降序排列
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;template&lt;/span&gt; &amp;lt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Key&lt;/span&gt;, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Compare&lt;/span&gt; = less&amp;lt;Key&amp;gt;, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Alloc&lt;/span&gt; = alloc&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;set&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// typedefs:
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; Key key_type;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; Key value_type;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// 注意，以下 key_compare 和 value_compare 使用相同的比較函式
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; Compare key_compare;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; Compare value_compare;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; rb_tree&amp;lt;key_type, value_type, 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                     identity&amp;lt;value_type&amp;gt;, key_compare, Alloc&amp;gt; rep_type;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    rep_type t;  &lt;span style=&#34;color:#228b22&#34;&gt;// 采用紅黑树（RB-tree）來表現 set
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typename&lt;/span&gt; rep_type::const_iterator iterator;&lt;span style=&#34;color:#228b22&#34;&gt;//这里的迭代器不能改变
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;//set的所有操作都转而呼叫底层（红黑树）的操作
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    ...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;multiset容器&#34;&gt;multiset容器&lt;/h3&gt;
+&lt;p&gt;除了multiset之外和set基本没有区别&lt;/p&gt;
+&lt;h3 id=&#34;map和multimap特性&#34;&gt;map和multimap特性&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;rb_tree为底层结构，因此有元素自动排序功能,排序的依据依然为key&lt;/li&gt;
+&lt;li&gt;提供iterator，正常遍历便能获得排序状态的结果&lt;/li&gt;
+&lt;li&gt;无法使用iterators来改变元素的key，但可以用来改变元素的data。（&lt;strong&gt;底层为将key值设为const类型&lt;/strong&gt;）&lt;/li&gt;
+&lt;li&gt;map的key必须独一无二，因此其insert()用的是rb_tree的insert_unique()&lt;/li&gt;
+&lt;li&gt;multimap元素的key可以重复，因此其insert()用的是rb_tree的insert_equal()&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;map容器&#34;&gt;map容器&lt;/h3&gt;
+&lt;p&gt;模版定义：（GNU2.9）&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;template&lt;/span&gt; &amp;lt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Key&lt;/span&gt;, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;T&lt;/span&gt;, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Compare&lt;/span&gt; = less&amp;lt;Key&amp;gt;, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Alloc&lt;/span&gt; = alloc&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;map&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// typedefs:
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; Key key_type;	&lt;span style=&#34;color:#228b22&#34;&gt;// 鍵值型別
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; T data_type;		&lt;span style=&#34;color:#228b22&#34;&gt;// 資料（真值）型別
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; T mapped_type;	
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; pair&amp;lt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;const&lt;/span&gt; Key, T&amp;gt; value_type;	&lt;span style=&#34;color:#228b22&#34;&gt;// 元素型別（鍵值/真值）注意key值为const
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; Compare key_compare;	&lt;span style=&#34;color:#228b22&#34;&gt;// 鍵值比較函式
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// 以下定義表述型別（representation type）。以map元素型別（一個pair）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// 的第一型別，做為RB-tree節點的鍵值型別。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; rb_tree&amp;lt;key_type, value_type, 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                  select1st&amp;lt;value_type&amp;gt;, key_compare, Alloc&amp;gt; rep_type;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    rep_type t;  &lt;span style=&#34;color:#228b22&#34;&gt;// 以紅黑樹（RB-tree）表現 map
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typename&lt;/span&gt; rep_type::iterator iterator;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;strong&gt;调用map发生的事情&lt;/strong&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-markdown&#34; data-lang=&#34;markdown&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;map&amp;lt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;int&lt;/span&gt;&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;string&lt;/span&gt;&amp;gt; imap;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;==&amp;gt;  map&amp;lt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;int&lt;/span&gt;&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;string&lt;/span&gt;&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;less&lt;/span&gt;&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#658b00&#34;&gt;int&lt;/span&gt;&amp;gt;, alloc&amp;gt; imap;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;==&amp;gt;  template&amp;lt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;int&lt;/span&gt;&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;pair&lt;/span&gt;&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#658b00&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;int&lt;/span&gt;&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;string&lt;/span&gt;&amp;gt;select1st&amp;lt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;pair&lt;/span&gt;&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#658b00&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;int&lt;/span&gt;&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;string&lt;/span&gt;&amp;gt;&amp;gt;, less&amp;lt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;int&lt;/span&gt;&amp;gt;, alloc&amp;gt; imap;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;strong&gt;select1st&amp;lt;value_type&amp;gt;代表的是拿出value类型中第一个类型，也就是key的类型&lt;/strong&gt;&lt;/p&gt;
+&lt;h4 id=&#34;map独特的operator&#34;&gt;map独特的operator[]&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;operator[]的作用为返回对应key的data值，&lt;strong&gt;如果这个key不存在，标准库将会自动创建该key值放入map中&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;源码层：使用lower_bound来寻找元素的key值，如果找到则返回迭代器进行操作；如果没有找到则呼叫insert()&lt;/li&gt;
+&lt;li&gt;lower_bound是二分查找的一种版本，试图在已经排序的范围[first, last)中寻找一个元素值，如果找得到就返回
+一个iterator指向其中的第一个符合条件的元素值；如果没有找到则返回last的iterator（最适合安插这个值的位置）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;operator[]创建新的key比直接使用insert插入效率低&lt;/strong&gt;，因为前面还多了一步lower_bound的过程&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;multimap&#34;&gt;multimap&lt;/h3&gt;
+&lt;p&gt;multimap使用和map类似&lt;/p&gt;
+- https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC11%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ - </description>
+        </item>
     
     
     
@@ -4892,33 +5037,6 @@
 &lt;/li&gt;
 &lt;/ol&gt;
 - https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-17-%E7%AB%A0-%E4%BC%98%E4%BA%8E-select-%E7%9A%84-epoll-%E7%AC%94%E8%AE%B0/ - </description>
-        </item>
-    
-    
-    
-        <item>
-        <title>第六讲：迭代器设计的原则&amp;iterator traits的作用与设计</title>
-        <link>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC6%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
-        <pubDate>Fri, 08 Apr 2022 18:18:05 +0800</pubDate>
-        
-        <guid>https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC6%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</guid>
-        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC6%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ -&lt;h2 id=&#34;第六讲迭代器设计的原则iterator-traits的作用与设计&#34;&gt;第六讲：迭代器设计的原则&amp;amp;iterator traits的作用与设计&lt;/h2&gt;
-&lt;h3 id=&#34;iterator-traits&#34;&gt;iterator traits&lt;/h3&gt;
-&lt;p&gt;iterator traits是为了提取出迭代器的特点，迭代器必须有能力回答algorithm提出的问题。&lt;/p&gt;
-&lt;p&gt;c++标准库设计了5种回答方式,集成在class中（迭代器相关的类型，迭代器模版中本身必须定义出来）：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;iterator_category：迭代器的类型，具体表现在能否++或者&amp;ndash;或者一下加减很多步&lt;/li&gt;
-&lt;li&gt;difference_type：代表两个iterator的距离应该用什么type来表现（随机访问：unsign interger，实现链表的都用ptrdiff_t类型）&lt;/li&gt;
-&lt;li&gt;value_type：iterator所指元素的类型&lt;/li&gt;
-&lt;li&gt;reference：引用（暂未使用）&lt;/li&gt;
-&lt;li&gt;pointer：指针（暂未使用）&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stl/img6_1.jpg&#34; alt=&#34;5种associated type&#34;&gt;&lt;/p&gt;
-&lt;p&gt;但如果iterator本身不是class，例如native pointer（退化的iterator），如何回答算法的5个问题？&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stl/img6_2.jpg&#34; alt=&#34;iterator traits&#34;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stl/img6_3.jpg&#34; alt=&#34;iterator traits&#34;&gt;
-iterator traits用于分离class iiterators和non-class iterators&lt;/p&gt;
-- https://caixiongjiang.github.io/blog/2022/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AC%AC6%E8%AE%B2-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ - </description>
         </item>
     
     

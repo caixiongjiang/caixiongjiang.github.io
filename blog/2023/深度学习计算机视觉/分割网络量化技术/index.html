@@ -1042,9 +1042,9 @@ color: #515151;
                             
 
                             
-                            21 min
+                            26 min
                             
-                            13 s.
+                            54 s.
                         
                     </div>
                 </div>
@@ -1450,10 +1450,14 @@ ESPNet整体结构如下，其整体结构与UNet相似。在网络的早期使�
 <img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img87.jpg" alt=""></p>
 </li>
 <li>
-<p>VCIP 2017 paper（<a href="https://arxiv.org/pdf/1707.03718.pdf%5D">LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation</a>）：LinkNet</p>
+<p>VCIP 2017 paper（<a href="https://arxiv.org/pdf/1707.03718.pdf%5D">LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation</a>）：LinkNet同样使用标准的编码器和解码器架构，不过参数量相较UNet少了很多，以ResNet-18作为骨干网络。
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img98.jpg" alt=""></p>
 </li>
 <li>
-<p>CVPR 2019 paper（<a href="https://openaccess.thecvf.com/content_CVPR_2019/papers/Orsic_In_Defense_of_Pre-Trained_ImageNet_Architectures_for_Real-Time_Semantic_Segmentation_CVPR_2019_paper.pdf">In Defense of Pre-trained ImageNet Architectures for Real-time Semantic Segmentation of Road-driving Images</a>）：</p>
+<p>CVPR 2019 paper（<a href="https://openaccess.thecvf.com/content_CVPR_2019/papers/Orsic_In_Defense_of_Pre-Trained_ImageNet_Architectures_for_Real-Time_Semantic_Segmentation_CVPR_2019_paper.pdf">In Defense of Pre-trained ImageNet Architectures for Real-time Semantic Segmentation of Road-driving Images</a>）：首先改文章结合UNet和PSPNet的结构，再通过选取较为轻量的骨干网络以及简化上采样的步骤，组合出了一个基础模型SwiftNetRN-18。
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img99.jpg" alt="">
+为了增加接收场，该作者取消了金字塔的模块并使用班分辨率的特征提取达到了比金字塔池化模块更好的效果。并证明了小模型在数据量足够的情况下，从头开始训练也能达到预训练的效果。
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img100.jpg" alt=""></p>
 </li>
 <li>
 <p>arxiv 2019 paper（<a href="https://arxiv.org/pdf/1902.04502.pdf">Fast-SCNN: Fast Semantic Segmentation Network</a>）：Fast-SCNN网络结构结合了双分支网络和多分辨率输入的两种网络的特点，在特征提取的中间阶段分为两个分支，这样双分支共享特征提取前期的权重。一个分支提取局部信息，另一个分支提取全局特征，最后直接进行双线性插值恢复输入分辨率。注意在特征提取前期使用普通卷积，在通道数较多时使用深度可分离卷积和瓶颈块来减少计算量。
@@ -1517,7 +1521,161 @@ $$d_p(T,S)=\sum_i^{W HC}\left{\begin{matrix}0,\quad \text{if}\quad S_i\leqslant 
 </ul>
 <p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img96.jpg" alt=""></p>
 </li>
+<li>
+<p>CVPR 2019 paper（<a href="https://openaccess.thecvf.com/content_CVPR_2019/papers/Liu_Structured_Knowledge_Distillation_for_Semantic_Segmentation_CVPR_2019_paper.pdf">Structured Knowledge Distillation for Semantic Segmentation</a>）：本文专门针对语义分割网络提出了解决方案，结合特征蒸馏，输出像素蒸馏，对抗性学习蒸馏组成了一个结构化蒸馏的方法。
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img97.jpg" alt=""></p>
+<ul>
+<li>特征蒸馏：该文章提出了一种计算特征图相似度的<code>Pair-wise loss</code>，首先通过池化来控制特征图输出的大小，然后计算特征图之间的相似度来计算损失。
+$$l_{pa}(S)=\frac{1}{(W^{&rsquo;}\times H^{&rsquo;})^2}\sum_{i\varepsilon R}\sum_{j\varepsilon R}(a_{ij}^s-a_{ij}^t)^2$$
+其中$a_{ij}$代表两个像素之间的相似性，
+$$a_{ij}=f_i^{\top}f_j/(|f_i |_2|f_j |_2 )$$
+实现代码如下：</li>
 </ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">similarity</span>(feat):
+</span></span><span style="display:flex;"><span>feat = feat.float()
+</span></span><span style="display:flex;"><span>tmp = L2(feat).detach()
+</span></span><span style="display:flex;"><span>feat = feat/tmp
+</span></span><span style="display:flex;"><span>feat = feat.reshape(feat.shape[<span style="color:#b452cd">0</span>],feat.shape[<span style="color:#b452cd">1</span>],-<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">return</span> torch.einsum(<span style="color:#cd5555">&#39;icm,icn-&gt;imn&#39;</span>, [feat, feat])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">sim_dis_compute</span>(f_S, f_T):
+</span></span><span style="display:flex;"><span>    sim_err = ((similarity(f_T) - similarity(f_S))**<span style="color:#b452cd">2</span>)/((f_T.shape[-<span style="color:#b452cd">1</span>]*f_T.shape[-<span style="color:#b452cd">2</span>])**<span style="color:#b452cd">2</span>)/f_T.shape[<span style="color:#b452cd">0</span>]
+</span></span><span style="display:flex;"><span>    sim_dis = sim_err.sum()
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> sim_dis
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># pairwise feature loss</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">CriterionPairWiseforWholeFeatAfterPool</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, scale, feat_ind):
+</span></span><span style="display:flex;"><span>        <span style="color:#cd5555">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">        inter pair-wise loss from inter feature maps
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">        scale 代表最大池化层的子区域占原特征图大小的比例。
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">        比如2*2的子区域，特诊图大小为56*56，scale就应该等于28/56。
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">        &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(CriterionPairWiseforWholeFeatAfterPool, self).__init__()
+</span></span><span style="display:flex;"><span>        self.criterion = sim_dis_compute
+</span></span><span style="display:flex;"><span>        self.feat_ind = feat_ind
+</span></span><span style="display:flex;"><span>        self.scale = scale
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, preds_S, preds_T):
+</span></span><span style="display:flex;"><span>        feat_S = preds_S[self.feat_ind]
+</span></span><span style="display:flex;"><span>        feat_T = preds_T[self.feat_ind]
+</span></span><span style="display:flex;"><span>        feat_T.detach()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        total_w, total_h = feat_T.shape[<span style="color:#b452cd">2</span>], feat_T.shape[<span style="color:#b452cd">3</span>]
+</span></span><span style="display:flex;"><span>        patch_w, patch_h = <span style="color:#658b00">int</span>(total_w*self.scale), <span style="color:#658b00">int</span>(total_h*self.scale)
+</span></span><span style="display:flex;"><span>        maxpool = nn.MaxPool2d(kernel_size=(patch_w, patch_h), stride=(patch_w, patch_h), padding=<span style="color:#b452cd">0</span>, ceil_mode=<span style="color:#8b008b;font-weight:bold">True</span>) <span style="color:#228b22"># change</span>
+</span></span><span style="display:flex;"><span>        loss = self.criterion(maxpool(feat_S), maxpool(feat_T))
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> loss
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>输出像素蒸馏：<code>Pixel-wise Loss</code>借鉴了图像分类任务中使用的软标签的方法，使用教师模型产生的类改成来作为训练学生模型的软目标。
+$$l_{pi}(S) = \frac{1}{W^{&rsquo;}\times H^{&rsquo;}}\sum_{i\varepsilon R}\text{KL}(q_i^s|q_i^t)$$
+其中$\text{KL}$代表两个概率之间的Kullback-Leibler发散。代码如下：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#228b22"># Pixel loss</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">CriterionPixelWise</span>(nn.Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">    reduce参数是计算CE loss每个mini batch的和平均
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, ignore_index=<span style="color:#b452cd">255</span>, use_weight=<span style="color:#8b008b;font-weight:bold">True</span>, reduce=<span style="color:#8b008b;font-weight:bold">True</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">super</span>(CriterionPixelWise, self).__init__()
+</span></span><span style="display:flex;"><span>        self.ignore_index = ignore_index
+</span></span><span style="display:flex;"><span>        self.criterion = torch.nn.CrossEntropyLoss(ignore_index=ignore_index, reduce=reduce)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> <span style="color:#8b008b">not</span> reduce:
+</span></span><span style="display:flex;"><span>            <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;disabled the reduce.&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">forward</span>(self, preds_S, preds_T):
+</span></span><span style="display:flex;"><span>        preds_T.detach()
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">assert</span> preds_S.shape == preds_T.shape,<span style="color:#cd5555">&#39;the output dim of teacher and student differ&#39;</span>
+</span></span><span style="display:flex;"><span>        N,C,W,H = preds_S.shape
+</span></span><span style="display:flex;"><span>        softmax_pred_T = F.softmax(preds_T.permute(<span style="color:#b452cd">0</span>,<span style="color:#b452cd">2</span>,<span style="color:#b452cd">3</span>,<span style="color:#b452cd">1</span>).contiguous().view(-<span style="color:#b452cd">1</span>,C), dim=<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>        logsoftmax = nn.LogSoftmax(dim=<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>        loss = (torch.sum( - softmax_pred_T * logsoftmax(preds_S.permute(<span style="color:#b452cd">0</span>,<span style="color:#b452cd">2</span>,<span style="color:#b452cd">3</span>,<span style="color:#b452cd">1</span>).contiguous().view(-<span style="color:#b452cd">1</span>,C))))/W/H
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> loss
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>对抗性学习蒸馏：<code>Holistic distillation</code>采用条件生成对抗学习来制定整体蒸馏问题。紧凑型网被视为以输入RGB图像I为条件的生成器，而预测的分割图$Q^s$被视为假样本。我们预计$Q^s$与$Q^t$相似，$Q^t$是教师预测的分割图，并尽可能被视为真实样本。<code>Wasserstein distance</code>用于评估真实分布和假分布之间的差异，写成如下:
+$$l_{ho}(S,D) = E_{Q^s\sim p_s(Q^s)}[D(Q^s|I)] - E_{Q^t\sim p_t(Q^t)}[D(Q^t|I)]$$
+其中$E$是期望运算符，$D$是嵌入网络，作为GAN中的鉴别器，将Q和I一起投影成整体嵌入分数。梯度惩罚满足了利普希茨的要求。</li>
+</ul>
+</li>
+</ul>
+<p>所以<strong>结构化蒸馏的损失函数</strong>为：
+$$l(S,D) = l_{mc}(S) + \lambda_1(l_{pi}(S) + l_{pa}(S)) - \lambda_2l_{ho}(S,D)$$
+其中$pi$代表输出像素损失，$pa$代表成对特征相似度损失，$ho$代表对抗性学习蒸馏损失。总体的训练被分为两步：</p>
+<blockquote>
+<p>1.训练GAN鉴别器，训练鉴别器等同于最小化$ho$损失，为学生网络的假样本提供低嵌入分数。</p>
+</blockquote>
+<blockquote>
+<p>2.训练紧凑分割网络，最大限度减少与与紧凑分割网络相关的多类交叉熵损失和蒸馏损失。</p>
+</blockquote>
 
                     
                     <HR width="100%" id="EOF">

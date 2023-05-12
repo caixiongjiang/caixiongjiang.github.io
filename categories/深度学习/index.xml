@@ -6,7 +6,40 @@
     <description>Recent content in 深度学习 on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 10 May 2023 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 11 May 2023 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>TensorRT部署方案介绍</title>
+      <link>https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/tensorrt%E9%83%A8%E7%BD%B2%E6%96%B9%E6%A1%88/</link>
+      <pubDate>Thu, 11 May 2023 18:18:05 +0800</pubDate>
+      
+      <guid>https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/tensorrt%E9%83%A8%E7%BD%B2%E6%96%B9%E6%A1%88/</guid>
+      <description>TensorRT部署方案介绍 为每个模型写硬代码（c++） 仓库地址:https://github.com/wang-xinyu/tensorrtx
+看图可知，也就是通过c++源代码直接调用TensorRT API，对每个不同的网络模型进行重写，再调用TensorRT Builder生成TensorRT Engine。
+原理：
+1.使用作者定义的gen_wts.py的存储权重。 2.使用C++硬代码调用TensorRT C++API构建模型，加载gen_wts.py产生的权重组成完整模型。
+优点：
+1.可以控制每个layer的细节和权重，直接面对TensorRT API。 2.这种方案不存在算子问题，如果存在不支持的算子可以自行增加插件。
+缺点：
+1.新模型需要对每个layer重写C++代码。 2.过于灵活，需要控制的细节多，技能要求很高。 3.部署时无法查看网络结构进行分析和排查。
+为每个算子写Converter 仓库地址:https://github.com/NVIDIA-AI-IOT/torch2trt
+原理：
+1.作者为每一个算子（比如ReLU，Conv等），为每一个操醉的forward反射到自定义函数 2.通过反射torch的forward操作获取模块的权重，调用Python API接口实现模型
+优点：
+1.直接集成了Python、Pytorch，可以实现Pytorch模型到TensorRT模型的无缝转换。
+缺点：
+1.提供了Python的方案并没有提供c++的方案。 2.新的算子需要自己实现converter，需要维护新的算子库 3.直接用Pytorch赚到tensorRT存储的模型是TensorRT模型，如果跨设备必须在设备上安装pytoch，灵活度差，不利于部署。 4.部署时无法查看网络结构进行分析和排查。
+基于ONNX路线提供C++和Python的接口 仓库地址:https://github.com/shouxieai/tensorRT_Pro
+原理：
+通过Pytorch官方和NVIDIA官方对torch-&amp;gt;onnx和onnx-&amp;gt;TRT算子库的支持。
+优点：
+1.集成工业级推理方案，支持TensorRT从模型导出到应用到项目中的全部工作 2.案例有YoloV5、YoloX、AlphaPose、RetinaFace、DeepSORT等，每个应用均为高性能工业级。 3.具有简单的模型导出方法和onnx问题的解决方案 4.具有简单的模型推理接口，封装tensorRT细节。支持插件。 5.依赖onnx，有两大官方进行维护。
+缺点：
+onnx存在各种兼容性问题。
+如何正确导出onnx（避坑指南） 1.对于任何用到shape、size返回值的参数时，例如tensor.view(tensor.size(0), -1)，避免直接使用tensor.size的返回值，而是加上int转换，tensor.view(int(tensor.size(0)), -1)。（这里的tensor值的是一个具体的张量） 2.对于nn.Upsample或者nn.fucntional.interpolate函数，使用scale_factor指定倍率，而不是使用size参数指定大小。 3.对于reshape、view操作时，-1请指定到batch维度，其他维度计算出来即可。 4.torch.onnx.export指定dynamic_axes参数，并只指定batch维度，不指定其他维度。我们只需要动态batch，相对动态的宽高有其他方案。 这些做法的必要性体现在简化过程的复杂度，去掉gather、shape类的节点。
+Example：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 import torch import torch.</description>
+    </item>
+    
     <item>
       <title>推理框架ONNX Runtime</title>
       <link>https://caixiongjiang.github.io/blog/2023/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/onnx%E9%83%A8%E7%BD%B2/</link>

@@ -6,7 +6,23 @@
     <description>Recent content in 深度学习 on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 11 May 2023 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 16 May 2023 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>TensorRT动态Batch和动态宽高的实现</title>
+      <link>https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/%E5%8A%A8%E6%80%81batch%E5%92%8C%E5%AE%BD%E9%AB%98/</link>
+      <pubDate>Tue, 16 May 2023 18:18:05 +0800</pubDate>
+      
+      <guid>https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/%E5%8A%A8%E6%80%81batch%E5%92%8C%E5%AE%BD%E9%AB%98/</guid>
+      <description>TensorRT之动态Batch和动态宽高 动态Batch 该特性的需求主要源于TensorRT编译时对batch的处理，若静态batch则意味着无论你有多少图，都按照固定大小batch推理。耗时是固定的。
+实现动态Batch的注意点：
+1.onnx导出模型是，注意view操作不能固定batch维度数值，通常写-1。 2.onnx导出模型是，通常可以指定dynamic_axes（通常用于指定动态维度），实际上不指定也没关系。
+动态宽高 该特性需求来自onnx导出时指定的宽高是固定的，TensorRT编译时也需要固定大小引擎，若你想得到另外一个不同大小的TensorRT引擎（一个eng模型只能支持一个输入分辨率）时，就需要动态宽高的存在。而直接使用TensorRT的动态宽高（一个eng模型能支持不同输入分辨率的推理）会带来不必要的复杂度，所以使用中间方案：在编译时修改onnx输入实现相对动态（一个onnx模型，修改参数可以得到不同输入分辨率大小的eng模型），避免重回Pytorch再做导出。
+实现动态宽高的注意点：
+1.不建议使用dynamic_axes指定Batch以外的维度为动态，这样带来的复杂度太高，并且存在有的layer不支持。 2.如果onnx文件已经导出，但是输入的shape固定了，此时希望修改onnx的输入shape： 步骤一：使用TRT::compile函数的inputsDimsSetup参数重新定义输入的shape。 步骤二：使用TRT::set_layer_hook_reshape钩子动态修改reshape的参数实现适配。
+动态Batch demo：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 int max_batch_size = 5; /** 模型编译，onnx到trtmodel **/ TRT::compile( TRT::Model::FP32, max_batch_size, //最大batch size &amp;#34;model_name.onnx&amp;#34;, &amp;#34;model_name.fp32.trtmodel&amp;#34; ); /** 加载编译好的引擎 **/ auto infer = TRT::load_infer(&amp;#34;model_name.fp32.trtmodel&amp;#34;); /** 设置输入的值 **/ /** 修改input的0维度为1，最大可以是5 **/ infer-&amp;gt;input(0)-&amp;gt;resize_single_dim(0, 2); infer-&amp;gt;input(0)-&amp;gt;set_to(1.0f); /** 引擎进行推理 **/ infer-&amp;gt;forward(); /** 取出引擎的输出并打印 **/ auto out = infer-&amp;gt;output(0); INFO(&amp;#34;out.</description>
+    </item>
+    
     <item>
       <title>TensorRT部署方案介绍</title>
       <link>https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/tensorrt%E9%83%A8%E7%BD%B2%E6%96%B9%E6%A1%88/</link>

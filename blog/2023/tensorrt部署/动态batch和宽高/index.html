@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head>
-<title>Blogs</title>
+<title>TensorRT动态Batch和动态宽高的实现</title>
 
 
 
@@ -10,16 +10,19 @@
 <meta name="google-site-verification" content="">
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
 <meta content="telephone=no" name="format-detection">
-<meta name="description" content="">
+<meta name="description" content="学习一下TensorRT中动态宽高和动态Batch的实现方式。">
 <meta name="renderer" content="webkit">
 <meta name="theme-color" content="#ffffff">
 
 
 
-<meta property="og:title" content="Blogs" />
-<meta property="og:description" content="" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://caixiongjiang.github.io/blog/" />
+<meta property="og:title" content="TensorRT动态Batch和动态宽高的实现" />
+<meta property="og:description" content="学习一下TensorRT中动态宽高和动态Batch的实现方式。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/%E5%8A%A8%E6%80%81batch%E5%92%8C%E5%AE%BD%E9%AB%98/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2023-05-16T18:18:05+08:00" />
+<meta property="article:modified_time" content="2023-05-16T09:19:06+08:00" />
+
 
 
 
@@ -97,6 +100,9 @@ color: #515151;
 
 
 
+  
+    <script src="/js/toc.js"></script>
+  
 
 
 
@@ -106,6 +112,9 @@ color: #515151;
 
 
 
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.5.11/dist/twikoo.all.min.js"></script>
 
 
 
@@ -251,6 +260,94 @@ color: #515151;
 </div><div ref="extraContainer" class="extra-container">
     
     
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#tensorrt%e4%b9%8b%e5%8a%a8%e6%80%81batch%e5%92%8c%e5%8a%a8%e6%80%81%e5%ae%bd%e9%ab%98" onclick="onNavClick(`#tensorrt之动态batch和动态宽高-nav`)" id="tensorrt之动态batch和动态宽高-nav">
+									TensorRT之动态Batch和动态宽高
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8a%a8%e6%80%81batch" onclick="onNavClick(`#动态batch-nav`)" id="动态batch-nav">
+									动态Batch
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8a%a8%e6%80%81%e5%ae%bd%e9%ab%98" onclick="onNavClick(`#动态宽高-nav`)" id="动态宽高-nav">
+									动态宽高
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
     <div class="pagination">
         <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
             <i class="material-icons pagination-action-icon">
@@ -266,30 +363,6 @@ color: #515151;
                 brightness_7
             </i>
         </a>
-        
-        
-        
-            <div class="pagination-indicator">
-                <span style="text-align: center">
-                    6<br><div style="display: inline-block; transform: rotate(-28deg)">-</div><br>7
-                </span>
-            </div>
-            
-            
-            <a class="pagination-action" href="/blog/page/5/">
-                <i class="material-icons pagination-action-icon">
-                    chevron_left
-                </i>
-            </a>
-            
-
-            
-            <a class="pagination-action" href="/blog/page/7/">
-                <i class="material-icons pagination-action-icon">
-                    chevron_right
-                </i>
-            </a>
-            
         
         
     </div>
@@ -384,6 +457,94 @@ color: #515151;
                 
             
             
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#tensorrt%e4%b9%8b%e5%8a%a8%e6%80%81batch%e5%92%8c%e5%8a%a8%e6%80%81%e5%ae%bd%e9%ab%98" onclick="onNavClick(`#tensorrt之动态batch和动态宽高-nav`)" id="tensorrt之动态batch和动态宽高-nav">
+									TensorRT之动态Batch和动态宽高
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8a%a8%e6%80%81batch" onclick="onNavClick(`#动态batch-nav`)" id="动态batch-nav">
+									动态Batch
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8a%a8%e6%80%81%e5%ae%bd%e9%ab%98" onclick="onNavClick(`#动态宽高-nav`)" id="动态宽高-nav">
+									动态宽高
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
         </div>
     </div>
 </div>
@@ -427,491 +588,232 @@ color: #515151;
             <div id="content">
 <div ref="streamContainer" class="stream-container">
     <div class="post-list-container post-list-container-shadow">
-        
-            <a class="a-block">
-                <div class="post-item-wrapper post-item-wrapper-no-hover">
-                    <div class="post-item post-item-no-gaps">
-                        <div class="post-item-info-wrapper">
-                            <div class="post-item-title post-item-title-small year">
-                                2022
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </a>
+        <div class="post">
             
-            <a href="/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-10-%E7%AB%A0-%E5%A4%9A%E8%BF%9B%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF-%E7%AC%94%E8%AE%B0/" class="a-block">
-                <div class="post-item-wrapper">
-                    <div class="post-item post-item-no-gaps">
-                        <div class="post-item-info-wrapper">
-                            <div class="post-item-title">
-                                《TCP/IP网络编程》第 10 章 多进程服务器端 笔记
-                            </div>
-                            <div class="post-item-meta">
-    2022-03-30
-    &emsp;
-    
-    
-    <i class="material-icons" style="font-size:10px">schedule</i>
-    
-
-    
-    
-
-    
-    38 min
-    
-    45 s
-    
-    
-    &emsp;
-    
-</div>
-
-                        </div>
-                        
-                        
-                            
-                            <div class="post-item-image-wrapper">
-                            <div class="post-item-image"
-                            
-                                 style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/tcpip.png')"
-                            
-                            ></div>
-                            </div>
-                        
-                    </div>
-                </div>
-            </a>
             
-            <a href="/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-9-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E5%A4%9A%E7%A7%8D%E5%8F%AF%E9%80%89%E9%A1%B9-%E7%AC%94%E8%AE%B0/" class="a-block">
-                <div class="post-item-wrapper">
-                    <div class="post-item post-item-no-gaps">
-                        <div class="post-item-info-wrapper">
-                            <div class="post-item-title">
-                                《TCP/IP网络编程》第 9 章 套接字的多种可选项 笔记
-                            </div>
-                            <div class="post-item-meta">
-    2022-03-29
-    &emsp;
-    
-    
-    <i class="material-icons" style="font-size:10px">schedule</i>
-    
+            
+                
+            
 
-    
-    
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/tensorrt_title.jpg')"
+                    
+                
+            >
+                <div class="post-title">
+                    TensorRT动态Batch和动态宽高的实现
+                    
+                    <div class="post-subtitle">
+                        学习一下TensorRT中动态宽高和动态Batch的实现方式。
+                    </div>
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2023-05-16 18:18
+                        </time>
+                        
 
-    
-    13 min
-    
-    42 s
-    
-    
-    &emsp;
-    
-</div>
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/">[深度学习]</a>
+                                &nbsp;
+                        
 
-                        </div>
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/deep_learning">Deep_learning</a>
+                                &nbsp;
+                            
                         
                         
+                            <i class="material-icons" style="">schedule</i>
                             
-                            <div class="post-item-image-wrapper">
-                            <div class="post-item-image"
+
                             
-                                 style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/tcpip.png')"
                             
-                            ></div>
-                            </div>
+
+                            
+                            4 min
+                            
+                            24 s.
                         
                     </div>
                 </div>
-            </a>
+            </div>
             
-            <a href="/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-8-%E7%AB%A0-%E5%9F%9F%E5%90%8D%E5%8F%8A%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80-%E7%AC%94%E8%AE%B0/" class="a-block">
-                <div class="post-item-wrapper">
-                    <div class="post-item post-item-no-gaps">
-                        <div class="post-item-info-wrapper">
-                            <div class="post-item-title">
-                                《TCP/IP网络编程》第 8 章 域名及网络地址 笔记
-                            </div>
-                            <div class="post-item-meta">
-    2022-03-28
-    &emsp;
-    
-    
-    <i class="material-icons" style="font-size:10px">schedule</i>
-    
-
-    
-    
-
-    
-    8 min
-    
-    52 s
-    
-    
-    &emsp;
-    
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h3 id="tensorrt之动态batch和动态宽高">TensorRT之动态Batch和动态宽高</h3>
+<h4 id="动态batch">动态Batch</h4>
+<p>该特性的需求主要源于<code>TensorRT</code>编译时对batch的处理，若静态batch则意味着无论你有多少图，都按照固定大小batch推理。耗时是固定的。</p>
+<p>实现动态Batch的注意点：</p>
+<blockquote>
+<p>1.onnx导出模型是，注意view操作不能固定batch维度数值，通常写-1。
+2.onnx导出模型是，通常可以指定<code>dynamic_axes</code>（通常用于指定动态维度），实际上不指定也没关系。</p>
+</blockquote>
+<h4 id="动态宽高">动态宽高</h4>
+<p>该特性需求来自<code>onnx</code>导出时指定的宽高是固定的，<code>TensorRT</code>编译时也需要固定大小引擎，若你想得到另外一个不同大小的<code>TensorRT</code>引擎（一个eng模型只能支持一个输入分辨率）时，就需要动态宽高的存在。而直接使用<code>TensorRT</code>的动态宽高（一个eng模型能支持不同输入分辨率的推理）会带来不必要的复杂度，所以使用中间方案：在编译时修改<code>onnx</code>输入实现相对动态（一个onnx模型，修改参数可以得到不同输入分辨率大小的eng模型），避免重回<code>Pytorch</code>再做导出。</p>
+<p>实现动态宽高的注意点：</p>
+<blockquote>
+<p>1.不建议使用<code>dynamic_axes</code>指定Batch以外的维度为动态，这样带来的复杂度太高，并且存在有的layer不支持。
+2.如果<code>onnx</code>文件已经导出，但是输入的shape固定了，此时希望修改<code>onnx</code>的输入shape：
+   步骤一：使用<code>TRT::compile</code>函数的<code>inputsDimsSetup</code>参数重新定义输入的shape。
+   步骤二：使用<code>TRT::set_layer_hook_reshape</code>钩子动态修改reshape的参数实现适配。</p>
+</blockquote>
+<p>动态Batch demo：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> max_batch_size = <span style="color:#b452cd">5</span>;
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 模型编译，onnx到trtmodel **/</span>
+</span></span><span style="display:flex;"><span>TRT::compile(
+</span></span><span style="display:flex;"><span>    TRT::Model::FP32,
+</span></span><span style="display:flex;"><span>    max_batch_size,               <span style="color:#228b22">//最大batch size
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#cd5555">&#34;model_name.onnx&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;model_name.fp32.trtmodel&#34;</span>
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 加载编译好的引擎 **/</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">auto</span> infer = TRT::load_infer(<span style="color:#cd5555">&#34;model_name.fp32.trtmodel&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 设置输入的值 **/</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 修改input的0维度为1，最大可以是5 **/</span>
+</span></span><span style="display:flex;"><span>infer-&gt;input(<span style="color:#b452cd">0</span>)-&gt;resize_single_dim(<span style="color:#b452cd">0</span>, <span style="color:#b452cd">2</span>);
+</span></span><span style="display:flex;"><span>infer-&gt;input(<span style="color:#b452cd">0</span>)-&gt;set_to(<span style="color:#b452cd">1.0f</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 引擎进行推理 **/</span>
+</span></span><span style="display:flex;"><span>infer-&gt;forward();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 取出引擎的输出并打印 **/</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">auto</span> out = infer-&gt;output(<span style="color:#b452cd">0</span>);
+</span></span><span style="display:flex;"><span>INFO(<span style="color:#cd5555">&#34;out.shape = %s&#34;</span>, out-&gt;shape_string());
+</span></span></code></pre></td></tr></table>
 </div>
-
-                        </div>
-                        
-                        
-                            
-                            <div class="post-item-image-wrapper">
-                            <div class="post-item-image"
-                            
-                                 style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/tcpip.png')"
-                            
-                            ></div>
-                            </div>
-                        
-                    </div>
+</div><p>动态宽高 demo：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#228b22">/** 这里的动态宽高是相对的，仅仅调整onnx输入大小为目的 **/</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">model_name</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">//钩子函数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    TRT::set_layer_hook_reshape([](<span style="color:#8b008b;font-weight:bold">const</span> string&amp; name, <span style="color:#8b008b;font-weight:bold">const</span> vector&lt;<span style="color:#00688b;font-weight:bold">int64_t</span>&gt;&amp; shape)-&gt;vector&lt;<span style="color:#00688b;font-weight:bold">int64_t</span>&gt;{
+</span></span><span style="display:flex;"><span>        INFO(<span style="color:#cd5555">&#34;name: %s, shape: %s&#34;</span>, name.c_str(), iLogger::join_dims(shape).c_str());
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> {-<span style="color:#b452cd">1</span>, <span style="color:#b452cd">25</span>}; <span style="color:#228b22">//25代表5*5的宽高，-1代表的是Batch的维度
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    });
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">/** 模型编译 **/</span>
+</span></span><span style="display:flex;"><span>    TRT::compile(
+</span></span><span style="display:flex;"><span>        TRT::Model::FP32,
+</span></span><span style="display:flex;"><span>        <span style="color:#b452cd">1</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#cd5555">&#34;model_name.onnx&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#cd5555">&#34;model_name.fp32.trtmodel&#34;</span>,
+</span></span><span style="display:flex;"><span>        {{<span style="color:#b452cd">1</span>, <span style="color:#b452cd">1</span>, <span style="color:#b452cd">5</span>, <span style="color:#b452cd">5</span>}}             <span style="color:#228b22">//对输入的重定义
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">auto</span> infer = TRT::load_infer(<span style="color:#cd5555">&#34;model_name.fp32.trtmodel&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">auto</span> model = infer-&gt;output(<span style="color:#b452cd">0</span>);
+</span></span><span style="display:flex;"><span>    INFO(<span style="color:#cd5555">&#34;out.shape = %s&#34;</span>, out-&gt;shape_string());
+</span></span><span style="display:flex;"><span>} 
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2023-05-16</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
                 </div>
-            </a>
+            </div>
             
-            <a href="/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-7-%E7%AB%A0-%E4%BC%98%E9%9B%85%E7%9A%84%E6%96%AD%E5%BC%80%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E8%BF%9E%E6%8E%A5-%E7%AC%94%E8%AE%B0/" class="a-block">
-                <div class="post-item-wrapper">
-                    <div class="post-item post-item-no-gaps">
-                        <div class="post-item-info-wrapper">
-                            <div class="post-item-title">
-                                《TCP/IP网络编程》第 7 章 优雅的断开套接字的连接 笔记
-                            </div>
-                            <div class="post-item-meta">
-    2022-03-26
-    &emsp;
-    
-    
-    <i class="material-icons" style="font-size:10px">schedule</i>
-    
-
-    
-    
-
-    
-    10 min
-    
-    4 s
-    
-    
-    &emsp;
-    
-</div>
-
-                        </div>
-                        
-                        
-                            
-                            <div class="post-item-image-wrapper">
-                            <div class="post-item-image"
-                            
-                                 style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/tcpip.png')"
-                            
-                            ></div>
-                            </div>
-                        
-                    </div>
-                </div>
-            </a>
             
-            <a href="/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-6-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-udp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF-%E7%AC%94%E8%AE%B0/" class="a-block">
-                <div class="post-item-wrapper">
-                    <div class="post-item post-item-no-gaps">
-                        <div class="post-item-info-wrapper">
-                            <div class="post-item-title">
-                                《TCP/IP网络编程》第 6 章 基于 UDP 的服务端/客户端 笔记
-                            </div>
-                            <div class="post-item-meta">
-    2022-03-25
-    &emsp;
-    
-    
-    <i class="material-icons" style="font-size:10px">schedule</i>
-    
+            <nav class="post-pagination">
 
-    
-    
+                
+                <a class="newer-posts">
+			下回<br>已经到头啦。
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/tensorrt%E9%83%A8%E7%BD%B2%E6%96%B9%E6%A1%88/">
+			上回<br>TensorRT部署方案介绍
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
 
-    
-    17 min
-    
-    14 s
-    
-    
-    &emsp;
-    
-</div>
 
-                        </div>
-                        
-                        
-                            
-                            <div class="post-item-image-wrapper">
-                            <div class="post-item-image"
-                            
-                                 style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/tcpip.png')"
-                            
-                            ></div>
-                            </div>
-                        
-                    </div>
-                </div>
-            </a>
-            
-            <a href="/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-5-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-tcp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF2-%E7%AC%94%E8%AE%B0/" class="a-block">
-                <div class="post-item-wrapper">
-                    <div class="post-item post-item-no-gaps">
-                        <div class="post-item-info-wrapper">
-                            <div class="post-item-title">
-                                《TCP/IP网络编程》第 5 章 基于 TCP 的服务端/客户端（2） 笔记
-                            </div>
-                            <div class="post-item-meta">
-    2022-03-24
-    &emsp;
-    
-    
-    <i class="material-icons" style="font-size:10px">schedule</i>
-    
 
-    
-    
 
-    
-    16 min
-    
-    38 s
-    
-    
-    &emsp;
-    
-</div>
 
-                        </div>
-                        
-                        
-                            
-                            <div class="post-item-image-wrapper">
-                            <div class="post-item-image"
-                            
-                                 style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/tcpip.png')"
-                            
-                            ></div>
-                            </div>
-                        
-                    </div>
-                </div>
-            </a>
-            
-            <a href="/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-4-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-tcp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF1-%E7%AC%94%E8%AE%B0/" class="a-block">
-                <div class="post-item-wrapper">
-                    <div class="post-item post-item-no-gaps">
-                        <div class="post-item-info-wrapper">
-                            <div class="post-item-title">
-                                《TCP/IP网络编程》第 4 章 基于 TCP 的服务端/客户端（1） 笔记
-                            </div>
-                            <div class="post-item-meta">
-    2022-03-20
-    &emsp;
-    
-    
-    <i class="material-icons" style="font-size:10px">schedule</i>
-    
 
-    
-    
 
-    
-    17 min
-    
-    58 s
-    
-    
-    &emsp;
-    
-</div>
 
-                        </div>
-                        
-                        
-                            
-                            <div class="post-item-image-wrapper">
-                            <div class="post-item-image"
-                            
-                                 style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/tcpip.png')"
-                            
-                            ></div>
-                            </div>
-                        
-                    </div>
-                </div>
-            </a>
-            
-            <a href="/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-3-%E7%AB%A0-%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%88%86%E9%85%8D-%E7%AC%94%E8%AE%B0/" class="a-block">
-                <div class="post-item-wrapper">
-                    <div class="post-item post-item-no-gaps">
-                        <div class="post-item-info-wrapper">
-                            <div class="post-item-title">
-                                《TCP/IP网络编程》第 3 章 网络地址的初始化与分配 笔记
-                            </div>
-                            <div class="post-item-meta">
-    2022-03-19
-    &emsp;
-    
-    
-    <i class="material-icons" style="font-size:10px">schedule</i>
-    
+<div id="tcomment"></div>
 
-    
-    
-
-    
-    9 min
-    
-    51 s
-    
-    
-    &emsp;
-    
-</div>
-
-                        </div>
-                        
-                        
-                            
-                            <div class="post-item-image-wrapper">
-                            <div class="post-item-image"
-                            
-                                 style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/tcpip.png')"
-                            
-                            ></div>
-                            </div>
-                        
-                    </div>
-                </div>
-            </a>
-            
-            <a href="/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-2-%E7%AB%A0-%E5%A5%97%E6%8E%A5%E5%AD%97%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%8D%8F%E8%AE%AE%E8%AE%BE%E7%BD%AE-%E7%AC%94%E8%AE%B0/" class="a-block">
-                <div class="post-item-wrapper">
-                    <div class="post-item post-item-no-gaps">
-                        <div class="post-item-info-wrapper">
-                            <div class="post-item-title">
-                                《TCP/IP网络编程》第 2 章 套接字类型与协议设置 笔记
-                            </div>
-                            <div class="post-item-meta">
-    2022-03-18
-    &emsp;
-    
-    
-    <i class="material-icons" style="font-size:10px">schedule</i>
-    
-
-    
-    
-
-    
-    6 min
-    
-    27 s
-    
-    
-    &emsp;
-    
-</div>
-
-                        </div>
-                        
-                        
-                            
-                            <div class="post-item-image-wrapper">
-                            <div class="post-item-image"
-                            
-                                 style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/tcpip.png')"
-                            
-                            ></div>
-                            </div>
-                        
-                    </div>
-                </div>
-            </a>
-            
-            <a href="/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-1-%E7%AB%A0-%E7%90%86%E8%A7%A3%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E5%92%8C%E5%A5%97%E6%8E%A5%E5%AD%97-%E7%AC%94%E8%AE%B0/" class="a-block">
-                <div class="post-item-wrapper">
-                    <div class="post-item post-item-no-gaps">
-                        <div class="post-item-info-wrapper">
-                            <div class="post-item-title">
-                                《TCP/IP网络编程》第 1 章 理解网络编程和套接字 笔记
-                            </div>
-                            <div class="post-item-meta">
-    2022-03-17
-    &emsp;
-    
-    
-    <i class="material-icons" style="font-size:10px">schedule</i>
-    
-
-    
-    
-
-    
-    4 min
-    
-    57 s
-    
-    
-    &emsp;
-    
-</div>
-
-                        </div>
-                        
-                        
-                            
-                            <div class="post-item-image-wrapper">
-                            <div class="post-item-image"
-                            
-                                 style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/tcpip.png')"
-                            
-                            ></div>
-                            </div>
-                        
-                    </div>
-                </div>
-            </a>
-            
-        
-    </div>
-</div>
 
 
             </div>
-
-<div class="pagination">
-    
-    <a class="pagination-action" href="/blog/page/5/" style="opacity:1">
-    
-        <i class="material-icons pagination-action-icon">
-            chevron_left
-        </i>
-    </a>
-
-        <div class="pagination-indicator">
-            <span>6/7</span>
         </div>
-
-        
-        <a class="pagination-action" href="/blog/page/7/"
-           style="opacity:1">
-        
-                <i class="material-icons pagination-action-icon">
-                    chevron_right
-                </i>
-            </a>
+    </div>
 </div>
 
-
-<div id="single-column-footer">
+            </div><div id="single-column-footer">
 魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
 <br>
 
@@ -1167,6 +1069,12 @@ app = new Vue({
         
         
         
+            twikoo.init({
+                envId: "https://twikoo-rho-olive.vercel.app/",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
 
         document.querySelectorAll("table").forEach(function(elem){
             elem.classList.add("table-striped");
@@ -1175,6 +1083,9 @@ app = new Vue({
             elem.classList.add("table-hover");
         })
 
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
         
         
     },

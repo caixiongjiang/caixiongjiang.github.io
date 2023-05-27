@@ -16,7 +16,11 @@
       <description>TensorRT简介 TensorRT是用于高效实现已经训练好的深度学习模型的推理过程的SDK。 TensorRT内含推理优化器和运行时环境。 TensorRT使Deep Learning模型能以更高的吞吐量和更低的延迟运行。 包含C++和python的API，完全等价可以混用。 一些reference： TensorRT文档:https://docs.nvidia.com/deeplearning/tensorrt/quick-start-guide/index.html C++ API文档:https://docs.nvidia.com/deeplearning/tensorrt/api/c_api/index.html python API文档:https://docs.nvidia.com/deeplearning/tensorrt/api/python_api/index.html TensorRT下载:https://developer.nvidia.com/nvidia-tensorrt-download 该教程配套代码:https://github.com/NVIDIA/trt-samples-for-hackathon-cn/tree/master/cookbook
 TensorRT基本特性 TensorRT的基本流程 示例代码
 基本流程：
-构建期： 建立Buider（构建引擎器） 创建Network（计算图内容） 生成SerializedNetwork（网络的TRT内部表示） 运行期： 建立Engine和Context Buffer相关准备（Host端 + Device端 + 拷贝操作） 执行推理（Execute） TensorRT工作流 使用框架自带的TRT接口(TF-TRT、Torch-TensorRT) 简单灵活、部署仍然在原框架中，无需书写插件。 使用Parser(TF/Torch/&amp;hellip; -&amp;gt; ONNX -&amp;gt; TensorRT) 流程成熟，ONNX通用性好，方便网络调整，兼顾性能效率 使用TensorRT原生API搭建网络 性能最优，精细网络控制，兼容性最好 </description>
+构建期： 建立Buider（构建引擎器） 创建Network（计算图内容） 生成SerializedNetwork（网络的TRT内部表示） 运行期： 建立Engine和Context Buffer相关准备（Host端 + Device端 + 拷贝操作） 执行推理（Execute） TensorRT工作流 使用框架自带的TRT接口(TF-TRT、Torch-TensorRT) 简单灵活、部署仍然在原框架中，无需书写插件。 使用Parser(TF/Torch/&amp;hellip; -&amp;gt; ONNX -&amp;gt; TensorRT) 流程成熟，ONNX通用性好，方便网络调整，兼顾性能效率 使用TensorRT原生API搭建网络 性能最优，精细网络控制，兼容性最好 使用TensorRT API搭建 下面是一个API完整搭建一个MNIST手写识别模型的示例： 示例代码
+由于我没有学过Tensorflow，我也不会使用该框架去实现，未来应该只选择Parser的方式实现，这里只做了解。
+基本流程：
+1.Tensorflow中创建并训练一个网络 2.提取网络权重，保存为para.npz 3.TensorRT中重建该网络并加载para.npz的权重 4.生成推理引擎 5.用引擎做实际推理 用一张图来表示TensorRT使用的通用流程： 其中黄色部分文字是API创建方式特有的步骤，Parse将用onnx来代替。
+构建阶段介绍 Logger日志记录器 1 2 3 # 可选参数：VERBOSE，INFO，WARNING，ERROR，INTERNAL_ERROR， # 产生不同等级的日志 ，由详细到简略。 logger = trt.Logger(trt.Logger.VERBOSE) Builder引擎构建器 1 2 3 4 # 常用成员：Builder.</description>
     </item>
     
     <item>

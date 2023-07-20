@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head>
-<title>TensorRT动态Batch和动态宽高的实现</title>
+<title>CUDA编程实战</title>
 
 
 
@@ -10,19 +10,19 @@
 <meta name="google-site-verification" content="">
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
 <meta content="telephone=no" name="format-detection">
-<meta name="description" content="学习一下TensorRT中动态宽高和动态Batch的实现方式。">
+<meta name="description" content="CUDA编程实战">
 <meta name="renderer" content="webkit">
 <meta name="theme-color" content="#ffffff">
 
 
 
-<meta property="og:title" content="TensorRT动态Batch和动态宽高的实现" />
-<meta property="og:description" content="学习一下TensorRT中动态宽高和动态Batch的实现方式。" />
+<meta property="og:title" content="CUDA编程实战" />
+<meta property="og:description" content="CUDA编程实战" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/%E5%8A%A8%E6%80%81batch%E5%92%8C%E5%AE%BD%E9%AB%98/" /><meta property="article:section" content="blog" />
-<meta property="article:published_time" content="2023-05-16T18:18:05+08:00" />
-<meta property="article:modified_time" content="2023-05-16T09:19:06+08:00" />
-
+<meta property="og:url" content="https://caixiongjiang.github.io/blog/2023/hpc/cuda%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2023-07-19T18:18:05+08:00" />
+<meta property="article:modified_time" content="2023-07-20T09:19:06+08:00" />
+<meta property="og:see_also" content="https://caixiongjiang.github.io/blog/2023/hpc/ubuntu%E5%AE%89%E8%A3%85cuda%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/" />
 
 
 
@@ -285,15 +285,11 @@ color: #515151;
 									<ul>
 								
 							
-								
-									<ul>
-								
-							
 						
 						
 							<li>
-								<a href="#tensorrt%e4%b9%8b%e5%8a%a8%e6%80%81batch%e5%92%8c%e5%8a%a8%e6%80%81%e5%ae%bd%e9%ab%98" onclick="onNavClick(`#tensorrt之动态batch和动态宽高-nav`)" id="tensorrt之动态batch和动态宽高-nav">
-									TensorRT之动态Batch和动态宽高
+								<a href="#cuda%e7%bc%96%e7%a8%8b%e5%ae%9e%e6%88%98" onclick="onNavClick(`#cuda编程实战-nav`)" id="cuda编程实战-nav">
+									CUDA编程实战
 								</a>
 							</li>
 						
@@ -316,8 +312,8 @@ color: #515151;
 						
 						
 							<li>
-								<a href="#%e5%8a%a8%e6%80%81batch" onclick="onNavClick(`#动态batch-nav`)" id="动态batch-nav">
-									动态Batch
+								<a href="#hello-gpu" onclick="onNavClick(`#hello-gpu-nav`)" id="hello-gpu-nav">
+									Hello GPU
 								</a>
 							</li>
 						
@@ -334,8 +330,26 @@ color: #515151;
 						
 						
 							<li>
-								<a href="#%e5%8a%a8%e6%80%81%e5%ae%bd%e9%ab%98" onclick="onNavClick(`#动态宽高-nav`)" id="动态宽高-nav">
-									动态宽高
+								<a href="#%e7%bd%91%e6%a0%bc%e5%9d%97%e7%ba%bf%e7%a8%8b" onclick="onNavClick(`#网格块线程-nav`)" id="网格块线程-nav">
+									网格、块、线程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%98%be%e5%ad%98%e5%88%86%e9%85%8d" onclick="onNavClick(`#显存分配-nav`)" id="显存分配-nav">
+									显存分配
 								</a>
 							</li>
 						
@@ -482,15 +496,11 @@ color: #515151;
 									<ul>
 								
 							
-								
-									<ul>
-								
-							
 						
 						
 							<li>
-								<a href="#tensorrt%e4%b9%8b%e5%8a%a8%e6%80%81batch%e5%92%8c%e5%8a%a8%e6%80%81%e5%ae%bd%e9%ab%98" onclick="onNavClick(`#tensorrt之动态batch和动态宽高-nav`)" id="tensorrt之动态batch和动态宽高-nav">
-									TensorRT之动态Batch和动态宽高
+								<a href="#cuda%e7%bc%96%e7%a8%8b%e5%ae%9e%e6%88%98" onclick="onNavClick(`#cuda编程实战-nav`)" id="cuda编程实战-nav">
+									CUDA编程实战
 								</a>
 							</li>
 						
@@ -513,8 +523,8 @@ color: #515151;
 						
 						
 							<li>
-								<a href="#%e5%8a%a8%e6%80%81batch" onclick="onNavClick(`#动态batch-nav`)" id="动态batch-nav">
-									动态Batch
+								<a href="#hello-gpu" onclick="onNavClick(`#hello-gpu-nav`)" id="hello-gpu-nav">
+									Hello GPU
 								</a>
 							</li>
 						
@@ -531,8 +541,26 @@ color: #515151;
 						
 						
 							<li>
-								<a href="#%e5%8a%a8%e6%80%81%e5%ae%bd%e9%ab%98" onclick="onNavClick(`#动态宽高-nav`)" id="动态宽高-nav">
-									动态宽高
+								<a href="#%e7%bd%91%e6%a0%bc%e5%9d%97%e7%ba%bf%e7%a8%8b" onclick="onNavClick(`#网格块线程-nav`)" id="网格块线程-nav">
+									网格、块、线程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%98%be%e5%ad%98%e5%88%86%e9%85%8d" onclick="onNavClick(`#显存分配-nav`)" id="显存分配-nav">
+									显存分配
 								</a>
 							</li>
 						
@@ -599,34 +627,34 @@ color: #515151;
                 
                     
                     
-                    style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/tensorrt_title.jpg')"
+                    style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/CUDA_title.jpg')"
                     
                 
             >
                 <div class="post-title">
-                    TensorRT动态Batch和动态宽高的实现
+                    CUDA编程实战
                     
                     <div class="post-subtitle">
-                        学习一下TensorRT中动态宽高和动态Batch的实现方式。
+                        CUDA编程实战
                     </div>
                     
                     <div class="post-meta">
                         
                         <time itemprop="datePublished">
-                            2023-05-16 18:18
+                            2023-07-19 18:18
                         </time>
                         
 
                         
                             <i class="material-icons" style="">folder</i>
-                                <a href="/categories/">[深度学习]</a>
+                                <a href="/categories/">[HPC]</a>
                                 &nbsp;
                         
 
                         
                             <i class="material-icons" style="">label</i>
                             
-                                <a href="/tags/deep_learning">Deep_learning</a>
+                                <a href="/tags/cuda%E7%BC%96%E7%A8%8B">CUDA编程</a>
                                 &nbsp;
                             
                         
@@ -638,9 +666,9 @@ color: #515151;
                             
 
                             
-                            4 min
+                            7 min
                             
-                            24 s.
+                            39 s.
                         
                     </div>
                 </div>
@@ -650,24 +678,190 @@ color: #515151;
                 
                 <div class="post-body" v-pre>
                 
-                    <h3 id="tensorrt之动态batch和动态宽高">TensorRT之动态Batch和动态宽高</h3>
-<h4 id="动态batch">动态Batch</h4>
-<p>该特性的需求主要源于<code>TensorRT</code>编译时对batch的处理，若静态batch则意味着无论你有多少图，都按照固定大小batch推理。耗时是固定的。</p>
-<p>实现动态Batch的注意点：</p>
+                    <h2 id="cuda编程实战">CUDA编程实战</h2>
+<h3 id="hello-gpu">Hello GPU</h3>
 <blockquote>
-<p>1.onnx导出模型是，注意view操作不能固定batch维度数值，通常写-1。
-2.onnx导出模型是，通常可以指定<code>dynamic_axes</code>（通常用于指定动态维度），实际上不指定也没关系。</p>
+<p>编写第一个gpu程序</p>
 </blockquote>
-<h4 id="动态宽高">动态宽高</h4>
-<p>该特性需求来自<code>onnx</code>导出时指定的宽高是固定的，<code>TensorRT</code>编译时也需要固定大小引擎，若你想得到另外一个不同大小的<code>TensorRT</code>引擎（一个eng模型只能支持一个输入分辨率）时，就需要动态宽高的存在。而直接使用<code>TensorRT</code>的动态宽高（一个eng模型能支持不同输入分辨率的推理）会带来不必要的复杂度，所以使用中间方案：在编译时修改<code>onnx</code>输入实现相对动态（一个onnx模型，修改参数可以得到不同输入分辨率大小的eng模型），避免重回<code>Pytorch</code>再做导出。</p>
-<p>实现动态宽高的注意点：</p>
+<p>一般来说，CUDA程序是<code>.cu</code>结尾的程序！</p>
+<p>hello-gpu.cu:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">cpu</span>() {
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#cd5555">&#34;hello cpu</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>__global__ <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">gpu</span>() {
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#cd5555">&#34;hello gpu</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>() {
+</span></span><span style="display:flex;"><span>    cpu();
+</span></span><span style="display:flex;"><span>    gpu&lt;&lt;&lt;<span style="color:#b452cd">1</span>, <span style="color:#b452cd">1</span>&gt;&gt;&gt;();
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 等待cpu和gpu同步
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    cudaDeviceSynchronize();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>__global__:</p>
+<ul>
+<li>__global__关键字代表以下<strong>函数将在GPU山运行并全局可调用。</strong></li>
+<li>通过我们将在cpu上执行的代码称为主机代码，而在GPU上运行的代码称为设备代码。</li>
+<li>注意返回类型为void。使用__global__关键字定义的函数需要返回void类型。</li>
+</ul>
+<p>gpu&laquo;&lt;1, 1&raquo;&gt;():</p>
+<ul>
+<li>通常，当调用要在GPU上运行的函数时，我们将这种函数称为<code>已启动的核函数</code>。</li>
+<li>启动核函数之前必须提供执行的配置，在向核函数传递任何预期参数之前使用<code>&lt;&lt;&lt;...&gt;&gt;&gt;</code>语法完成配置。</li>
+<li>程序员可通过执行配置为核函数启动指定线程层次结构，从而定义<code>线程组（也称为线程块）的数量</code>，以及要在<code>每个线程块中执行的线程数量</code>。这里就代表正在使用包含1线程（第二个配置参数）的1线程块（第一个配置参数）启动核函数。</li>
+</ul>
+<p>cudaDeviceSynchronize():</p>
+<ul>
+<li>与大部分c/c++代码不同，<strong>核函数启动方式为异步：CPU代码将继续执行而无需等待核函数完成启动。</strong></li>
+<li>调用CUDA运行时提供的函数cudaDeviceSynchronize将导致主机（cpu）代码暂停，直至设备（GPU）代码执行完成，才能在cpu上恢复执行。</li>
+</ul>
 <blockquote>
-<p>1.不建议使用<code>dynamic_axes</code>指定Batch以外的维度为动态，这样带来的复杂度太高，并且存在有的layer不支持。
-2.如果<code>onnx</code>文件已经导出，但是输入的shape固定了，此时希望修改<code>onnx</code>的输入shape：
-   步骤一：使用<code>TRT::compile</code>函数的<code>inputsDimsSetup</code>参数重新定义输入的shape。
-   步骤二：使用<code>TRT::set_layer_hook_reshape</code>钩子动态修改reshape的参数实现适配。</p>
+<p>使用nvcc编译、链接、执行</p>
 </blockquote>
-<p>动态Batch demo：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>nvcc -o hello-gpu hello-gpu.cu -run
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>看到</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scss" data-lang="scss"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">hello</span> <span style="color:#8b008b;font-weight:bold">cpu</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">hello</span> <span style="color:#8b008b;font-weight:bold">gpu</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>说明你编译、链接、执行成功。</p>
+<h3 id="网格块线程">网格、块、线程</h3>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img58.jpg" alt=""></p>
+<p><em>注意，上述结构并不是硬件结构，而是软件逻辑概念！</em></p>
+<p>一个GPU中有多个线程块，每个线程块中含有不同的线程，每个线程能执行一个程序。多个线程块组成一个网格。在实际的编程中，一个Block可以最多放1024个线程。</p>
+<blockquote>
+<p>如何使用CUDA编程语言来表示这些含义</p>
+</blockquote>
+<ul>
+<li>gridDim.x 表示网格的线程块个数</li>
+<li>blockIdx.x 表示当前块的索引</li>
+<li>blockDim.x 表示块的线程数</li>
+<li>threadIdx.x 表示当前中线程的索引</li>
+</ul>
+<p>假设执行<code>performWork&lt;&lt;&lt;2, 4&gt;&gt;&gt;()</code>代表线程块个数为2，块中的线程数为4</p>
+<p>将我们的<code>hello-gpu.cu</code>文件修改执行一下，改成了<code>gpu&lt;&lt;&lt;2, 4&gt;&gt;&gt;()</code>，打印的结果为1个<code>cpu</code>和8个<code>gpu</code>。说明gpu的程序同时有8个线程一起执行了它。</p>
+<p>我现在需要指定某个块中的某个CUDA线程来执行它，则需要通过两个索引值来判断：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">cpu</span>() {
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#cd5555">&#34;hello cpu</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>__global__ <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">gpu</span>() {
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">if</span> (blockIdx.x == <span style="color:#b452cd">0</span> &amp;&amp; threadIdx.x == <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span>    		printf(<span style="color:#cd5555">&#34;hello gpu</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>() {
+</span></span><span style="display:flex;"><span>    cpu();
+</span></span><span style="display:flex;"><span>    gpu&lt;&lt;&lt;<span style="color:#b452cd">1</span>, <span style="color:#b452cd">1</span>&gt;&gt;&gt;();
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 等待cpu和gpu同步
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    cudaDeviceSynchronize();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>执行的结果变为了一个cpu和一个gpu。</strong></p>
+<p><strong>显而易见，在GPU上执行循环的复杂度由原来的O(n)变成了O(1)。</strong></p>
+<p>题外话，CPU也能并发线程，那为什么CPU不好：其实CPU在软件层面上能同时开20个或者30个等线程，但这都是通过操作系统调度时间切片做到的，但实际上从物理的层面上只能同时跑8个线程，通过4个ALU同时跑4个线程，通过寄存器复制实现超线程扩展到8个。</p>
+<h3 id="显存分配">显存分配</h3>
+<blockquote>
+<p>如何区分每个线程id</p>
+</blockquote>
+<p>通过计算<code>blockIdx.x * blockDim.x + threadIdx.x</code>的值区分不同的线程id。</p>
+<blockquote>
+<p>cpu分配内存/gpu分配显存</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#228b22">//cpu
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#00688b;font-weight:bold">int</span> N = <span style="color:#b452cd">2</span> &lt;&lt; <span style="color:#b452cd">20</span>;
+</span></span><span style="display:flex;"><span>size_t size = N * <span style="color:#8b008b;font-weight:bold">sizeof</span>(<span style="color:#00688b;font-weight:bold">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> *a;
+</span></span><span style="display:flex;"><span>a = (<span style="color:#00688b;font-weight:bold">int</span> *)malloc(size);<span style="color:#228b22">//分配内存
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>free(a);
+</span></span><span style="display:flex;"><span><span style="color:#228b22">//gpu
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#00688b;font-weight:bold">int</span> N = <span style="color:#b452cd">2</span> &lt;&lt; <span style="color:#b452cd">20</span>;
+</span></span><span style="display:flex;"><span>size_t size = N * <span style="color:#8b008b;font-weight:bold">sizeof</span>(<span style="color:#00688b;font-weight:bold">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> *a;
+</span></span><span style="display:flex;"><span>cudaMallocManaged(&amp;a, size);
+</span></span><span style="display:flex;"><span>cudaFree(a);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>需要注意的是cudaMallocManaged()分配的是统一内存，既可以被cpu使用，也可以被gpu使用。</strong></p>
+<p>通过一个例子来学习显存分配：</p>
 <div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
 <table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
@@ -693,86 +887,68 @@ color: #515151;
 </span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
 </span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
 </span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> max_batch_size = <span style="color:#b452cd">5</span>;
-</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 模型编译，onnx到trtmodel **/</span>
-</span></span><span style="display:flex;"><span>TRT::compile(
-</span></span><span style="display:flex;"><span>    TRT::Model::FP32,
-</span></span><span style="display:flex;"><span>    max_batch_size,               <span style="color:#228b22">//最大batch size
-</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#cd5555">&#34;model_name.onnx&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;model_name.fp32.trtmodel&#34;</span>
-</span></span><span style="display:flex;"><span>);
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdlib.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">cpu</span>(<span style="color:#00688b;font-weight:bold">int</span> *a, <span style="color:#00688b;font-weight:bold">int</span> N) {
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = <span style="color:#b452cd">0</span>; i &lt; N; i++) {
+</span></span><span style="display:flex;"><span>      	a[i] = i;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 加载编译好的引擎 **/</span>
-</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">auto</span> infer = TRT::load_infer(<span style="color:#cd5555">&#34;model_name.fp32.trtmodel&#34;</span>);
+</span></span><span style="display:flex;"><span>__global__ <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">gpu</span>(<span style="color:#00688b;font-weight:bold">int</span> *a, <span style="color:#00688b;font-weight:bold">int</span> N) {
+</span></span><span style="display:flex;"><span>  	<span style="color:#00688b;font-weight:bold">int</span> i = blockIdx.x * blockDim.x + threadIdx.x;
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">if</span> (i &lt; N) {
+</span></span><span style="display:flex;"><span>      	A[i] *= <span style="color:#b452cd">2</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 设置输入的值 **/</span>
-</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 修改input的0维度为1，最大可以是5 **/</span>
-</span></span><span style="display:flex;"><span>infer-&gt;input(<span style="color:#b452cd">0</span>)-&gt;resize_single_dim(<span style="color:#b452cd">0</span>, <span style="color:#b452cd">2</span>);
-</span></span><span style="display:flex;"><span>infer-&gt;input(<span style="color:#b452cd">0</span>)-&gt;set_to(<span style="color:#b452cd">1.0f</span>);
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">bool</span> <span style="color:#008b45">check</span>(<span style="color:#00688b;font-weight:bold">int</span> *a, <span style="color:#00688b;font-weight:bold">int</span> N) {
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = <span style="color:#b452cd">0</span>; i &lt; N; i++) {
+</span></span><span style="display:flex;"><span>      	<span style="color:#8b008b;font-weight:bold">if</span> (a[i] != i * <span style="color:#b452cd">2</span>) <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#658b00">false</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#658b00">true</span>;
+</span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 引擎进行推理 **/</span>
-</span></span><span style="display:flex;"><span>infer-&gt;forward();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#228b22">/** 取出引擎的输出并打印 **/</span>
-</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">auto</span> out = infer-&gt;output(<span style="color:#b452cd">0</span>);
-</span></span><span style="display:flex;"><span>INFO(<span style="color:#cd5555">&#34;out.shape = %s&#34;</span>, out-&gt;shape_string());
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>() {
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">int</span> N = <span style="color:#b452cd">100</span>;
+</span></span><span style="display:flex;"><span>  	size_t size = N * <span style="color:#8b008b;font-weight:bold">sizeof</span>(<span style="color:#00688b;font-weight:bold">int</span>);
+</span></span><span style="display:flex;"><span>  	<span style="color:#00688b;font-weight:bold">int</span> * a;
+</span></span><span style="display:flex;"><span>  	<span style="color:#228b22">//分配通用内存
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	cudaMallocManaged(&amp;a, size);
+</span></span><span style="display:flex;"><span>  	cpu(a, N); <span style="color:#228b22">// cpu进行操作
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	size_t threads = <span style="color:#b452cd">256</span>;<span style="color:#228b22">//线程块中线程的个数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	size_t blocks = (N + threads - <span style="color:#b452cd">1</span>) / threads; <span style="color:#228b22">//向上取整计算
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	gpu&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;(a, N); <span style="color:#228b22">//gpu进行操作
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	cudaDeviceSynchronize(); <span style="color:#228b22">//cpu和gpu同步(如果不进行同步check必然为error)
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	check(a, N) ? printf(<span style="color:#cd5555">&#34;ok&#34;</span>) : printf(<span style="color:#cd5555">&#34;error&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">/* 最后输出的结果为ok */</span>
+</span></span><span style="display:flex;"><span>  	cudaFree(a);
+</span></span><span style="display:flex;"><span>}
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>动态宽高 demo：</p>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#228b22">/** 这里的动态宽高是相对的，仅仅调整onnx输入大小为目的 **/</span>
-</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">model_name</span>() {
-</span></span><span style="display:flex;"><span>    <span style="color:#228b22">//钩子函数
-</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    TRT::set_layer_hook_reshape([](<span style="color:#8b008b;font-weight:bold">const</span> string&amp; name, <span style="color:#8b008b;font-weight:bold">const</span> vector&lt;<span style="color:#00688b;font-weight:bold">int64_t</span>&gt;&amp; shape)-&gt;vector&lt;<span style="color:#00688b;font-weight:bold">int64_t</span>&gt;{
-</span></span><span style="display:flex;"><span>        INFO(<span style="color:#cd5555">&#34;name: %s, shape: %s&#34;</span>, name.c_str(), iLogger::join_dims(shape).c_str());
-</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> {-<span style="color:#b452cd">1</span>, <span style="color:#b452cd">25</span>}; <span style="color:#228b22">//25代表5*5的宽高，-1代表的是Batch的维度
-</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    });
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#228b22">/** 模型编译 **/</span>
-</span></span><span style="display:flex;"><span>    TRT::compile(
-</span></span><span style="display:flex;"><span>        TRT::Model::FP32,
-</span></span><span style="display:flex;"><span>        <span style="color:#b452cd">1</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#cd5555">&#34;model_name.onnx&#34;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#cd5555">&#34;model_name.fp32.trtmodel&#34;</span>,
-</span></span><span style="display:flex;"><span>        {{<span style="color:#b452cd">1</span>, <span style="color:#b452cd">1</span>, <span style="color:#b452cd">5</span>, <span style="color:#b452cd">5</span>}}             <span style="color:#228b22">//对输入的重定义
-</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    );
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">auto</span> infer = TRT::load_infer(<span style="color:#cd5555">&#34;model_name.fp32.trtmodel&#34;</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">auto</span> model = infer-&gt;output(<span style="color:#b452cd">0</span>);
-</span></span><span style="display:flex;"><span>    INFO(<span style="color:#cd5555">&#34;out.shape = %s&#34;</span>, out-&gt;shape_string());
-</span></span><span style="display:flex;"><span>} 
-</span></span></code></pre></td></tr></table>
-</div>
-</div>
+</div><p>通用内存既可以被cpu调用也可以被gpu调用。</p>
+
                     
                     <HR width="100%" id="EOF">
-		            <p style="color:#777;">最后修改于 2023-05-16</p>
+		            <p style="color:#777;">最后修改于 2023-07-20</p>
                     
                     
                     <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
@@ -783,14 +959,14 @@ color: #515151;
             <nav class="post-pagination">
 
                 
-                <a class="newer-posts" href="https://caixiongjiang.github.io/blog/2023/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83/">
-			下回<br>服务器深度学习环境
+                <a class="newer-posts">
+			下回<br>已经到头啦。
                 </a>
                 
                 
                 
-                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/tensorrt%E9%83%A8%E7%BD%B2%E6%96%B9%E6%A1%88/">
-			上回<br>TensorRT部署方案介绍
+                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2023/hpc/ubuntu%E5%AE%89%E8%A3%85cuda%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/">
+			上回<br>Ubuntu CUDA编程环境配置
                 </a>
                 
             </nav>

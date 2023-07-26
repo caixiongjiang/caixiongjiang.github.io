@@ -21,7 +21,7 @@
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://caixiongjiang.github.io/blog/2023/hpc/cuda%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98/" /><meta property="article:section" content="blog" />
 <meta property="article:published_time" content="2023-07-19T18:18:05+08:00" />
-<meta property="article:modified_time" content="2023-07-20T09:19:06+08:00" />
+<meta property="article:modified_time" content="2023-07-25T09:19:06+08:00" />
 <meta property="og:see_also" content="https://caixiongjiang.github.io/blog/2023/hpc/ubuntu%E5%AE%89%E8%A3%85cuda%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/" />
 
 
@@ -357,6 +357,60 @@ color: #515151;
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%b7%a8%e6%ad%a5%e5%be%aa%e7%8e%af" onclick="onNavClick(`#跨步循环-nav`)" id="跨步循环-nav">
+									跨步循环
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bc%82%e5%b8%b8%e5%a4%84%e7%90%86" onclick="onNavClick(`#异常处理-nav`)" id="异常处理-nav">
+									异常处理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%9f%a9%e9%98%b5%e5%8a%a0%e6%b3%95" onclick="onNavClick(`#矩阵加法-nav`)" id="矩阵加法-nav">
+									矩阵加法
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -568,6 +622,60 @@ color: #515151;
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%b7%a8%e6%ad%a5%e5%be%aa%e7%8e%af" onclick="onNavClick(`#跨步循环-nav`)" id="跨步循环-nav">
+									跨步循环
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bc%82%e5%b8%b8%e5%a4%84%e7%90%86" onclick="onNavClick(`#异常处理-nav`)" id="异常处理-nav">
+									异常处理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%9f%a9%e9%98%b5%e5%8a%a0%e6%b3%95" onclick="onNavClick(`#矩阵加法-nav`)" id="矩阵加法-nav">
+									矩阵加法
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -666,9 +774,9 @@ color: #515151;
                             
 
                             
-                            7 min
+                            14 min
                             
-                            39 s.
+                            23 s.
                         
                     </div>
                 </div>
@@ -945,10 +1053,326 @@ color: #515151;
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>通用内存既可以被cpu调用也可以被gpu调用。</p>
-
+<h3 id="跨步循环">跨步循环</h3>
+<p>当需要并行的过程远大于线程数，便可以使用跨步循环，<code>跨了多少步，同一个线程就运行了多少次</code>：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdlib.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">cpu</span>(<span style="color:#00688b;font-weight:bold">int</span> *a, <span style="color:#00688b;font-weight:bold">int</span> N) {
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = <span style="color:#b452cd">0</span>; i &lt; N; i++) {
+</span></span><span style="display:flex;"><span>      	a[i] = i;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>__global__ <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">gpu</span>(<span style="color:#00688b;font-weight:bold">int</span> *a, <span style="color:#00688b;font-weight:bold">int</span> N) {
+</span></span><span style="display:flex;"><span>  	<span style="color:#00688b;font-weight:bold">int</span> threadi = blockIdx.x * blockDim.x + threadIdx.x;
+</span></span><span style="display:flex;"><span>  	<span style="color:#00688b;font-weight:bold">int</span> stride = gripDim.x * blockDim.x;
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = threadi; i &lt; N; i += stride) {
+</span></span><span style="display:flex;"><span>      	a[i] *= <span style="color:#b452cd">2</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">bool</span> <span style="color:#008b45">check</span>(<span style="color:#00688b;font-weight:bold">int</span> *a, <span style="color:#00688b;font-weight:bold">int</span> N) {
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = <span style="color:#b452cd">0</span>; i &lt; N; i++) {
+</span></span><span style="display:flex;"><span>      	<span style="color:#8b008b;font-weight:bold">if</span> (a[i] != i * <span style="color:#b452cd">2</span>) <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#658b00">false</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#658b00">true</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>() {
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">int</span> N = <span style="color:#b452cd">100</span>;
+</span></span><span style="display:flex;"><span>  	size_t size = N * <span style="color:#8b008b;font-weight:bold">sizeof</span>(<span style="color:#00688b;font-weight:bold">int</span>);
+</span></span><span style="display:flex;"><span>  	<span style="color:#00688b;font-weight:bold">int</span> * a;
+</span></span><span style="display:flex;"><span>  	<span style="color:#228b22">//分配通用内存
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	cudaMallocManaged(&amp;a, size);
+</span></span><span style="display:flex;"><span>  	cpu(a, N); <span style="color:#228b22">// cpu进行操作
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	size_t threads = <span style="color:#b452cd">256</span>;<span style="color:#228b22">//线程块中线程的个数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	size_t blocks = <span style="color:#b452cd">1</span>;
+</span></span><span style="display:flex;"><span>  	gpu&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;(a, N); <span style="color:#228b22">//gpu进行操作
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	cudaDeviceSynchronize(); <span style="color:#228b22">//cpu和gpu同步(如果不进行同步check必然为error)
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	check(a, N) ? printf(<span style="color:#cd5555">&#34;ok&#34;</span>) : printf(<span style="color:#cd5555">&#34;error&#34;</span>);
+</span></span><span style="display:flex;"><span>  	cudaFree(a);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="异常处理">异常处理</h3>
+<blockquote>
+<p>普通函数异常处理</p>
+</blockquote>
+<p>假设一个分配内存的函数出现了错误，我们可以用cuda内置的<code>cudaError_t</code>类型来返回是否错误。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>cudaError_t err;
+</span></span><span style="display:flex;"><span>err = cudaMallocManaged(&amp;a, size);
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> (err != cudaSuccess) {
+</span></span><span style="display:flex;"><span>  	printf(<span style="color:#cd5555">&#34;Error: %s</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, cudaGetErrirString(err));
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>Kernel函数的异常处理</p>
+</blockquote>
+<p>核函数的没有返回值，这需要如何处理，cuda也专门提供了<code>cudaGetLastError()</code>函数来返回是否错误：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>gpu&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;(a, N);
+</span></span><span style="display:flex;"><span>err = cudaGetLastError();
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> (err != cudaSuccess) {
+</span></span><span style="display:flex;"><span>  	printf(<span style="color:#cd5555">&#34;Error: %s</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, cudaGetErrirString(err));
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>在实际的c++编程中，我们通常会将其写成一个inline函数统一使用</strong>：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">inline</span> cudaError_t <span style="color:#008b45">checkCuda</span>(cudaError_t result) {
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">if</span> (result != cudaSuccess) {
+</span></span><span style="display:flex;"><span>      	fprintf(stderr, <span style="color:#cd5555">&#34;CUDA runtime error: %s</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>, cudaGetErrorString(result));
+</span></span><span style="display:flex;"><span>      	assert(result == cudaSuccess);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">return</span> result;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>那么这段程序的调用方法就显而易见了：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>checkCuda(cudaGetLastError());
+</span></span><span style="display:flex;"><span>checkCuda(cudaMallocManaged(&amp;a, size));
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>inline函数和普通函数的区别</p>
+</blockquote>
+<p>普通函数：</p>
+<ol>
+<li>普通函数定义通常放在头文件(.h)中，实现放在源文件(.cpp)中。</li>
+<li>每次函数调用时，程序会跳转到函数的地址执行函数体中的代码。</li>
+<li>普通函数适合处理较大的代码块和复杂的逻辑。</li>
+</ol>
+<p><code>inline</code>函数：</p>
+<ol>
+<li><code>inline</code>关键字用于建议编译器将函数调用处的代码替换为函数体中的代码，而不是通过跳转执行函数。</li>
+<li><code>inline</code>函数通常定义放在头文件中，并且在同一编译单元内直接展开函数调用。</li>
+<li>适用于短小的、频繁调用的函数，比如简单的getter和setter函数，以避免函数调用的开销。</li>
+</ol>
+<p>区别总结：</p>
+<ol>
+<li><code>inline</code>函数是对编译器的建议，而不是强制要求。编译器有权忽略<code>inline</code>关键字。</li>
+<li>普通函数一般用于处理复杂的逻辑，而<code>inline</code>函数用于短小的频繁调用的代码块，以节省函数调用开销。</li>
+<li><code>inline</code>函数在编译时展开代码，而普通函数是跳转执行函数体中的代码。</li>
+</ol>
+<p>需要注意的是，如果函数体较大或者在多个地方调用，编译器可能会忽略<code>inline</code>关键字，将其当作普通函数处理。此外，过度使用<code>inline</code>可能导致代码膨胀，增加代码段的大小，反而可能影响性能。**因此，<code>inline</code>应谨慎使用，最好只用于短小的、频繁调用的函数。**编译器在优化方面通常会自动处理函数的内联，不需要手动添加<code>inline</code>关键字。</p>
+<h3 id="矩阵加法">矩阵加法</h3>
+<blockquote>
+<p>分别通过cpu和gpu实现矩阵的加法运算</p>
+</blockquote>
+<p>matrix.cu:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;stdio.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#1e889b">#define N 64
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span>__global__ <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">gpu</span>(<span style="color:#00688b;font-weight:bold">int</span> *a, <span style="color:#00688b;font-weight:bold">int</span> *b, <span style="color:#00688b;font-weight:bold">int</span> *c_gpu) {
+</span></span><span style="display:flex;"><span>  	<span style="color:#00688b;font-weight:bold">int</span> r = blockDim.x * blockIdx.x + threadIdx.x;
+</span></span><span style="display:flex;"><span>  	<span style="color:#00688b;font-weight:bold">int</span> c = blockDim.y * blockIdx.y + threadIdx.y;
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">if</span> (r &lt; N &amp;&amp; c &lt; N) {
+</span></span><span style="display:flex;"><span>      	c_gpu[r * N + c] = a[r * N + c] + b[r * N + c];
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">cpu</span>(<span style="color:#00688b;font-weight:bold">int</span> *a, <span style="color:#00688b;font-weight:bold">int</span> *b, <span style="color:#00688b;font-weight:bold">int</span> *c_cpu) {
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> r = <span style="color:#b452cd">0</span>; r &lt; N; r++) {
+</span></span><span style="display:flex;"><span>      	<span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> c = <span style="color:#b452cd">0</span>; c &lt; N; c++) {
+</span></span><span style="display:flex;"><span>          	c_cpu[r * N + c] = a[r * N + c] + b[r * N + c];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">bool</span> <span style="color:#008b45">check</span>(<span style="color:#00688b;font-weight:bold">int</span> *a, <span style="color:#00688b;font-weight:bold">int</span> *b, <span style="color:#00688b;font-weight:bold">int</span> *c_cpu, <span style="color:#00688b;font-weight:bold">int</span> *c_gpu) {
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> r = <span style="color:#b452cd">0</span>; r &lt; N; r++) {
+</span></span><span style="display:flex;"><span>      	<span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> c = <span style="color:#b452cd">0</span>; c &lt; N; c++) {
+</span></span><span style="display:flex;"><span>          	<span style="color:#8b008b;font-weight:bold">if</span> (c_cpu[r * N + c] != c_gpu[r * N + c]) <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#658b00">false</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  	<span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#658b00">true</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">main</span>() {
+</span></span><span style="display:flex;"><span>  	<span style="color:#00688b;font-weight:bold">int</span> *a, *b, *c_cpu, *c_gpu;
+</span></span><span style="display:flex;"><span>  	size_t size = N * N * <span style="color:#8b008b;font-weight:bold">sizeof</span>(<span style="color:#00688b;font-weight:bold">int</span>);
+</span></span><span style="display:flex;"><span>  	<span style="color:#228b22">//分配globalmemory
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	cudaMallocManaged(&amp;a, size);
+</span></span><span style="display:flex;"><span>  	cudaMallocManaged(&amp;b, size);
+</span></span><span style="display:flex;"><span>  	cudaMallocManaged(&amp;c_cpu, size);
+</span></span><span style="display:flex;"><span> 	 	cudaMallocManaged(&amp;c_gpu, size);
+</span></span><span style="display:flex;"><span>  	
+</span></span><span style="display:flex;"><span>  	<span style="color:#228b22">//初始化
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	<span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> r = <span style="color:#b452cd">0</span>; r &lt; N; r++) {
+</span></span><span style="display:flex;"><span>      	<span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> c = <span style="color:#b452cd">0</span>; c &lt; N; c++) {
+</span></span><span style="display:flex;"><span>          	a[r * N + c] = r;
+</span></span><span style="display:flex;"><span>          	b[r * N + c] = c;
+</span></span><span style="display:flex;"><span>          	c_cpu[r * N + c] = <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>          	c_gpu[r * N + c] = <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  	dim3 threads(<span style="color:#b452cd">16</span>, <span style="color:#b452cd">16</span>, <span style="color:#b452cd">1</span>);
+</span></span><span style="display:flex;"><span>  	dim3 blocks((N + threads.x - <span style="color:#b452cd">1</span>) / threads.x, N + threads.y - <span style="color:#b452cd">1</span>) / threads.y, <span style="color:#b452cd">1</span>);
+</span></span><span style="display:flex;"><span>  	gpu&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;(a, b, c_gpu);
+</span></span><span style="display:flex;"><span>  	<span style="color:#228b22">//同步到cpu上
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  	cudaDeviceSynchronize();
+</span></span><span style="display:flex;"><span>  	
+</span></span><span style="display:flex;"><span>  	cpu(a, b, c_cpu);
+</span></span><span style="display:flex;"><span>  	check(a, b, c_cpu, c_gpu) ? printf(<span style="color:#cd5555">&#34;ok!</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>) : printf(<span style="color:#cd5555">&#34;error!</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#34;</span>);
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  	cudaFree(a);
+</span></span><span style="display:flex;"><span>  	cudaFree(b);
+</span></span><span style="display:flex;"><span>  	cudaFree(c_cpu);
+</span></span><span style="display:flex;"><span>  	cudaFree(c_gpu);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
                     
                     <HR width="100%" id="EOF">
-		            <p style="color:#777;">最后修改于 2023-07-20</p>
+		            <p style="color:#777;">最后修改于 2023-07-25</p>
                     
                     
                     <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。

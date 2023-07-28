@@ -417,6 +417,42 @@ color: #515151;
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%8e%88%e6%9d%83%e4%b9%a6%e7%89%b9%e5%ae%9a%e5%8c%ba%e5%9f%9f%e6%a3%80%e6%b5%8b%e6%80%9d%e8%b7%af" onclick="onNavClick(`#授权书特定区域检测思路-nav`)" id="授权书特定区域检测思路-nav">
+									授权书特定区域检测思路
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#yolo%e6%a0%bc%e5%bc%8f%e6%a0%87%e7%ad%bevoc%e6%a3%80%e6%b5%8b%e6%a0%bc%e5%bc%8f" onclick="onNavClick(`#yolo格式标签voc检测格式-nav`)" id="yolo格式标签voc检测格式-nav">
+									YOLO格式标签——&gt;VOC检测格式
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -688,6 +724,42 @@ color: #515151;
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%8e%88%e6%9d%83%e4%b9%a6%e7%89%b9%e5%ae%9a%e5%8c%ba%e5%9f%9f%e6%a3%80%e6%b5%8b%e6%80%9d%e8%b7%af" onclick="onNavClick(`#授权书特定区域检测思路-nav`)" id="授权书特定区域检测思路-nav">
+									授权书特定区域检测思路
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#yolo%e6%a0%bc%e5%bc%8f%e6%a0%87%e7%ad%bevoc%e6%a3%80%e6%b5%8b%e6%a0%bc%e5%bc%8f" onclick="onNavClick(`#yolo格式标签voc检测格式-nav`)" id="yolo格式标签voc检测格式-nav">
+									YOLO格式标签——&gt;VOC检测格式
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -786,9 +858,9 @@ color: #515151;
                             
 
                             
-                            15 min
+                            22 min
                             
-                            37 s.
+                            3 s.
                         
                     </div>
                 </div>
@@ -1622,6 +1694,268 @@ color: #515151;
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scss" data-lang="scss"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">127</span><span style="color:#008b45;font-weight:bold">.0.0.1</span><span style="color:#707a7c">:16006</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="授权书特定区域检测思路">授权书特定区域检测思路</h4>
+<p>授权书的需求如下：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E5%AE%9E%E4%B9%A0/img2.jpg" alt=""></p>
+<p>给定一张移动公司的授权书模版，需要将代表不同区域的位置给分割出来，然后交给文字OCR进行识别。</p>
+<p>由于文字OCR已经做好了，给我的需求就是将该图上这些区域给分割出来。</p>
+<blockquote>
+<p>难点解析</p>
+</blockquote>
+<ul>
+<li>1.该需求只对特定的信息区域进行检测。</li>
+<li>2.对于特定文字区域来说，对于整张图片来说，语义信息与其他文字区域相似；且在这些区域中，存在手写体和打印体。区域在拖片中的位置是不固定的，也就是说授权书的摆放位置是不固定的（横竖摆放都存在）。</li>
+<li>对检测的准确率要求较高，也就是Precsion较高，因为检测不准，那么就会漏文字。</li>
+</ul>
+<blockquote>
+<p>解决思路</p>
+</blockquote>
+<ul>
+<li>1.针对语义信息不足的问题，拟采用分两阶段检测的方法进行。第一阶段检测带文字属性字段和属性信息的联合区域的检测。如下图：</li>
+</ul>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E5%AE%9E%E4%B9%A0/img3.jpg" alt=""></p>
+<p>第二阶段将除了检测到的区域像素全部置0（加mask）。再对我们的属性信息部分区域进行检测。将难度较高的任务分为两个更简单的任务的组合。</p>
+<ul>
+<li>2.yolo系列算法集成较好，使用起来成本不会特别高。（众所周知，改进结构的效果是有限的，我们不是在科研，能解决问题就行）。</li>
+<li>3.对于分类的问题，第一阶段应该进行分类。首先不同的类之间在图片中的位置信息不同，周围的文字分布信息也不同。根据这个点可以比较好分类。如果将所有区域分为1类，则很难找到它们联合的特征与其他文本区域特征的区别。</li>
+<li>4.对于第二阶段的检测，应该注重准确率，目前想法分为1类。因为它们的特征比较明显，要么有下划线（红框区域中），要么与其他文本区域有明显的界限。</li>
+</ul>
+<h4 id="yolo格式标签voc检测格式">YOLO格式标签——&gt;VOC检测格式</h4>
+<p>YOLO数据集格式：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scss" data-lang="scss"><span style="display:flex;"><span><span style="color:#008b45;text-decoration:underline">#</span> <span style="color:#8b008b;font-weight:bold">images下面的train和val放图片</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">labels下面的train和val下面放标签</span><span style="color:#a61717;background-color:#e3d2d2">（</span><span style="color:#8b008b;font-weight:bold">txt文件格式</span><span style="color:#a61717;background-color:#e3d2d2">）</span>
+</span></span><span style="display:flex;"><span>- <span style="color:#8b008b;font-weight:bold">dataset</span>
+</span></span><span style="display:flex;"><span>-- <span style="color:#8b008b;font-weight:bold">score</span>
+</span></span><span style="display:flex;"><span>--- <span style="color:#8b008b;font-weight:bold">images</span>
+</span></span><span style="display:flex;"><span>---- <span style="color:#8b008b;font-weight:bold">train</span>
+</span></span><span style="display:flex;"><span>---- <span style="color:#8b008b;font-weight:bold">val</span>
+</span></span><span style="display:flex;"><span>--- <span style="color:#8b008b;font-weight:bold">labels</span>
+</span></span><span style="display:flex;"><span>---- <span style="color:#8b008b;font-weight:bold">train</span>
+</span></span><span style="display:flex;"><span>---- <span style="color:#8b008b;font-weight:bold">val</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>YOLO格式的检测标签较为简单，例子：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scss" data-lang="scss"><span style="display:flex;"><span><span style="color:#008b45;text-decoration:underline">#</span> <span style="color:#8b008b;font-weight:bold">从左到右分别代表</span><span style="color:#a61717;background-color:#e3d2d2">：</span>
+</span></span><span style="display:flex;"><span><span style="color:#008b45;text-decoration:underline">#</span> <span style="color:#8b008b;font-weight:bold">类别</span> <span style="color:#8b008b;font-weight:bold">检测框的中心x坐标</span> <span style="color:#8b008b;font-weight:bold">检测框的中心y坐标</span> <span style="color:#8b008b;font-weight:bold">检测框的高</span> <span style="color:#8b008b;font-weight:bold">检测框的宽</span>
+</span></span><span style="display:flex;"><span><span style="color:#008b45;text-decoration:underline">#</span> <span style="color:#8b008b;font-weight:bold">上面提及的坐标都已经归一化</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">归一化的标准是按照原始影像大小进行归一化</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">0</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.915000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.234667</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.034000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.381333</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">1</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.813000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.280667</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.034000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.329333</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">2</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.721000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.238667</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.026000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.229333</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">3</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.725000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.624667</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.034000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.294667</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">4</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.661500</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.246667</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.025000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.234667</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">5</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.505500</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.498000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.131000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.726667</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">6</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.045000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.646667</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.040000</span> <span style="color:#8b008b;font-weight:bold">0</span><span style="color:#008b45;font-weight:bold">.330667</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>那么如何将该格式转化为VOC格式的检测数据(.xml文件)呢？这涉及部分数学计算。代码如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">68
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">69
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">70
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">71
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">72
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">73
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">74
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">75
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">76
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">77
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">78
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">79
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">80
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">81
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">82
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">83
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">84
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">85
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">86
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">87
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">88
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">os</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">cv2</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">xml.etree.ElementTree</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">ET</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">xml.dom.minidom</span> <span style="color:#8b008b;font-weight:bold">as</span> <span style="color:#008b45;text-decoration:underline">minidom</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">yolo_to_voc</span>(yolo_annotation, image_path, new_label_folder):
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    os.makedirs(new_label_folder, exist_ok=<span style="color:#8b008b;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    class_names = [<span style="color:#cd5555">&#39;class1&#39;</span>, <span style="color:#cd5555">&#39;class2&#39;</span>, <span style="color:#cd5555">&#39;class3&#39;</span>, <span style="color:#cd5555">&#39;class4&#39;</span>, <span style="color:#cd5555">&#39;class5&#39;</span>, <span style="color:#cd5555">&#39;class6&#39;</span>, <span style="color:#cd5555">&#39;class7&#39;</span>]  <span style="color:#228b22"># Replace with your class names</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    image = cv2.imread(image_path)
+</span></span><span style="display:flex;"><span>    height, width, _ = image.shape
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    root = ET.Element(<span style="color:#cd5555">&#34;annotation&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    folder = ET.SubElement(root, <span style="color:#cd5555">&#34;folder&#34;</span>)
+</span></span><span style="display:flex;"><span>    folder.text = <span style="color:#cd5555">&#34;VOC2007&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    filename = ET.SubElement(root, <span style="color:#cd5555">&#34;filename&#34;</span>)
+</span></span><span style="display:flex;"><span>    filename.text = os.path.basename(image_path)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    size = ET.SubElement(root, <span style="color:#cd5555">&#34;size&#34;</span>)
+</span></span><span style="display:flex;"><span>    width_elem = ET.SubElement(size, <span style="color:#cd5555">&#34;width&#34;</span>)
+</span></span><span style="display:flex;"><span>    width_elem.text = <span style="color:#658b00">str</span>(width)
+</span></span><span style="display:flex;"><span>    height_elem = ET.SubElement(size, <span style="color:#cd5555">&#34;height&#34;</span>)
+</span></span><span style="display:flex;"><span>    height_elem.text = <span style="color:#658b00">str</span>(height)
+</span></span><span style="display:flex;"><span>    depth_elem = ET.SubElement(size, <span style="color:#cd5555">&#34;depth&#34;</span>)
+</span></span><span style="display:flex;"><span>    depth_elem.text = <span style="color:#658b00">str</span>(<span style="color:#b452cd">3</span>)  <span style="color:#228b22"># Assuming 3-channel images</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> line <span style="color:#8b008b">in</span> yolo_annotation:
+</span></span><span style="display:flex;"><span>        class_id, x_center, y_center, w, h = <span style="color:#658b00">map</span>(<span style="color:#658b00">float</span>, line.split())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        class_name = class_names[<span style="color:#658b00">int</span>(class_id)]
+</span></span><span style="display:flex;"><span>        x_min = <span style="color:#658b00">int</span>((x_center - w / <span style="color:#b452cd">2</span>) * width)
+</span></span><span style="display:flex;"><span>        y_min = <span style="color:#658b00">int</span>((y_center - h / <span style="color:#b452cd">2</span>) * height)
+</span></span><span style="display:flex;"><span>        x_max = <span style="color:#658b00">int</span>((x_center + w / <span style="color:#b452cd">2</span>) * width)
+</span></span><span style="display:flex;"><span>        y_max = <span style="color:#658b00">int</span>((y_center + h / <span style="color:#b452cd">2</span>) * height)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        object_elem = ET.SubElement(root, <span style="color:#cd5555">&#34;object&#34;</span>)
+</span></span><span style="display:flex;"><span>        name_elem = ET.SubElement(object_elem, <span style="color:#cd5555">&#34;name&#34;</span>)
+</span></span><span style="display:flex;"><span>        name_elem.text = class_name
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        bbox = ET.SubElement(object_elem, <span style="color:#cd5555">&#34;bndbox&#34;</span>)
+</span></span><span style="display:flex;"><span>        xmin_elem = ET.SubElement(bbox, <span style="color:#cd5555">&#34;xmin&#34;</span>)
+</span></span><span style="display:flex;"><span>        xmin_elem.text = <span style="color:#658b00">str</span>(x_min)
+</span></span><span style="display:flex;"><span>        ymin_elem = ET.SubElement(bbox, <span style="color:#cd5555">&#34;ymin&#34;</span>)
+</span></span><span style="display:flex;"><span>        ymin_elem.text = <span style="color:#658b00">str</span>(y_min)
+</span></span><span style="display:flex;"><span>        xmax_elem = ET.SubElement(bbox, <span style="color:#cd5555">&#34;xmax&#34;</span>)
+</span></span><span style="display:flex;"><span>        xmax_elem.text = <span style="color:#658b00">str</span>(x_max)
+</span></span><span style="display:flex;"><span>        ymax_elem = ET.SubElement(bbox, <span style="color:#cd5555">&#34;ymax&#34;</span>)
+</span></span><span style="display:flex;"><span>        ymax_elem.text = <span style="color:#658b00">str</span>(y_max)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    xml_path = os.path.join(new_label_folder, os.path.basename(image_path).replace(<span style="color:#cd5555">&#39;.jpg&#39;</span>, <span style="color:#cd5555">&#39;.xml&#39;</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># 保存新的XML文件，并使用xml.dom.minidom进行格式化</span>
+</span></span><span style="display:flex;"><span>    xml_string = ET.tostring(root, encoding=<span style="color:#cd5555">&#34;utf-8&#34;</span>)
+</span></span><span style="display:flex;"><span>    dom = minidom.parseString(xml_string)
+</span></span><span style="display:flex;"><span>    pretty_xml_string = dom.toprettyxml(indent=<span style="color:#cd5555">&#34;    &#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># 去掉XML声明</span>
+</span></span><span style="display:flex;"><span>    pretty_xml_string = <span style="color:#cd5555">&#39;</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#39;</span>.join([line <span style="color:#8b008b;font-weight:bold">for</span> line <span style="color:#8b008b">in</span> pretty_xml_string.split(<span style="color:#cd5555">&#39;</span><span style="color:#cd5555">\n</span><span style="color:#cd5555">&#39;</span>) <span style="color:#8b008b;font-weight:bold">if</span> <span style="color:#8b008b">not</span> line.strip().startswith(<span style="color:#cd5555">&#39;&lt;?xml&#39;</span>)])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">with</span> <span style="color:#658b00">open</span>(xml_path, <span style="color:#cd5555">&#34;w&#34;</span>, encoding=<span style="color:#cd5555">&#34;utf-8&#34;</span>) <span style="color:#8b008b;font-weight:bold">as</span> f:
+</span></span><span style="display:flex;"><span>        f.write(pretty_xml_string)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># Replace with the actual paths to your YOLO annotation files and image folder</span>
+</span></span><span style="display:flex;"><span>yolo_annotation_dir = <span style="color:#cd5555">&#34;授权书标注/label&#34;</span>
+</span></span><span style="display:flex;"><span>image_folder = <span style="color:#cd5555">&#34;授权书标注/biaozhu1&#34;</span>
+</span></span><span style="display:flex;"><span>new_label_folder = <span style="color:#cd5555">&#34;授权书标注/voc_label&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> <span style="color:#8b008b">not</span> os.path.exists(image_folder):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">raise</span> <span style="color:#008b45;font-weight:bold">ValueError</span>(<span style="color:#cd5555">&#34;Image folder does not exist.&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>yolo_annotation_files = os.listdir(yolo_annotation_dir)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">for</span> yolo_file <span style="color:#8b008b">in</span> yolo_annotation_files:
+</span></span><span style="display:flex;"><span>    yolo_file_path = os.path.join(yolo_annotation_dir, yolo_file)
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">with</span> <span style="color:#658b00">open</span>(yolo_file_path, <span style="color:#cd5555">&#39;r&#39;</span>) <span style="color:#8b008b;font-weight:bold">as</span> f:
+</span></span><span style="display:flex;"><span>        yolo_lines = f.readlines()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    image_name = os.path.splitext(yolo_file)[<span style="color:#b452cd">0</span>] + <span style="color:#cd5555">&#34;.jpg&#34;</span>
+</span></span><span style="display:flex;"><span>    image_path = os.path.join(image_folder, image_name)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> <span style="color:#8b008b">not</span> os.path.exists(image_path):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">raise</span> <span style="color:#008b45;font-weight:bold">ValueError</span>(<span style="color:#cd5555">f</span><span style="color:#cd5555">&#34;Image &#39;</span><span style="color:#cd5555">{</span>image_name<span style="color:#cd5555">}</span><span style="color:#cd5555">&#39; not found in the image folder.&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    yolo_to_voc(yolo_lines, image_path, new_label_folder)
 </span></span></code></pre></td></tr></table>
 </div>
 </div>

@@ -2523,6 +2523,595 @@
     
     
         <item>
+        <title>中科大CUDA教程</title>
+        <link>https://caixiongjiang.github.io/blog/2023/hpc/%E4%B8%AD%E7%A7%91%E5%A4%A7cuda%E6%95%99%E7%A8%8B/</link>
+        <pubDate>Wed, 19 Jul 2023 18:18:05 +0800</pubDate>
+        
+        <guid>https://caixiongjiang.github.io/blog/2023/hpc/%E4%B8%AD%E7%A7%91%E5%A4%A7cuda%E6%95%99%E7%A8%8B/</guid>
+        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2023/hpc/%E4%B8%AD%E7%A7%91%E5%A4%A7cuda%E6%95%99%E7%A8%8B/ -&lt;h2 id=&#34;中科大cuda编程&#34;&gt;中科大CUDA编程&lt;/h2&gt;
+&lt;p&gt;参考资料：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CUDA C Programming Guide，中文翻译见&lt;a href=&#34;https://github.com/HeKun-NVIDIA/CUDA-Programming-Guide-in-Chinese&#34;&gt;here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;CUDA C++ Best Practice Guide&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;cpu体系架构概述&#34;&gt;CPU体系架构概述&lt;/h3&gt;
+&lt;h4 id=&#34;现代cpu架构和性能优化&#34;&gt;现代CPU架构和性能优化&lt;/h4&gt;
+&lt;p&gt;CPU是执行指令和处理数据的器件，能完成基本的逻辑和算术指令。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;指令&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Example：&lt;/p&gt;
+&lt;p&gt;算术：add r3,r4 -&amp;gt; r4&lt;/p&gt;
+&lt;p&gt;访存：load [r4] -&amp;gt; r7&lt;/p&gt;
+&lt;p&gt;控制：jz end&lt;/p&gt;
+&lt;p&gt;对于一个编译好的程序，最优化目标：
+$$
+\frac{cycle}{instruction}\times \frac{seconds}{cycle}
+$$
+总结来说，CPI（每条指令的时钟数）&amp;amp; 时钟周期，注意这两个指标并不独立。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;摩尔定律&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;芯片的集成密度每两年翻一番，成本下降一半。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;CPU的处理流程&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;取址 -&amp;gt; 解码 -&amp;gt; 执行 -&amp;gt; 访存 -&amp;gt; 写回&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;流水线&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;使用一个洗衣服的例子，单件衣服总时间 = wash（30min）+ dry（40min）+ fold（20min）&lt;/p&gt;
+&lt;p&gt;那么洗4件衣服需要的总时间 = 30 + 40 + 40 + 40 + 40 + 20 = 210min&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img6.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;流水线使用的是指令级的并行，可以有效地减少时钟周期&lt;/li&gt;
+&lt;li&gt;增加了延迟和芯片面积（需要更多的存储）&lt;/li&gt;
+&lt;li&gt;带来了一些问题：具有依赖关系的指令处理，分支如何处理&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;旁路（Bypassing）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img38.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;这里的两条指令具有依赖性，按照原来的方式，需要先计算R7的结果，再进行写回，访寸取到R7的结果。有了旁路这一功能，便可以跳过这个阶段，直接取到R7的结果。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;流水线的停滞&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img39.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;如果前面的&lt;code&gt;load[R3]&lt;/code&gt;没有做完，流水线便会停滞。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;分支&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img40.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;判断是否做循环&lt;code&gt;jeq loop&lt;/code&gt;，我们并不知道是否要执行这个循环，计算机会通过分支预测等工作来进行处理。&lt;/p&gt;
+&lt;p&gt;具体的分支预测基于过去的分支记录，现代计算机的预测器准确率大于90%。同样它同样会增加芯片面积，增加延迟（预测的开销）。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;分支断定&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;与分支预测不相同的是，它不再使用分支预测器，而是将所有分支都做一遍。&lt;/p&gt;
+&lt;p&gt;好处：不需要复杂的预测器，减少了芯片面积，减少了错误预测，在GPU中使用了分支断定。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;增加CPU一个时钟周期能处理的指令数（IPC）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;超标量——增加流水线的宽度，一个时钟周期处理多条指令。（超标量流水线将每个阶段细分为更小的微操作，并在多个功能单元上同时执行这些微操作。这样，多条指令可以在同一时钟周期内同时执行，从而提高处理器的吞吐量。）&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;这需要更多的寄存器和存储器带宽。&lt;/strong&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;指令调度&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;考虑以下指令：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-scss&#34; data-lang=&#34;scss&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;xor&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;r1&lt;/span&gt;,&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;r2&lt;/span&gt; -&amp;gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;r3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;add&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;r3&lt;/span&gt;,&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;r4&lt;/span&gt; -&amp;gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;r4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;sub&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;r5&lt;/span&gt;,&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;r3&lt;/span&gt; -&amp;gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;r3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;addi&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;r3&lt;/span&gt;,&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;1&lt;/span&gt; -&amp;gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;r1&lt;/span&gt; //&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;addi代表减法&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;xor&lt;/code&gt;和&lt;code&gt;add&lt;/code&gt;是相互依赖的（读后写）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;sub&lt;/code&gt;和&lt;code&gt;addi&lt;/code&gt;相互依赖（读后写）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;xor&lt;/code&gt;和&lt;code&gt;sub&lt;/code&gt;不依赖（写后写）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;为了让程序运行地更快，可以使用替换寄存器的方法：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-scss&#34; data-lang=&#34;scss&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;xor&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;p1&lt;/span&gt;,&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;p2&lt;/span&gt; -&amp;gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;p3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;add&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;p6&lt;/span&gt;,&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;p4&lt;/span&gt; -&amp;gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;p7&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;sub&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;p5&lt;/span&gt;,&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;p2&lt;/span&gt; -&amp;gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;p8&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;addi&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;p8&lt;/span&gt;,&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;1&lt;/span&gt; -&amp;gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;p9&lt;/span&gt; //&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;addi代表减法&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;em&gt;这样我们的&lt;code&gt;xor&lt;/code&gt;和&lt;code&gt;sub&lt;/code&gt;就可以并行执行了。&lt;/em&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;乱序执行&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;将所有的指令重排，使其顺序更合理。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;重排缓冲区&lt;/li&gt;
+&lt;li&gt;发射队列/调度器&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;存储器架构层次&#34;&gt;存储器架构/层次&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;存储器越大越慢。&lt;/strong&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;缓存&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;利用时间临近性和空间临近性，可以使我们的处理变得更快。计算机一般有3级缓存，缓存的大小越来越大。&lt;/p&gt;
+&lt;h4 id=&#34;向量运算&#34;&gt;向量运算&lt;/h4&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; i &amp;lt; N; i++) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	A[i] = B[i] + C[i];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;可以使用&lt;code&gt;单指令多数据(SIMD)&lt;/code&gt;进行加速。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; i &amp;lt; N; i += &lt;span style=&#34;color:#b452cd&#34;&gt;4&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#228b22&#34;&gt;//并行同时计算	
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  	A[i] = B[i] + C[i];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	A[i + &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;] = B[i + &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;] + C[i + &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	A[i + &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;] = B[i + &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;] + C[i + &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	A[i + &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;] = B[i + &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;] + C[i + &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;x86的向量运算&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;SSE：4宽度浮点和整数指令&lt;/li&gt;
+&lt;li&gt;AVX：8宽度浮点和整数指令&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;线程级的并行&#34;&gt;线程级的并行&lt;/h4&gt;
+&lt;p&gt;线程的组成：私有的寄存器、程序计数器、栈等。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;程序员可以创建和线程，OS和程序员都可以对线程进行调度。&lt;/strong&gt;&lt;/p&gt;
+&lt;h4 id=&#34;cpu的瓶颈&#34;&gt;CPU的瓶颈&lt;/h4&gt;
+&lt;p&gt;因为功耗墙的存在，处理器的单核性能的提升会越来越少，所以需要多核来支撑。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;新摩尔定律&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;处理器越来越胖，核越来越多&lt;/li&gt;
+&lt;li&gt;单核的性能不会大幅提升&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;由此也带来了另外一堵墙，叫&lt;code&gt;存储器墙&lt;/code&gt;，处理器的存储器带宽无法满足处理能力的提升。&lt;/p&gt;
+&lt;h3 id=&#34;并行程序设计概述&#34;&gt;并行程序设计概述&lt;/h3&gt;
+&lt;h4 id=&#34;并行计算模式&#34;&gt;并行计算模式&lt;/h4&gt;
+&lt;p&gt;并行计算是同时应用多个计算资源解决一个计算问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;涉及多个计算资源或处理器&lt;/li&gt;
+&lt;li&gt;问题被分解为多个离散的部分，可以同时处理（并行）&lt;/li&gt;
+&lt;li&gt;每个部分可以由一系列指令完成&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img41.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Flynn矩阵&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;SISD&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;SIMD&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;MISD&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;MIMD&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;单指令单数据&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;单指令多数据&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;多指令单数据&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;多指令多数据&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;em&gt;在并行计算中，SIMD是一种很常见的方式。&lt;/em&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;常见名词&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;Task：任务&lt;/li&gt;
+&lt;li&gt;Parallel Task：并行任务，该任务可以由多个并行计算的方式解决的&lt;strong&gt;单个任务&lt;/strong&gt;。&lt;/li&gt;
+&lt;li&gt;Serial Execution：串行执行&lt;/li&gt;
+&lt;li&gt;Parallel Execution：并行执行&lt;/li&gt;
+&lt;li&gt;Shared Memory：共享存储&lt;/li&gt;
+&lt;li&gt;Distributed Memory：分布式存储&lt;/li&gt;
+&lt;li&gt;Communications：通信&lt;/li&gt;
+&lt;li&gt;Synchronization：同步&lt;/li&gt;
+&lt;li&gt;Granularity：粒度&lt;/li&gt;
+&lt;li&gt;Observed Speedup：加速比，对比Baseline，并行计算能获得的性能提升。&lt;/li&gt;
+&lt;li&gt;Parallel Overhead：并行开销&lt;/li&gt;
+&lt;li&gt;Scalability：可扩展性&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;存储器架构&#34;&gt;存储器架构&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;共享存储&lt;/li&gt;
+&lt;li&gt;分布式存储&lt;/li&gt;
+&lt;li&gt;分布式共享存储&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;并行编程模型&#34;&gt;并行编程模型&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;共享存储模型&lt;/li&gt;
+&lt;li&gt;线程模型&lt;/li&gt;
+&lt;li&gt;消息传递模型&lt;/li&gt;
+&lt;li&gt;数据并行模型&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;具体实例：&lt;code&gt;OpenMP&lt;/code&gt;，&lt;code&gt;MPI&lt;/code&gt;，&lt;code&gt;Single Program Multiple Data(SPMD)&lt;/code&gt;，&lt;code&gt;Multiple Program Multiple Data(MPMD)&lt;/code&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Amadahl&amp;rsquo;s Law&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Amadahl&amp;rsquo;s Law的程序可能的加速比取决于可以被并行化的部分。
+$$
+\text{speedup} = \frac{1}{1-p}\
+p代表可以被并行化的部分\
+\text{speedup} = \frac{1}{\frac{P}{N} + S}\
+P代表并行部分，N代表处理器数，S代表串行部分。
+$$&lt;/p&gt;
+&lt;h3 id=&#34;cuda开发环境搭建和工具配置&#34;&gt;CUDA开发环境搭建和工具配置&lt;/h3&gt;
+&lt;p&gt;由于该教程是14年的教程，环境配置和如今已经完全不同，这部分将会在我的&lt;a href=&#34;https://caixiongjiang.github.io/blog/2023/hpc/ubuntu%E5%AE%89%E8%A3%85cuda%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/&#34;&gt;博客&lt;/a&gt;上呈现。&lt;/p&gt;
+&lt;h3 id=&#34;gpu体系架构概述&#34;&gt;GPU体系架构概述&lt;/h3&gt;
+&lt;h4 id=&#34;gpu架构&#34;&gt;GPU架构&lt;/h4&gt;
+&lt;p&gt;GPU是一个异构的多处理器芯片，为图形图像处理进行优化。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img52.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Shader core&lt;/code&gt;代表渲染器的核心，其组成是一个基本的ALU计算单元。&lt;/p&gt;
+&lt;p&gt;将GPU的执行单元拎出来，其结构如下：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img53.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;从上到下分别是&lt;code&gt;地址译码单元&lt;/code&gt;、&lt;code&gt;计算核心&lt;/code&gt;、&lt;code&gt;执行上下文&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;现代的GPU中的ALU都共享指令集，那么为了提高效率，我们一般就通过增大ALU和SIMD来增进并行性，方便向量化的操作。&lt;/p&gt;
+&lt;p&gt;GTX480的单个架构的SM（流多处理器），一个流多处理器包含32个CUDA核心（CUDA核心本质为一个ALU）：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img54.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;整个GTX480显卡可以同时承载23000个&lt;code&gt;CUDA片元&lt;/code&gt;（也叫CUDA线程）。&lt;/p&gt;
+&lt;h4 id=&#34;gpu的存储架构&#34;&gt;GPU的存储架构&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;CPU存储架构&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img55.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;GPU的存储架构&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img56.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;GPU的存储是交给了专门的较大的存储，&lt;code&gt;显存&lt;/code&gt;，带宽可以达到150GB/s。&lt;code&gt;访存的带宽资源&lt;/code&gt;是非常宝贵的资源！&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;看一个带宽测试的例子&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;$$
+A、B、C为三个矩阵。\
+计算 D = A\times B + C
+$$&lt;/p&gt;
+&lt;p&gt;上述计算需要5个步骤：&lt;/p&gt;
+&lt;p&gt;1.Load input A[i]&lt;/p&gt;
+&lt;p&gt;2.Load input B[i]&lt;/p&gt;
+&lt;p&gt;3.Load input C[i]&lt;/p&gt;
+&lt;p&gt;4.计算A[i] * B[i] + C[i]&lt;/p&gt;
+&lt;p&gt;5.存储结果到D [i]中&lt;/p&gt;
+&lt;p&gt;如果这时候的矩阵是非常大的矩阵，那么上述几个步骤，最大的开销则发生在前3步，那么计算的效率是非常低的，这里的瓶颈是带宽。&lt;/p&gt;
+&lt;p&gt;现代的GPU通过缓存来缓解带宽受限的情况：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img57.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;总结一下GPU是异构、众核的处理器，针对吞吐优化。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;高效的GPU任务具备的条件&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;具有成千上万的独立工作
+&lt;ul&gt;
+&lt;li&gt;尽量利用大量的ALU计算单元&lt;/li&gt;
+&lt;li&gt;大量的片元（CUDA thread）切换掩藏延迟&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;可以共享指令流
+&lt;ul&gt;
+&lt;li&gt;适用于SIMD处理&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;最好是计算密集的任务
+&lt;ul&gt;
+&lt;li&gt;通信和计算开销比例合适&lt;/li&gt;
+&lt;li&gt;不要受制于访存带宽&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;cudagpu编程模型&#34;&gt;CUDA/GPU编程模型&lt;/h3&gt;
+&lt;h4 id=&#34;cpu和gpu互动模型&#34;&gt;CPU和GPU互动模型&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;cpu和gpu的交互&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;cpu和gpu有各自的物理内存空间&lt;/li&gt;
+&lt;li&gt;它们之间通过PCIE总线相连（8G/s～16G/s）&lt;/li&gt;
+&lt;li&gt;交互的开销较大&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img59.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;gpu的存储架构&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;![](/Users/caixiongjiang/Library/Application Support/typora-user-images/image-20230721093954435.png)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;访存速度的高低&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;从高到低，DRAM代表物理位置在显存中：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Register（寄存器）- 延迟约为1个时钟周期&lt;/li&gt;
+&lt;li&gt;Shared Memory（共享存储）-  延迟约为1个时钟周期&lt;/li&gt;
+&lt;li&gt;Local Memory（DRAM）- 在每一个私有的线程装配的一个memory，如果寄存器放不下则装入这里，（在物理上放在显存中）速度相对较慢。&lt;/li&gt;
+&lt;li&gt;Global Memory（DRAM）- 真正的显存，速度相对较慢&lt;/li&gt;
+&lt;li&gt;Constant Memory（DRAM）- 相对Global和Local更慢&lt;/li&gt;
+&lt;li&gt;Texture Memory（DRAM）- 相对Global和Local更慢&lt;/li&gt;
+&lt;li&gt;Instruction Memory（invisible， DRAM）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;gpu的线程组织模型&#34;&gt;GPU的线程组织模型&lt;/h4&gt;
+&lt;p&gt;GPU的线程模型主要就是&lt;code&gt;网格&lt;/code&gt;、&lt;code&gt;块&lt;/code&gt;、&lt;code&gt;线程&lt;/code&gt;，如下图：&lt;/p&gt;
+&lt;p&gt;![](/Users/caixiongjiang/Library/Application Support/typora-user-images/image-20230721100425159.png)&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;注意上述示意图为软件逻辑上的组织，并不代表硬件层次。&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img60.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;WARP代表线程束，是一些线程的组成，一般由32个连续的线程组成。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;一个Kernel（通常是在GPU上执行的单个程序）具有大量的线程，这些线程被划分为多个线程块（Blocks），一个Block内部共享&lt;code&gt;Shared Memory&lt;/code&gt;，这些Block可以进行同步。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;线程和线程块具有唯一的标识。&lt;/strong&gt;&lt;/p&gt;
+&lt;h4 id=&#34;gpu存储模型&#34;&gt;GPU存储模型&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;gpu内存和线程的关系&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img61.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;每个线程有一个私有的&lt;code&gt;Local Memory&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;每个Block有多个线程，它们共享&lt;code&gt;Shared Memory&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;整个设备拥有一个&lt;code&gt;Global Memory&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;主机端的存储器可以跟不同的设备进行交互&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img62.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;上图代表了GPU端Block内部的访问流程。&lt;/p&gt;
+&lt;h4 id=&#34;编程模型&#34;&gt;编程模型&lt;/h4&gt;
+&lt;p&gt;常规的GPU用于处理图形图像，操作于像素，每个像素的操作都类似，可以应用SIMD（单指令多数据）。&lt;/p&gt;
+&lt;p&gt;SIMD可以认为是数据并行的分割：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img63.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;在GPU中，它被称为是SIMT：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;通过大量的线程模型获得高度并行，线程切换获得延迟掩藏，多个线程执行相同的指令流，GPU上大量线程承载和调度。&lt;/strong&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;CUDA编程模式：Extended C&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;修饰词：global，device，shared，local，constant&lt;/li&gt;
+&lt;li&gt;关键词：threadIdx，blockIdx&lt;/li&gt;
+&lt;li&gt;Intrinsics：__syncthreads&lt;/li&gt;
+&lt;li&gt;运行期API：Memory，symbol，execution，management&lt;/li&gt;
+&lt;li&gt;函数调用：例子&lt;code&gt;convolve&amp;lt;&amp;lt;&amp;lt;100, 10&amp;gt;&amp;gt;&amp;gt; (参数)&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;CUDA函数声明&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;执行位置&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;调用位置&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;__device__ float DeviceFunc()&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Device&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Device&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;__global__ void kernelFunc()&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Device&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Host&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;__host__ float HostFunc()&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Host&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Host&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;几个需要理解的点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;入口函数，CPU上调用，GPU上执行&lt;/li&gt;
+&lt;li&gt;必须返回void&lt;/li&gt;
+&lt;li&gt;__device__ 和__host__可以同时使用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;cuda编程1&#34;&gt;CUDA编程（1）&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;CUDA术语&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;Host：主机端，通常指cpu&lt;/li&gt;
+&lt;li&gt;Device：设备端，通常指gpu&lt;/li&gt;
+&lt;li&gt;Host和Device有各自的存储器&lt;/li&gt;
+&lt;li&gt;Kernel：数据并行处理函数，也就是所谓的&lt;code&gt;核函数&lt;/code&gt;，类似于OpenGL的&lt;code&gt;shader&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Grid：一维或多维线程块&lt;/li&gt;
+&lt;li&gt;Block：一组线程&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;一个Grid的的每个Block的线程数都是一样的，Block内部的每个线程可以进行同步，并访问共享存储器。&lt;/strong&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;线程的层次&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;一个Block可以是一维，二维，甚至是三维的。（例如，索引数组、矩阵、体）&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;一维Block：Thread ID == Thread Index&lt;/li&gt;
+&lt;li&gt;二维Block：（Dx，Dy）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Thread ID of index(x, y) == x + y Dx&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;三维Block：（Dx，Dy，Dz）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Thread ID of index(x, y, z) == x + y Dx + z Dx Dy&lt;/p&gt;
+&lt;p&gt;看一个代码的例子：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;__global__ &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;MatAdd&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;float&lt;/span&gt; A[N][N], &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;float&lt;/span&gt; B[N][N],
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                       &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;float&lt;/span&gt; C[N][N]) 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = threadIdx.x;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; j = threadIdx.y;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	C[i][j] = A[i][j] + B[i][j];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; numBlocks = &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#228b22&#34;&gt;// 对于dim3的类型，如果第三个参数不传，默认为1，这样就变成了一个二维的Block
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  	dim3 threadsPerBlock(N, N);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#228b22&#34;&gt;//第一个参数代表1个 Thread Block，第二个参数代表一个2D的Block（相当于排列的时候变成了行和列）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  	MatAdd&amp;lt;&amp;lt;&amp;lt;numBlocks, threadsPerBlock&amp;gt;&amp;gt;&amp;gt;(A, B, C);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;strong&gt;一个线程块里的线程位于相同的处理器核，共享所在核的存储器。&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;块索引：blockIdx&lt;/li&gt;
+&lt;li&gt;块的线程数：blockDim（一维，二维，三维）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;使用多个Block进行矩阵的Add：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;__global__ &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;MatAdd&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;float&lt;/span&gt; A[N][N], &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;float&lt;/span&gt; B[N][N],
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                       &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;float&lt;/span&gt; C[N][N]) 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = blockIdx.x * blockDim.x + threadIdx.x;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; j = blockIdx.y * blockDim.y + threadIdx.y;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (i &amp;lt; N &amp;amp;&amp;amp; j &amp;lt;&amp;lt; N) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      	C[i][j] = A[i][j] + B[i][j];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	dim3 threadsPerBlock(&lt;span style=&#34;color:#b452cd&#34;&gt;16&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;16&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	dim3 numBlocks(N / threadsPerBlock.x , N / threadsPerBlock.y);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	MatAdd&amp;lt;&amp;lt;&amp;lt;numBlocks, threadsPerBlock&amp;gt;&amp;gt;&amp;gt;(A, B, C);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;线程层次结合gpu存储层次加深对代码操作的硬件理解&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;Device Code：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&amp;ndash; 读写每个线程的的寄存器&lt;/p&gt;
+&lt;p&gt;&amp;ndash; 读写每个线程的local memory&lt;/p&gt;
+&lt;p&gt;&amp;ndash; 读写每个线程块的shared memory（线程块内线程共享）&lt;/p&gt;
+&lt;p&gt;&amp;ndash; 读写每个grid的global memory（不同线程块的所有线程共享）&lt;/p&gt;
+&lt;p&gt;&amp;ndash; 只读每个grid的constant memory（每个grid的步态变化的独立空间）&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Host Code：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&amp;ndash; 主机端只能读写global和constant memory，global memory代表全局的存储器，constant memory代表常量的存储器。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;CUDA内存传输&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;cudaMalloc()：在设备端分配global memory&lt;/li&gt;
+&lt;li&gt;cudaFree()：释放存储空间&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;分配的代码示例：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;float&lt;/span&gt; *Md;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; size = Widch * Width * &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;float&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;//当前指针是指向设备上的存储空间
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cudaMalloc((&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt;**)&amp;amp;Md, size);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cudaFree(Md);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;cudaMemcpy()：内存传输，Host-&amp;gt;Host, Host-&amp;gt;Devicel, Device-&amp;gt;Device, Device-&amp;gt;Host&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;示例程序：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;// Md和Pd都是在device端的地址
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;cudaMemcpy(Md, M, size, cudaMemcpyHostToDevice);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cudaMemcpy(P, Pd, size, cudaMemcpyDeviceToHost);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;矩阵相乘&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;cuda编程2&#34;&gt;CUDA编程（2）&lt;/h3&gt;
+&lt;h3 id=&#34;cuda编程3&#34;&gt;CUDA编程（3）&lt;/h3&gt;
+&lt;h3 id=&#34;cuda程序分析和调试工具&#34;&gt;CUDA程序分析和调试工具&lt;/h3&gt;
+&lt;h3 id=&#34;cuda程序基本优化&#34;&gt;CUDA程序基本优化&lt;/h3&gt;
+&lt;h3 id=&#34;cuda程序深入优化&#34;&gt;CUDA程序深入优化&lt;/h3&gt;
+- https://caixiongjiang.github.io/blog/2023/hpc/%E4%B8%AD%E7%A7%91%E5%A4%A7cuda%E6%95%99%E7%A8%8B/ - </description>
+        </item>
+    
+    
+    
+        <item>
         <title>Ubuntu CUDA编程环境配置</title>
         <link>https://caixiongjiang.github.io/blog/2023/hpc/ubuntu%E5%AE%89%E8%A3%85cuda%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/</link>
         <pubDate>Fri, 14 Jul 2023 18:18:05 +0800</pubDate>
@@ -5475,252 +6064,6 @@ TensorRT下载:&lt;a href=&#34;https://developer.nvidia.com/nvidia-tensorrt-down
 &lt;/div&gt;&lt;p&gt;最后我使用PyQT实现了&lt;a href=&#34;https://github.com/caixiongjiang/FastSegFormer&#34;&gt;脐橙缺陷检测论文&lt;/a&gt;的UI：
 &lt;a href=&#34;https://github.com/caixiongjiang/FastSegFormer-pyqt&#34;&gt;https://github.com/caixiongjiang/FastSegFormer-pyqt&lt;/a&gt;&lt;/p&gt;
 - https://caixiongjiang.github.io/blog/2023/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/onnx%E9%83%A8%E7%BD%B2/ - </description>
-        </item>
-    
-    
-    
-        <item>
-        <title>Python中的import</title>
-        <link>https://caixiongjiang.github.io/blog/2023/%E7%9F%A5%E8%AF%86%E6%9D%82%E8%B0%88/python%E4%B8%AD%E7%9A%84import/</link>
-        <pubDate>Sat, 06 May 2023 18:18:05 +0800</pubDate>
-        
-        <guid>https://caixiongjiang.github.io/blog/2023/%E7%9F%A5%E8%AF%86%E6%9D%82%E8%B0%88/python%E4%B8%AD%E7%9A%84import/</guid>
-        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2023/%E7%9F%A5%E8%AF%86%E6%9D%82%E8%B0%88/python%E4%B8%AD%E7%9A%84import/ -&lt;h2 id=&#34;import的常用方法&#34;&gt;Import的常用方法&lt;/h2&gt;
-&lt;p&gt;最初的项目相关的代码都在Windows系统下运行，写这个也是因为了在Linux系统下运行代码的需求。我们会发现在Pycharm里能运行的代码，在Linux下就会报错，大部分错误都来自import的错误。&lt;/p&gt;
-&lt;h3 id=&#34;场景及使用方法&#34;&gt;场景及使用方法&lt;/h3&gt;
-&lt;h4 id=&#34;绝对路径import&#34;&gt;绝对路径import&lt;/h4&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Note：在Python3的新版本中文件夹下面不需要&lt;code&gt;__init__.py&lt;/code&gt;这个文件，也可以视为一个&lt;code&gt;Package&lt;/code&gt;，不过也可以用该文件来实现一些额外的功能。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;blockquote&gt;
-&lt;p&gt;在下面的例子中大写字母开头的英文代表文件夹，小写字母开头的代表文件。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;ul&gt;
-&lt;li&gt;同级目录下的单个脚本引用&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;目录：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ROOT
-- example.py
-- test.py
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;如果你想要在&lt;code&gt;test.py&lt;/code&gt;文件中引用&lt;code&gt;example.py&lt;/code&gt;的方法，你可以使用以下的代码：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 引入example.py中的所有内容作&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;test&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 引入example.py中的方法&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;test&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;方法名&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 使用.引入的文件中的类&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;x = test.Class_A
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;ul&gt;
-&lt;li&gt;同级目录下的单个文件夹引用&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;目录:&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ROOT
-- Package
--- example.py
-- test.py
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;如果想要在&lt;code&gt;test.py&lt;/code&gt;中引入&lt;code&gt;Package&lt;/code&gt;整个包，你可以使用如下代码：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 引入整个包&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;Package&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 引入包中的一个文件&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;Package.example&lt;/span&gt; &lt;span style=&#34;color:#228b22&#34;&gt;# 这样import的方式会让Package这个文件夹加入系统的路径&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 将某个文件赋值给某个变量&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;Package.example&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;as&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;ep&lt;/span&gt; &lt;span style=&#34;color:#228b22&#34;&gt;# 这样ep的内容就变成了example这个文件&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 从Package里引入某个文件中的某个方法或者类&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;Package.example&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; function/Class_A
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;blockquote&gt;
-&lt;p&gt;Note:如果你的Package里有&lt;code&gt;__init__.py&lt;/code&gt;文件，那么Python在引入包后还会额外运行&lt;code&gt;__init__.py&lt;/code&gt;。如果没有，Python并不会知道&lt;code&gt;Package&lt;/code&gt;文件夹下有什么文件。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;h4 id=&#34;相对路径import&#34;&gt;相对路径import&lt;/h4&gt;
-&lt;p&gt;其实上面的绝对路径import大家一般都不会弄错，而这个相对路径import就非常容易出错了。&lt;/p&gt;
-&lt;p&gt;在进行场景演示前，先要说一下Python的import机制。在运行Python脚本时的import机制是：首先Python会寻找当前文件所在的文件夹，那么这个文件夹下的所有子文件夹和文件都会被加入系统路径，但是子文件下的文件则不会被Python知道。&lt;/p&gt;
-&lt;p&gt;举一个例子：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ROOT
-- Pacakge1
-- Package2
-- utils.py
-- train.py
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;如果在运行train.py，那么其他同级目录下的文件夹和文件都会加入系统的路径。&lt;/p&gt;
-&lt;p&gt;虽然相对路径引用非常容易引起bug，但是这在一些项目里是必须的。比如在AI中训练的所需的权重一般都使用相对路径存放。因为如果这个项目被别人下载运行时，绝对路径会造成大量报错。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;在一个Package下的文件相互引用(它们之间的关系是稳定的，且该Package经常需要被移植)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;目录：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ROOT
-- Package
--- example.py
--- test.py
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;如果想在&lt;code&gt;test.py&lt;/code&gt;里引用&lt;code&gt;example.py&lt;/code&gt;,可以使用如下代码：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;.test&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; example 
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 注意哦上述代码在test.py运行时，Python中先被将其转化为绝对路径，也就是Package.test&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;举一个在AI中经常使用的例子：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ROOT
-- Models
--- model.py
--- backbone.py
-- train.py
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;我们在&lt;code&gt;model.py&lt;/code&gt;中需要引入&lt;code&gt;backbone.py&lt;/code&gt;作为部分结构，使用相对路径引用会出现两种情况：&lt;/p&gt;
-&lt;p&gt;在使用&lt;code&gt;if __name__ == &#39;__main__&#39;:&lt;/code&gt;进行测试&lt;code&gt;model.py&lt;/code&gt;是否能跑通时，会遇到如下问题：&lt;/p&gt;
-&lt;p&gt;1.如果你使用下面的代码进行导入，在测试时会报错&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 会提示找不到backbone&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;.backbone&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; function
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;2.如果你使用下面的代码导入，外部的&lt;code&gt;train.py&lt;/code&gt;在调用&lt;code&gt;model.py&lt;/code&gt;时会报错&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# model.py可以测试功能&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;backbbone&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; function
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# train.py 提示找不到backbone文件，&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 这是因为当前的路径已经变成了上一级的路径，&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 而不是在model.py运行时的路径&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;Models.model&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; Class_model
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;3.在Pycharm中能运行&lt;code&gt;model.py&lt;/code&gt;的测试，这是因为Pycharm会自动将根目录下的所有文件和文件夹加入系统路径，而在Linux中或者vscode中就会提示找不到Models文件夹。&lt;strong&gt;这也是许多代码在Pycharm文件下能运行，而Linux下会出错的主要原因。&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;那么解决方法就是将整个项目需要运行或者测试的代码都放到根目录或者引入根目录.而在Package内部使用相对路径引用进行相互引用。&lt;/p&gt;
-&lt;p&gt;目录如下：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ROOT
-- Models
--- model.py
--- backbone.py
-- train.py
-- test.py
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;使用如下代码：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# model.py&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;.backbone&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;functin&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# train.py&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;Models.model&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; Class_model
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# test.py 在test.py中进行测试网络&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;Models.model&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; Class_model
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; __name__ == &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;__main__&amp;#39;&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;    测试代码
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;    &amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;ul&gt;
-&lt;li&gt;在一个Package下的子文件和子子文件的引用&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;还是相同的，我们只能将Package内部的测试功能放到外部来。&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ROOT
-- Models
--- utils.py
--- Nets
---- model.py
---- backbone.py
-- train.py
-- test.py
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;使用如下代码：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# model.py&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;..utils&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; function
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# train.py&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;Models.Nets.model&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; Class_model
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# test.py&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;Models.Nets.model&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; Class_model
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; __name__ == &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;__main__&amp;#39;&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;    测试代码
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;    &amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;ul&gt;
-&lt;li&gt;两个文件夹的子文件进行相互引用&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;目录：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ROOT
-- Configs
--- config.py
-- Tools
--- train.py
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;使用如下代码，这种情况&lt;code&gt;train.py&lt;/code&gt;是无法直接运行的,最好是在最外头写一个&lt;code&gt;train.sh&lt;/code&gt;来运行train.py&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# train.py&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;Config.config&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; function
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 最后在根目录下调用train.py&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;- https://caixiongjiang.github.io/blog/2023/%E7%9F%A5%E8%AF%86%E6%9D%82%E8%B0%88/python%E4%B8%AD%E7%9A%84import/ - </description>
         </item>
     
     

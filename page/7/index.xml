@@ -12,6 +12,120 @@
     
     
         <item>
+        <title>《TCP/IP网络编程》第 7 章 优雅的断开套接字的连接 笔记</title>
+        <link>https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-7-%E7%AB%A0-%E4%BC%98%E9%9B%85%E7%9A%84%E6%96%AD%E5%BC%80%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E8%BF%9E%E6%8E%A5-%E7%AC%94%E8%AE%B0/</link>
+        <pubDate>Sat, 26 Mar 2022 11:25:41 +0800</pubDate>
+        
+        <guid>https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-7-%E7%AB%A0-%E4%BC%98%E9%9B%85%E7%9A%84%E6%96%AD%E5%BC%80%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E8%BF%9E%E6%8E%A5-%E7%AC%94%E8%AE%B0/</guid>
+        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-7-%E7%AB%A0-%E4%BC%98%E9%9B%85%E7%9A%84%E6%96%AD%E5%BC%80%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E8%BF%9E%E6%8E%A5-%E7%AC%94%E8%AE%B0/ -&lt;h2 id=&#34;第-7-章-优雅的断开套接字的连接&#34;&gt;第 7 章 优雅的断开套接字的连接&lt;/h2&gt;
+&lt;p&gt;本章讨论如何优雅的断开套接字的连接，之前用的方法不够优雅是因为，我们是调用 close 函数或 closesocket 函数单方面断开连接的。&lt;/p&gt;
+&lt;h3 id=&#34;71-基于-tcp-的半关闭&#34;&gt;7.1 基于 TCP 的半关闭&lt;/h3&gt;
+&lt;p&gt;TCP 的断开连接过程比建立连接更重要，因为连接过程中一般不会出现大问题，但是断开过程可能发生预想不到的情况。因此应该准确掌控。所以要&lt;strong&gt;掌握半关闭（Half-close）&lt;/strong&gt;，才能明确断开过程。&lt;/p&gt;
+&lt;h4 id=&#34;711-单方面断开连接带来的问题&#34;&gt;7.1.1 单方面断开连接带来的问题&lt;/h4&gt;
+&lt;p&gt;Linux 和 Windows 的 closesocket 函数意味着完全断开连接。完全断开不仅指无法传输数据，而且也不能接收数据。因此在某些情况下，通信一方单方面的断开套接字连接，显得不太优雅。如图所示：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/01/18/5c412a8baa2d8.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;图中描述的是 2 台主机正在进行双向通信，主机 A 发送完最后的数据后，调用 close 函数断开了最后的连接，之后主机 A 无法再接受主机 B 传输的数据。实际上，是完全无法调用与接受数据相关的函数。最终，由主机 B 传输的、主机 A 必须要接受的数据也销毁了。&lt;/p&gt;
+&lt;p&gt;为了解决这类问题，「只关闭一部分数据交换中使用的流」的方法应运而生。断开一部分连接是指，可以传输数据但是无法接收，或可以接受数据但无法传输。顾名思义就是只关闭流的一半。&lt;/p&gt;
+&lt;h4 id=&#34;712-套接字和流stream&#34;&gt;7.1.2 套接字和流（Stream）&lt;/h4&gt;
+&lt;p&gt;两台主机通过套接字建立连接后进入可交换数据的状态，又称「流形成的状态」。也就是把建立套接字后可交换数据的状态看作一种流。&lt;/p&gt;
+&lt;p&gt;此处的流可以比作水流。水朝着一个方向流动，同样，在套接字的流中，数据也止呕能向一个方向流动。因此，为了进行双向通信，需要如图所示的两个流：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/01/18/5c412c3ba25dd.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;一旦两台主机之间建立了套接字连接，每个主机就会拥有单独的输入流和输出流。当然，其中一个主机的输入流与另一个主机的输出流相连，而输出流则与另一个主机的输入流相连。另外，本章讨论的「优雅的断开连接方式」只断开其中 1 个流，而非同时断开两个流。Linux 和 Windows 的 closesocket 函数将同时断开这两个流，因此与「优雅」二字还有一段距离。&lt;/p&gt;
+&lt;h4 id=&#34;713-针对优雅断开的-shutdown-函数&#34;&gt;7.1.3 针对优雅断开的 shutdown 函数&lt;/h4&gt;
+&lt;p&gt;shutdown 用来关闭其中一个流：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#1e889b&#34;&gt;&amp;lt;sys/socket.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;shutdown&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; sock, &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; howto);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;成功时返回 0 ，失败时返回 -1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;sock: 需要断开套接字文件描述符
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;howto: 传递断开方式信息
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;调用上述函数时，第二个参数决定断开连接的方式，其值如下所示：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;SHUT_RD&lt;/code&gt; : 断开输入流&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;SHUT_WR&lt;/code&gt; : 断开输出流&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;SHUT_RDWR&lt;/code&gt; : 同时断开 I/O 流&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;若向 shutdown 的第二个参数传递&lt;code&gt;SHUT_RD&lt;/code&gt;，则断开输入流，套接字无法接收数据。即使输入缓冲收到数据也回抹去，而且无法调用相关函数。如果向  shutdown 的第二个参数传递&lt;code&gt;SHUT_WR&lt;/code&gt;，则中断输出流，也就无法传输数据。若如果输出缓冲中还有未传输的数据，则将传递给目标主机。最后，若传递关键字&lt;code&gt;SHUT_RDWR&lt;/code&gt;，则同时中断 I/O 流。这相当于分 2 次调用 shutdown ，其中一次以&lt;code&gt;SHUT_RD&lt;/code&gt;为参数，另一次以&lt;code&gt;SHUT_WR&lt;/code&gt;为参数。&lt;/p&gt;
+&lt;h4 id=&#34;714-为何要半关闭&#34;&gt;7.1.4 为何要半关闭&lt;/h4&gt;
+&lt;p&gt;考虑以下情况：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;一旦客户端连接到服务器，服务器将约定的文件传输给客户端，客户端收到后发送字符串「Thank you」给服务器端。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;此处「Thank you」的传递是多余的，这只是用来模拟客户端断开连接前还有数据要传输的情况。此时程序的还嫌难度并不小，因为传输文件的服务器端只需连续传输文件数据即可，而客户端无法知道需要接收数据到何时。客户端也没办法无休止的调用输入函数，因为这有可能导致程序&lt;strong&gt;阻塞&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;是否可以让服务器和客户端约定一个代表文件尾的字符？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;这种方式也有问题，因为这意味这文件中不能有与约定字符相同的内容。为了解决该问题，服务端应最后向客户端传递 EOF 表示文件传输结束。客户端通过函数返回值接受 EOF ，这样可以避免与文件内容冲突。那么问题来了，服务端如何传递 EOF ？&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;断开输出流时向主机传输 EOF。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;当然，调用 close 函数的同时关闭 I/O 流，这样也会向对方发送 EOF 。但此时无法再接受对方传输的数据。换言之，若调用 close 函数关闭流，就无法接受客户端最后发送的字符串「Thank you」。这时需要调用 shutdown 函数，只关闭服务器的输出流。这样既可以发送 EOF ，同时又保留了输入流。下面实现收发文件的服务器端/客户端。&lt;/p&gt;
+&lt;h4 id=&#34;715-基于半关闭的文件传输程序&#34;&gt;7.1.5 基于半关闭的文件传输程序&lt;/h4&gt;
+&lt;p&gt;上述文件传输服务器端和客户端的数据流可以整理如图：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/01/18/5c41326280ab5.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;下面的代码为编程简便，省略了大量错误处理代码。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch07/file_client.c&#34;&gt;file_client.c&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch07/file_server.c&#34;&gt;file_server.c&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;编译运行：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;gcc file_client.c -o fclient
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;gcc file_server.c -o fserver
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;./fserver &lt;span style=&#34;color:#b452cd&#34;&gt;9190&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;./fclient 127.0.0.1 &lt;span style=&#34;color:#b452cd&#34;&gt;9190&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;结果：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2019/01/18/5c4140bc8db2f.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;客户端接受完成后，服务器会接收到来自客户端的感谢信息。&lt;/p&gt;
+&lt;h3 id=&#34;72-基于-windows-的实现&#34;&gt;7.2 基于 Windows 的实现&lt;/h3&gt;
+&lt;p&gt;暂略&lt;/p&gt;
+&lt;h3 id=&#34;73-习题&#34;&gt;7.3 习题&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;以下答案仅代表本人个人观点，可能不是正确答案&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;解释 TCP 中「流」的概念。UDP 中能否形成流？请说明原因。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;答：两台主机中通过套接字建立连接后进入可交换数据的状态，又称「流形成的状态」。也就是把建立套接字后可交换数据的状态看做一种流。UDP 没有建立连接的过程，所以不能形成流。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Linux 中的 close 函数或 Windows 中的 closesocket 函数属于单方面断开连接的方法，有可能带来一些问题。什么是单方面断开连接？什么情形下会出现问题？&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;答：单方面断开连接就是两台主机正在通信，其中一台主机关闭了所有连接，那么一台主机向另一台主机传输的数据可能会没有接收到而损毁。传输文件的服务器只需连续传输文件数据即可，而客户端不知道需要接收数据到何时。客户端也没有办法无休止的调用输入函数。现在需要一个 EOF 代表数据已经传输完毕，那么这时就需要半关闭，服务端把自己的输出流关了，这时客户端就知数据已经传输完毕，因为服务端的输入流还没关，客户端可以给服务器汇报，接收完毕。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;什么是半关闭？针对输出流执行半关闭的主机处于何种状态？半关闭会导致对方主机接收什么消息？&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;答：半关闭就是把输入流或者输出流关了。针对输出流执行半关闭的主机处于可以接收数据而不能发送数据。半关闭会导致对方主机接收一个 EOF 文件结束符。对方就知道你的数据已经传输完毕。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+- https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-7-%E7%AB%A0-%E4%BC%98%E9%9B%85%E7%9A%84%E6%96%AD%E5%BC%80%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9A%84%E8%BF%9E%E6%8E%A5-%E7%AC%94%E8%AE%B0/ - </description>
+        </item>
+    
+    
+    
+        <item>
         <title>《TCP/IP网络编程》第 6 章 基于 UDP 的服务端/客户端 笔记</title>
         <link>https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-6-%E7%AB%A0-%E5%9F%BA%E4%BA%8E-udp-%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF-%E5%AE%A2%E6%88%B7%E7%AB%AF-%E7%AC%94%E8%AE%B0/</link>
         <pubDate>Fri, 25 Mar 2022 16:10:00 +0800</pubDate>
@@ -3768,591 +3882,6 @@ $$ \lvert \nabla f(x,y) \rvert = \sqrt{(\frac{\partial F}{\partial x})^2 + (\fra
 &lt;li&gt;当const和non—const成员函数有着等价的实现时，令non—const版本调用const版本可避免代码重复。&lt;/li&gt;
 &lt;/ul&gt;
 - https://caixiongjiang.github.io/blog/2022/effective-c&#43;&#43;/effective-c&#43;&#43;%E5%AF%BC%E8%AF%BB%E6%9D%A1%E6%AC%BE1~3/ - </description>
-        </item>
-    
-    
-    
-        <item>
-        <title>《数字图像处理》第二章——图像压缩</title>
-        <link>https://caixiongjiang.github.io/blog/2022/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%9B%BE%E5%83%8F%E5%8E%8B%E7%BC%A9/</link>
-        <pubDate>Mon, 28 Feb 2022 18:07:05 +0800</pubDate>
-        
-        <guid>https://caixiongjiang.github.io/blog/2022/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%9B%BE%E5%83%8F%E5%8E%8B%E7%BC%A9/</guid>
-        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%9B%BE%E5%83%8F%E5%8E%8B%E7%BC%A9/ -&lt;h2 id=&#34;数字图像处理第二章图像压缩&#34;&gt;《数字图像处理》第二章——图像压缩&lt;/h2&gt;
-&lt;h3 id=&#34;图像压缩基本概念&#34;&gt;图像压缩基本概念&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;压缩比： Cr = n1 / n2&lt;/li&gt;
-&lt;li&gt;相对数据冗余： Rd = 1 - 1 / Cr&lt;/li&gt;
-&lt;li&gt;无损压缩： 压缩编码冗余和像素冗余称为无损压缩&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;图像压缩标准包括视频&#34;&gt;图像压缩标准（包括视频）&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;主流的静态图像压缩标准（JPEG家族）：JPEG, JPEG-LS(无损压缩), JPEG-2000&lt;/li&gt;
-&lt;li&gt;主流的视频压缩标准（MPEG家族）：MPEG-1, MPEG-2, MPEG-3, MPEG-4 AVC&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;图像压缩的流程&#34;&gt;图像压缩的流程&lt;/h3&gt;
-&lt;p&gt;以&lt;code&gt;JPEG&lt;/code&gt;的压缩流程为例：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;输入的图像——&amp;gt;图像分块——&amp;gt;映射器——&amp;gt;量化器——&amp;gt;编码器
-                      解码器——&amp;gt;反映射——&amp;gt;输出图片
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;量化器是该过程中唯一对图像质量有损耗的&lt;/strong&gt;&lt;/p&gt;
-&lt;h3 id=&#34;jpeg压缩&#34;&gt;JPEG压缩&lt;/h3&gt;
-&lt;h4 id=&#34;编码器&#34;&gt;编码器&lt;/h4&gt;
-&lt;p&gt;&lt;em&gt;JPEG使用的是哈夫曼编码，哈夫曼编码得到的是一种无前缀编码，这会使得出现概率越高的元素编码长度越短，出现概率越低的元素编码长度越长，最后总的编码长度编程最短&lt;/em&gt;&lt;/p&gt;
-&lt;p&gt;哈夫曼编码使用规则：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;1.每次取集合中最小的两个值，相加之后再加入原有的集合，再重复取最小的两个值，到最后只剩一个元素&lt;/li&gt;
-&lt;li&gt;2.将原有集合的数字进行编码，层数越高，编码长度越短&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;在JPEG中应用为：对像素出现的概率高低进行编码！&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;demo：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;a1 - 0.4
-a2 - 0.3
-a3 - 0.1
-
-对应编码：
-a1 - 1
-a2 - 01
-a3 - 00
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;编码熵：$ -\sum_{i = 1}^n p(s)log_2^{p(s)}$
-（概率*对应的&lt;code&gt;自信息&lt;/code&gt;）&lt;/p&gt;
-&lt;h3 id=&#34;图像分块&#34;&gt;图像分块&lt;/h3&gt;
-&lt;p&gt;在&lt;code&gt;JPEG&lt;/code&gt;中采用8✖️8的小块进行分别处理，&lt;strong&gt;这么做的原因是分别对小块进行处理比对整张图像进行处理更加高效&lt;/strong&gt;、&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;若JPEG为RGB的彩色图像，我们需要先将RGB通道转化为YCbCr通道，再对每个通道进行分块处理&lt;/em&gt;&lt;/p&gt;
-&lt;p&gt;模式“RGB”转换为“YCbCr”的公式如下：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Y= 0.257R+0.504G+0.098B+16
-Cb = -0.148R-0.291G+0.439B+128
-Cr = 0.439R-0.368G-0.071*B+128
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;python 中的PIL Image 本身是带有rgb2ycbcr()函数的，但是其MATLAB实现上有差异。&lt;/p&gt;
-&lt;p&gt;python中的自带函数实现：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;PIL&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; Image
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;image =Image.open(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;test.jpg&amp;#34;&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;image_ycbcr =image.convert(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;YCbCr&amp;#34;&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;python 实现MATLAB中rgb2ycbcr()函数：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mat = np.array(
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    [[&lt;span style=&#34;color:#b452cd&#34;&gt;65.481&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;128.553&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;24.966&lt;/span&gt;],
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;     [-&lt;span style=&#34;color:#b452cd&#34;&gt;37.797&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;74.203&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;112.0&lt;/span&gt;],
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;     [&lt;span style=&#34;color:#b452cd&#34;&gt;112.0&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;93.786&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;18.214&lt;/span&gt;]])
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mat_inv = np.linalg.inv(mat)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;offset = np.array([&lt;span style=&#34;color:#b452cd&#34;&gt;16&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;128&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;128&lt;/span&gt;])
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;rgb2ycbcr&lt;/span&gt;(rgb_img):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ycbcr_img = np.zeros(rgb_img.shape)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; x &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(rgb_img.shape[&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;]):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; y &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(rgb_img.shape[&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;]):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            ycbcr_img[x, y, :] = np.round(np.dot(mat, rgb_img[x, y, :] * &lt;span style=&#34;color:#b452cd&#34;&gt;1.0&lt;/span&gt; / &lt;span style=&#34;color:#b452cd&#34;&gt;255&lt;/span&gt;) + offset)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; ycbcr_img
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;h4 id=&#34;jpeg映射器&#34;&gt;JPEG映射器&lt;/h4&gt;
-&lt;p&gt;首先了解一下，图像矩阵映射之后的误差如何衡量：&lt;/p&gt;
-&lt;p&gt;误差的指标为&lt;code&gt;均方根误差&lt;/code&gt;(假设矩阵为M×N)：
-$$ MSE = \sqrt{\frac{1}{MN}\sum_{i = 1}^n\sum_{i = 1}^n(\dot{f}(x,y) - f(x,y))} $$&lt;/p&gt;
-&lt;p&gt;JPEG默认的映射器是做&lt;code&gt;离散余弦变换&lt;/code&gt;（DCT），这里讲两种，第一种为&lt;code&gt;K-L变换&lt;/code&gt;，第二种就是&lt;code&gt;DCT变换&lt;/code&gt;。&lt;/p&gt;
-&lt;p&gt;K-L变换：将8×8矩阵的64个像素取1个进行K-L变换，然后进行反变换，计算均方误差，只传输均方误差最小的像素。（&lt;strong&gt;而对于K-L变换来说，第一个像素就是你需要传输的那个像素&lt;/strong&gt;）&lt;/p&gt;
-&lt;p&gt;优缺点：优点就是传输的大小缩小了很多，缺点是需要根据具体的图像来确定映射矩阵&lt;/p&gt;
-&lt;p&gt;DCT变换：同K-L变换相似，它的矩阵是固定的。&lt;/p&gt;
-&lt;p&gt;DCT变换公式(二维离散n×n)：
-$$ T(u,v)=\sum_{x = 0}^{n - 1}\sum_{y = 0}^{n - 1}f(x,y)r(x,y,u,v) $$&lt;/p&gt;
-&lt;p&gt;逆变换：
-$$ f(x,y)=\sum_{u = 0}^{n - 1}\sum_{v = 0}^{n - 1}T(u,v)s(x,y,u,v) $$&lt;/p&gt;
-&lt;p&gt;其中：
-$$ r(x,y,u,v) = s(x,y,u,v) = \alpha(u)\alpha(v)cos{\frac{(2x+1)u\pi}{2n}}cos{\frac{(2y+1)v\pi}{2n}}$$
-$$ \alpha(u) = \begin{cases}
-\sqrt{\frac{1}{n}} &amp;amp; {u = 0} \
-\sqrt{\frac{2}{n}} &amp;amp; {u \neq 0}
-\end{cases}$$
-$$ \alpha(v) = \begin{cases}
-\sqrt{\frac{1}{n}} &amp;amp; {v = 0} \
-\sqrt{\frac{2}{n}} &amp;amp; {v \neq 0}
-\end{cases}$$&lt;/p&gt;
-&lt;p&gt;DCT优势：&lt;/p&gt;
-&lt;p&gt;1.其图像转换的矩阵是不变的&lt;/p&gt;
-&lt;p&gt;2.其良好的周期性&lt;/p&gt;
-&lt;h4 id=&#34;jpeg中的量化&#34;&gt;JPEG中的量化&lt;/h4&gt;
-&lt;p&gt;&lt;code&gt;JPEG&lt;/code&gt;采用的是均匀量化，假设量化因子为16，其量化的过程就是原图像处以16向下取整再乘以16。（量化因子越大，损耗越大）&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;需要注意的是：量化是按照右上到左下的锯齿状进行的，当&lt;code&gt;JPEG&lt;/code&gt;进行到某一个系数时，发现后续量化后都变成了0，我们只需要用一个信号来表明结束&lt;/em&gt;&lt;/p&gt;
-&lt;p&gt;Max-Lloyd最优量化器：根据不同的图片个性定制量化方式&lt;/p&gt;
-&lt;h3 id=&#34;jpeg-ls无损压缩&#34;&gt;JPEG-LS（无损压缩）&lt;/h3&gt;
-&lt;p&gt;无损压缩的编码思想：根据原像素矩阵进行预测，再与真实值比较，将产生的误差进行哈夫曼编码&lt;/p&gt;
-&lt;p&gt;解码：先用哈夫曼解码，在预测值上加上误差（有正有负），还原图像&lt;/p&gt;
-&lt;p&gt;两种预测方式：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;$$F(x,y) = F(x - 1, y)$$&lt;/li&gt;
-&lt;li&gt;$$F(x,y) = \frac{F(x - 1, y) + F(x - 1, y - 1) + F(x, y - 1)}{3}$$&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;游程编码&#34;&gt;游程编码&lt;/h3&gt;
-&lt;p&gt;一般用于编码二值图像！&lt;/p&gt;
-&lt;p&gt;demo：只有两种灰度值的图片，可以对&lt;strong&gt;每行每种灰度值连续出现的值和次数进行编码。（也就是相同灰度值所占行程的长度）&lt;/strong&gt;&lt;/p&gt;
-&lt;h2 id=&#34;实验作业&#34;&gt;实验作业&lt;/h2&gt;
-&lt;p&gt;本次实验作业全部用&lt;code&gt;python3&lt;/code&gt;完成&lt;/p&gt;
-&lt;h3 id=&#34;第一题&#34;&gt;第一题&lt;/h3&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;JPEG的基本实现：
-1.图像分成8×8的块
-2.DCT变换
-3.采用均匀量化（系数为N）
-4.将图像进行逆DCT变换
-5.可视化图像
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;代码如下：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;44
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;45
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;46
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;47
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;48
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;49
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;50
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;51
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;52
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;53
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;54
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;55
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;56
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;57
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;58
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;59
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;60
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;61
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;62
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;63
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;64
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;65
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;66
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;67
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;68
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;69
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;70
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;71
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;72
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;73
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;74
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;75
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;76
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;77
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;78
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;79
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;80
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;81
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;82
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;83
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;84
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;85
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;86
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;87
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;88
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;89
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;90
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;91
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;92
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;matplotlib.pyplot&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;as&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;plt&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;numpy&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;as&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;np&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;PIL&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; Image
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 生成DCT矩阵&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;func1&lt;/span&gt;(block_size):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    dct_matrix = np.zeros((block_size, block_size))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(block_size):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(block_size):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; i == &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                a = np.sqrt(&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt; / block_size) &lt;span style=&#34;color:#228b22&#34;&gt;#a代表转化系数&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                a = np.sqrt(&lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt; / block_size)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            temp = ((&lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt; * j + &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;) * i * np.pi) / (&lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt; * block_size) &lt;span style=&#34;color:#228b22&#34;&gt;#公式 cos(((2x + 1)u派)/2n)&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            dct_matrix[i, j] = a * np.cos(temp) &lt;span style=&#34;color:#228b22&#34;&gt;# 离散余弦变换&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; dct_matrix
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 按照指定块大小进行DCT变换&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;func2&lt;/span&gt;(image, dct_mat):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    block_size = dct_mat.shape[&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    height, width = image.shape
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    dct_img = np.zeros((height, width), dtype=np.float32)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; row &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; np.arange(&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, height, block_size):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; col &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; np.arange(&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, width, block_size):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            block = np.array(image[row:(row + block_size), col:(col + block_size)], dtype=np.float32)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            dct_img[row:(row + block_size), col:(col + block_size)] = np.matmul(np.matmul(dct_mat, block), dct_mat.T)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; dct_img
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 量化每个块 采用简单的除以side再乘以side，这里side取16&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 当side大于50时，图片量化损耗较大&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;func3&lt;/span&gt;(dct_image, side):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    m, n = dct_image.shape
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; row &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(m):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; col &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(n):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            a = dct_image[row, col]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            a /= side
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;# 四舍五入&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#658b00&#34;&gt;int&lt;/span&gt;(a + &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;) - a) &amp;lt; (a - &lt;span style=&#34;color:#658b00&#34;&gt;int&lt;/span&gt;(a - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;)):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                dct_image[row, col] = &lt;span style=&#34;color:#658b00&#34;&gt;int&lt;/span&gt;(a + &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;) * side
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                dct_image[row, col] = &lt;span style=&#34;color:#658b00&#34;&gt;int&lt;/span&gt;(a - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;) * side
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; dct_image
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 逆DCT变换&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;func4&lt;/span&gt;(image, dct_mat):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    block_size = dct_mat.shape[&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    height, width = image.shape
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    inv_dct_img = np.zeros((height, width), dtype=np.float32)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; row &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; np.arange(&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, height, block_size):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; col &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; np.arange(&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, width, block_size):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            block = np.array(image[row:(row + block_size), col:(col + block_size)], dtype=np.float32)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            inv_dct_img[row:(row + block_size), col:(col + block_size)] = np.matmul(np.matmul(dct_mat.T, block),
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                                                                    dct_mat)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; inv_dct_img
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;main&lt;/span&gt;(img_path):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;# 第一题实现&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    src1 = np.array(Image.open(img_path).convert(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;L&amp;#34;&lt;/span&gt;))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    dct = func1(&lt;span style=&#34;color:#b452cd&#34;&gt;8&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    dct_img1 = func2(src1, dct)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    inv_dct_img1 = func4(dct_img1, dct)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    dct_img2 = func3(dct_img1, &lt;span style=&#34;color:#b452cd&#34;&gt;16&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    inv_dct_img2 = func4(dct_img2, dct)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;# 重新导入图像（量化会对原图像进行修改）&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    src = np.array(Image.open(img_path).convert(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;L&amp;#34;&lt;/span&gt;))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    img_list = [src, inv_dct_img1, inv_dct_img2]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    img_name = [&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;原图像&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;1.没有量化直接DCT的结果&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;1.量化+DCT的结果&amp;#34;&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    plt.rcParams[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;font.sans-serif&amp;#39;&lt;/span&gt;] = [&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;SimHei&amp;#39;&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    plt.rcParams[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;axes.unicode_minus&amp;#39;&lt;/span&gt;] = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;False&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    _, axs = plt.subplots(&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;, figsize=(&lt;span style=&#34;color:#b452cd&#34;&gt;12&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;12&lt;/span&gt;))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            axs[i][j].imshow(img_list[i * &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt; + j], cmap=&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;gray&amp;#39;&lt;/span&gt;, vmin=&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, vmax=&lt;span style=&#34;color:#b452cd&#34;&gt;255&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            axs[i][j].set_title(img_name[i * &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt; + j])
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            axs[i][j].axes.get_xaxis().set_visible(&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;False&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            axs[i][j].axes.get_yaxis().set_visible(&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;False&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    plt.show()
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; __name__ == &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;__main__&amp;#39;&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    main(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;/Users/jarsonsmac/Desktop/学习资料/数字图像处理和机器视觉/week2/woman.jpg&amp;#39;&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;实验结果：
-&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/1.jpg&#34; alt=&#34;第一题实验结果&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;第二题&#34;&gt;第二题&lt;/h3&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;直接对原始图像进行量化
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;代码如下：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;44
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;45
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;46
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;47
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;48
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;49
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;50
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;51
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;matplotlib.pyplot&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;as&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;plt&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;numpy&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;as&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;np&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;PIL&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; Image
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 量化每个块 采用简单的除以side再乘以side，这里side取16&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 当side大于50时，图片量化损耗较大&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;func3&lt;/span&gt;(dct_image, side):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    m, n = dct_image.shape
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; row &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(m):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; col &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(n):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            a = dct_image[row, col]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            a /= side
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;# 四舍五入&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#658b00&#34;&gt;int&lt;/span&gt;(a + &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;) - a) &amp;lt; (a - &lt;span style=&#34;color:#658b00&#34;&gt;int&lt;/span&gt;(a - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;)):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                dct_image[row, col] = &lt;span style=&#34;color:#658b00&#34;&gt;int&lt;/span&gt;(a + &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;) * side
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                dct_image[row, col] = &lt;span style=&#34;color:#658b00&#34;&gt;int&lt;/span&gt;(a - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;) * side
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; dct_image
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;main&lt;/span&gt;(img_path):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;# 第三题实现&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    src3 = np.array(Image.open(img_path).convert(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;L&amp;#34;&lt;/span&gt;))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    image3 = func3(src3, &lt;span style=&#34;color:#b452cd&#34;&gt;16&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    src4 = np.array(Image.open(img_path).convert(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;L&amp;#34;&lt;/span&gt;))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    image4 = func3(src4, &lt;span style=&#34;color:#b452cd&#34;&gt;50&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;# 重新导入图像（量化会对原图像进行修改）&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    src = np.array(Image.open(img_path).convert(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;L&amp;#34;&lt;/span&gt;))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    img_list = [src, image3, image4]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    img_name = [&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;原图像&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;3.直接量化的结果(side = 16)&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;3.直接量化的结果(side = 50)&amp;#34;&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    plt.rcParams[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;font.sans-serif&amp;#39;&lt;/span&gt;] = [&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;SimHei&amp;#39;&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    plt.rcParams[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;axes.unicode_minus&amp;#39;&lt;/span&gt;] = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;False&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    _, axs = plt.subplots(&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;, figsize=(&lt;span style=&#34;color:#b452cd&#34;&gt;12&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;12&lt;/span&gt;))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            axs[i][j].imshow(img_list[i * &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt; + j], cmap=&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;gray&amp;#39;&lt;/span&gt;, vmin=&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, vmax=&lt;span style=&#34;color:#b452cd&#34;&gt;255&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            axs[i][j].set_title(img_name[i * &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt; + j])
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            axs[i][j].axes.get_xaxis().set_visible(&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;False&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            axs[i][j].axes.get_yaxis().set_visible(&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;False&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    plt.show()
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; __name__ == &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;__main__&amp;#39;&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    main(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;/Users/jarsonsmac/Desktop/学习资料/数字图像处理和机器视觉/week2/woman.jpg&amp;#39;&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;实验结果：
-&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/2.jpg&#34; alt=&#34;第二题实验结果&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;第三题&#34;&gt;第三题&lt;/h3&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;计算给定直方图及预测其误差
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;共有两种预测方式：&lt;/p&gt;
-&lt;p&gt;1.$$F(x,y) = F(x - 1, y)$$&lt;/p&gt;
-&lt;p&gt;2.$$F(x,y) = \frac{F(x - 1, y) + F(x - 1, y - 1) + F(x, y - 1)}{3}$$&lt;/p&gt;
-&lt;p&gt;代码如下：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;44
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;45
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;46
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;47
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;48
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;49
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;50
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;51
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;52
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;53
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;54
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;55
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 第一种预测方案&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;forecast1&lt;/span&gt;(matrix):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    m, n = matrix.shape
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    fore_mat = np.zeros((m, n), dtype=np.int32)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    dif_sum = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(m):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(n):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt;(i == &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                fore_mat[i][j] = matrix[i][j]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                fore_mat[i][j] = matrix[i - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;][j]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            dif_sum += &lt;span style=&#34;color:#658b00&#34;&gt;abs&lt;/span&gt;(fore_mat[i][j] - matrix[i][j])
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; dif_sum
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 第二种预测方案&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;forecast2&lt;/span&gt;(matrix):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    m, n = matrix.shape
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    fore_mat = np.zeros((m, n))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    dif_sum = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#658b00&#34;&gt;dir&lt;/span&gt; = np.array([[-&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;], [-&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;], [&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;]]) &lt;span style=&#34;color:#228b22&#34;&gt;#上 左上 左&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(m):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(n):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#658b00&#34;&gt;sum&lt;/span&gt; = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            cnt = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; k &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;):
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                dx = i + &lt;span style=&#34;color:#658b00&#34;&gt;dir&lt;/span&gt;[k][&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                dy = j + &lt;span style=&#34;color:#658b00&#34;&gt;dir&lt;/span&gt;[k][&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; dx &amp;lt; &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;or&lt;/span&gt; dy &amp;lt; &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;continue&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#658b00&#34;&gt;sum&lt;/span&gt; += matrix[dx][dy]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                ++cnt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;sum&lt;/span&gt; == &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;or&lt;/span&gt; cnt == &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;: &lt;span style=&#34;color:#228b22&#34;&gt;#被除数不能为0和除数不能为0&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                fore_mat[i][j] = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                fore_mat[i][j] = &lt;span style=&#34;color:#658b00&#34;&gt;sum&lt;/span&gt; / cnt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            dif_sum += &lt;span style=&#34;color:#658b00&#34;&gt;abs&lt;/span&gt;(fore_mat[i][j] - matrix[i][j])
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; dif_sum
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;main&lt;/span&gt;():
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;# 第5题实现&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    im2 = Image.open(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;/Users/jarsonsmac/Desktop/学习资料/数字图像处理和机器视觉/week2/woman.jpg&amp;#34;&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    src7 = np.array(im2.convert(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;L&amp;#34;&lt;/span&gt;))  &lt;span style=&#34;color:#228b22&#34;&gt;# 图像转化为矩阵&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    dif1 = forecast1(src7)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    dif2 = forecast2(src7)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#658b00&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;第一种预测方法的墒=&amp;#34;&lt;/span&gt; + &lt;span style=&#34;color:#658b00&#34;&gt;str&lt;/span&gt;(dif1))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#658b00&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;第二种预测方法的墒=&amp;#34;&lt;/span&gt; + &lt;span style=&#34;color:#658b00&#34;&gt;str&lt;/span&gt;(dif2))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; dif1 &amp;lt; dif2:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#658b00&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;第一种预测方法好，墒低&amp;#34;&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#658b00&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;第二种预测方法好，墒低&amp;#34;&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; __name__ == &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;__main__&amp;#39;&lt;/span&gt;:
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    main()
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;实验结果：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;第一种预测方法的墒=2726550
-第二种预测方法的墒=86114089.0
-第一种预测方法好，墒低
-&lt;/code&gt;&lt;/pre&gt;- https://caixiongjiang.github.io/blog/2022/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%9B%BE%E5%83%8F%E5%8E%8B%E7%BC%A9/ - </description>
         </item>
     
     

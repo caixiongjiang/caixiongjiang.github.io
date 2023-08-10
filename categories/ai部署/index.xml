@@ -6,7 +6,38 @@
     <description>Recent content in AI部署 on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 08 Aug 2023 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/categories/ai%E9%83%A8%E7%BD%B2/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 09 Aug 2023 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/categories/ai%E9%83%A8%E7%BD%B2/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>ATC模型转换工具</title>
+      <link>https://caixiongjiang.github.io/blog/2023/%E5%8D%8E%E4%B8%BA%E6%98%87%E8%85%BE%E9%83%A8%E7%BD%B2/atc%E6%A8%A1%E5%9E%8B%E8%BD%AC%E6%8D%A2%E5%B7%A5%E5%85%B7/</link>
+      <pubDate>Wed, 09 Aug 2023 18:18:05 +0800</pubDate>
+      
+      <guid>https://caixiongjiang.github.io/blog/2023/%E5%8D%8E%E4%B8%BA%E6%98%87%E8%85%BE%E9%83%A8%E7%BD%B2/atc%E6%A8%A1%E5%9E%8B%E8%BD%AC%E6%8D%A2%E5%B7%A5%E5%85%B7/</guid>
+      <description>ATC模型转换工具 ATC模型转换工具聚焦于开源框架的网络模型（Caffe，TensorFlow，Pytorch）通过昇腾张量编译器ATC（Ascend Tensor Compiler）将其转换成昇腾AI处理器支持的离线模型。模型转换的过程中可以实现算子调度的优化、权重数据重排、内存使用优化等（自动），可以脱离设备完成模型的预处理。
+ATC模型转换-快速入门 下图是整个ATC工具的功能架构：
+以上支持Caffe，TensorFlow，ONNX，MindSpore四个框架转化为离线模型(.om)。
+Caffe需要的文件：model.protoxt（caffe网络模型结构）、model.caffemodel（caffe网络模型权重） TensorFlow需要的文件：model.pb（包含TensorFlow模型的网络结构和权重） ONNX需要的文件（代表Pytorch框架）：model.pt、model.pth &amp;ndash;&amp;gt; model.onnx（包含ONNX模型的计算图和权重） MindSpore需要的文件（华为自家的框架）：model.air 需要注意的是MindSpore训练出来的模型文件有两种：.air和.mindir，其中.air经过转化之后可以用于离线推理，.mindir经过转化之后可以用于在线推理。
+离线推理和在线推理的区别
+在线推理是在AI框架内执行推理的场景，这通常只能用于验证结果。不利用在设备上进行迁移，因为它需要依赖厚重的AI框架，也没有对模型的推理速度进行优化。而离线模型不依赖于AI框架（需要推理框架，但通常在设备上会集成），可以直接在设备上进行推理。
+在线推理类似于pytorch模型的推理，离线推理类似于NVIDIA的TensorRT的推理。
+使用MindStudio进行模型转换
+模型转化的过程已经在开发环境部署中介绍过了，不赘述。模型转换成功之后会在命令行提示的目录下生成.om离线模型文件和ModelConvert.txt模型转化日志文件。
+ATC模型转换-高手进阶 如何在命令行窗口使用ATC工具？ 如何在模型转换的过程中加入一点动态输入形状信息？ 如何在模型转换过程中把一些预处理动作加入到模型中？ 命令行(CLI)调用ATC
+在命令行窗口调用ATC工具，首先需要配置一些环境变量。这些环境变量在安装CANN-toolkit的时候已经展示过了，是第三组环境变量，需要把这些环境变量配置到~/.bashrc中，再source一下。
+使用ATC工具的注意事项：
+支持原始框架类型为Caffe、TensorFlow、MindSpore、ONNX的模型转换。
+当原始框架为Caffe、MindSpore、ONNX时，输入数据类型为FP32，FP16（通过设置入参--input_fp16_nodes实现，MindSpore框架不支持该参数）、UINT8（通过配置数据预处理实现）。
+当原始框架为TensorFlow时，输入数据类型为FP16、FP32、UINT8、INT32、BOOL（原始框架类型为TensorFlow时，不支持输入输出数据类型为INT64，需要用户自行将INT64修改为INT32类型）。
+当原始框架为Caffe时，模型文件（.prototxt）和权重文件（.caffemodel）的输出名字、输出类型必须保持一致（名称包括大小写也要保持一致）。
+当原始框架为TensorFlow时，只支持FrozenGraphDef（.pb）格式。
+不支持动态shape的输入，模型转换时需要指定固定数值。
+对于Caffe框架网络模型：输入数据最大支持四维，转维算子（reshape、expanddim等）不能输出五维。
+模型中的所有层算子除了const算子外，输入和输出需要满足dim != 0。
+只支持算子规格参考中的算子，并满足算子限制条件。
+ATC模型转换命令举例：
+CAFFE模型转换： 1 $ atc --model=&amp;#34;/home/module/resnet50.prototxt&amp;#34; --weight=&amp;#34;/home/module/resnet50.caffemodel&amp;#34; --framework=0 --output=&amp;#34;/home/module/out/caffe_resnet50&amp;#34; --soc_version=Ascend310 TensorFlow模型转换: 1 $ atc --model=&amp;#34;/home/module/resnet_v1_50.pb&amp;#34; --framework=3 --output=&amp;#34;home/module/out/tf_resnet_v1_50&amp;#34; --soc_version=${soc_version} --input_shape=&amp;#34;input:1,224,224,3&amp;#34; ONNX模型转换： 1 $ atc --model=&amp;#34;/home/module/resnet50.onnx&amp;#34; --framework=5 --output=&amp;#34;/home/module/out/onnx_resnet50&amp;#34; --soc_version=${soc_version} MindSpore模型转换： 1 $ atc --model=&amp;#34;/home/module/resnet50.air&amp;#34; --framework=1 --output=&amp;#34;/home/module/out/ResNet50_mindspore&amp;#34; --soc_version=${soc_version} 其中output参数代表的是输出离线模型的文件夹位置， soc_version代表要跑在哪一个昇腾AI处理器上，&amp;ldquo;&amp;ldquo;里面的input代表的是输入节点的名字。</description>
+    </item>
+    
     <item>
       <title>昇腾计算开发环境配置</title>
       <link>https://caixiongjiang.github.io/blog/2023/%E5%8D%8E%E4%B8%BA%E6%98%87%E8%85%BE%E9%83%A8%E7%BD%B2/%E6%98%87%E8%85%BE%E8%AE%A1%E7%AE%97%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/</link>

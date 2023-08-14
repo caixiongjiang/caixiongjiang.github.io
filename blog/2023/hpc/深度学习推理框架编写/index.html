@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html><head>
+<title>从零实现深度学习推理框架</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="从零实现一个深度学习推理框架！">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="从零实现深度学习推理框架" />
+<meta property="og:description" content="从零实现一个深度学习推理框架！" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://caixiongjiang.github.io/blog/2023/hpc/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6%E7%BC%96%E5%86%99/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2023-08-12T18:18:05+08:00" />
+<meta property="article:modified_time" content="2023-08-13T09:19:06+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/avater.jfif">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.5.11/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://caixiongjiang.github.io/">
+    
+        <div class="nav-title">
+            🌀Jarson Cai&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            头脑是日用品，不是装饰品
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://github.com/caixiongjiang">
+    GitHub
+</a>
+<br>
+
+<a href="https://jarson-cai.gitee.io/jarson-cai-blog">
+    MiFeng
+</a>
+<br>
+
+<a href="nau_cxj@163.com">
+    Email
+</a>
+<br>
+
+<a href="https://leetcode-cn.com/u/cai-xiong-jiang/">
+    Leetcode
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2023 🌀Jarson Cai&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bb%8e%e9%9b%b6%e8%87%aa%e5%88%b6%e6%b7%b1%e5%ba%a6%e5%ad%a6%e4%b9%a0%e6%8e%a8%e7%90%86%e6%a1%86%e6%9e%b6" onclick="onNavClick(`#从零自制深度学习推理框架-nav`)" id="从零自制深度学习推理框架-nav">
+									从零自制深度学习推理框架
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e8%af%be%e7%8e%af%e5%a2%83%e5%87%86%e5%a4%87%e6%b5%8b%e8%af%95%e5%87%86%e5%a4%87" onclick="onNavClick(`#第一课环境准备测试准备-nav`)" id="第一课环境准备测试准备-nav">
+									第一课：环境准备&amp;测试准备
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#docker%e7%8e%af%e5%a2%83%e5%87%86%e5%a4%87" onclick="onNavClick(`#docker环境准备-nav`)" id="docker环境准备-nav">
+									Docker环境准备
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#vscode%e8%bf%9e%e6%8e%a5%e5%ae%b9%e5%99%a8" onclick="onNavClick(`#vscode连接容器-nav`)" id="vscode连接容器-nav">
+									VSCode连接容器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%94%a8-clion-%e8%bf%9e%e6%8e%a5%e5%ae%b9%e5%99%a8" onclick="onNavClick(`#用-clion-连接容器-nav`)" id="用-clion-连接容器-nav">
+									用 Clion 连接容器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a6%82%e4%bd%95%e8%bf%9b%e8%a1%8c%e5%8d%95%e5%85%83%e6%b5%8b%e8%af%95" onclick="onNavClick(`#如何进行单元测试-nav`)" id="如何进行单元测试-nav">
+									如何进行单元测试
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e8%af%be%e5%bc%a0%e9%87%8f%e7%9a%84%e8%ae%be%e8%ae%a1%e4%b8%8e%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#第二课张量的设计与实现-nav`)" id="第二课张量的设计与实现-nav">
+									第二课：张量的设计与实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%bc%a0%e9%87%8f%e7%b1%bb%e7%9a%84%e8%ae%be%e8%ae%a1" onclick="onNavClick(`#张量类的设计-nav`)" id="张量类的设计-nav">
+									张量类的设计
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e7%9a%84%e6%91%86%e6%94%be%e9%a1%ba%e5%ba%8f" onclick="onNavClick(`#数据的摆放顺序-nav`)" id="数据的摆放顺序-nav">
+									数据的摆放顺序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bb%8e%e9%9b%b6%e8%87%aa%e5%88%b6%e6%b7%b1%e5%ba%a6%e5%ad%a6%e4%b9%a0%e6%8e%a8%e7%90%86%e6%a1%86%e6%9e%b6" onclick="onNavClick(`#从零自制深度学习推理框架-nav`)" id="从零自制深度学习推理框架-nav">
+									从零自制深度学习推理框架
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e8%af%be%e7%8e%af%e5%a2%83%e5%87%86%e5%a4%87%e6%b5%8b%e8%af%95%e5%87%86%e5%a4%87" onclick="onNavClick(`#第一课环境准备测试准备-nav`)" id="第一课环境准备测试准备-nav">
+									第一课：环境准备&amp;测试准备
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#docker%e7%8e%af%e5%a2%83%e5%87%86%e5%a4%87" onclick="onNavClick(`#docker环境准备-nav`)" id="docker环境准备-nav">
+									Docker环境准备
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#vscode%e8%bf%9e%e6%8e%a5%e5%ae%b9%e5%99%a8" onclick="onNavClick(`#vscode连接容器-nav`)" id="vscode连接容器-nav">
+									VSCode连接容器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%94%a8-clion-%e8%bf%9e%e6%8e%a5%e5%ae%b9%e5%99%a8" onclick="onNavClick(`#用-clion-连接容器-nav`)" id="用-clion-连接容器-nav">
+									用 Clion 连接容器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a6%82%e4%bd%95%e8%bf%9b%e8%a1%8c%e5%8d%95%e5%85%83%e6%b5%8b%e8%af%95" onclick="onNavClick(`#如何进行单元测试-nav`)" id="如何进行单元测试-nav">
+									如何进行单元测试
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e8%af%be%e5%bc%a0%e9%87%8f%e7%9a%84%e8%ae%be%e8%ae%a1%e4%b8%8e%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#第二课张量的设计与实现-nav`)" id="第二课张量的设计与实现-nav">
+									第二课：张量的设计与实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%bc%a0%e9%87%8f%e7%b1%bb%e7%9a%84%e8%ae%be%e8%ae%a1" onclick="onNavClick(`#张量类的设计-nav`)" id="张量类的设计-nav">
+									张量类的设计
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e7%9a%84%e6%91%86%e6%94%be%e9%a1%ba%e5%ba%8f" onclick="onNavClick(`#数据的摆放顺序-nav`)" id="数据的摆放顺序-nav">
+									数据的摆放顺序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://caixiongjiang.github.io/">
+            🌀Jarson Cai&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://caixiongjiang.github.io/">
+        <div class="single-column-header-title">🌀Jarson Cai&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">头脑是日用品，不是装饰品</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/CUDA_title.jpg')"
+                    
+                
+            >
+                <div class="post-title">
+                    从零实现深度学习推理框架
+                    
+                    <div class="post-subtitle">
+                        从零实现一个深度学习推理框架！
+                    </div>
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2023-08-12 18:18
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/">[HPC]</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6">深度学习推理框架</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            16 min
+                            
+                            28 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h2 id="从零自制深度学习推理框架">从零自制深度学习推理框架</h2>
+<blockquote>
+<p>什么是推理框架</p>
+</blockquote>
+<p>深度学习推理框架用于对<strong>已经训练完成的神经网络模型文件进行加载</strong>，并根据模型文件中的<strong>网络结构和权重参数</strong>对输入图像进行预测。换句话说，深度学习推理框架就是将深度学习训练框架<code>Pytorch</code>和<code>TensorFlow</code>中训练完成的模型，移植到中心侧和端侧并且在运行时<strong>高效执行</strong>。</p>
+<p>另外，与深度学习训练框架不同的是，推理框架没有梯度后向传播的过程，因为<strong>在推理阶段模型的权重已经固定，不需要利用后向传播技术进一步进行调整</strong>。</p>
+<p>推理框架流程：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img90.jpg" alt=""></p>
+<blockquote>
+<p>技术全景概述</p>
+</blockquote>
+<p>开源项目<code>KuiperInfer</code>可以分为以下的几个模块：</p>
+<ol>
+<li><code>Operator</code>:深度学习计算图中的计算节点，包含以下的几个部分：
+<ul>
+<li><strong>存储输入输出的张量</strong>，用于存放深度学习中各层的输入输出。比如对于一个<code>Convolution</code>层，需要一部分空间来保存计算的输入和输出。</li>
+<li><strong>计算节点的类型和名称</strong>，计算节点类型可以有<code>Convolution</code>, <code>Relu</code>, <code>Maxpooling</code>等，计算节点的<strong>名称是唯一的</strong>，用来区分任意一个节点，可以是<code>Convolution_1</code>, <code>Convolution_2</code>等。</li>
+<li><strong>计算节点的参数信息</strong>，例如卷积中的步长、卷积核的大小等。</li>
+<li><strong>计算节点的权重信息</strong>，例如卷积节点中的<code>weight</code>, <code>bias</code>权重。</li>
+</ul>
+</li>
+<li><code>Graph</code>: 有多个<code>Operator</code>串联得到的有向无环图，规定了各个计算节点（<code>Operator</code>）执行的流程和顺序。</li>
+<li><code>Layer</code>：计算节点中运算的具体执行者，<code>Layer</code>类先读取输入张量中的数据，然后对输入张量进行计算，得到的结果存放到计算节点的输出张量中，<strong>当然，不同的算子中<code>Layer</code>的计算过程会不一致</strong>。</li>
+<li><code>Tensor</code>: 用于存放<strong>多维数据</strong>的数据结构，方便数据在计算节点之间传递，同时该结构也封装矩阵乘、点积等与矩阵相关的基本操作。</li>
+</ol>
+<p>以下的图示是对如上的模块的总结，每个节点都从输入张量<code>input_data</code>中读取数据，并调用该节点对应的<code>Layer</code>计算对应的结果，最后再将结果放入到<code>output_data</code>中。整个计算图第一个节点的输入也是计算图全局的输入，同时，最后一个节点的输出也是整个计算图的全局输出。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img91.jpg" alt=""></p>
+<h3 id="第一课环境准备测试准备">第一课：环境准备&amp;测试准备</h3>
+<h4 id="docker环境准备">Docker环境准备</h4>
+<ol>
+<li>
+<p>首先需要下载Docker，以及了解其使用，这些需要自行了解。</p>
+</li>
+<li>
+<p>拉取Docker镜像：</p>
+</li>
+</ol>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>sudo docker pull registry.cn-hangzhou.aliyuncs.com/hellofss/kuiperinfer:datawhale
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="3">
+<li>创建并运行一个容器</li>
+</ol>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>sudo docker run -it registry.cn-hangzhou.aliyuncs.com/hellofss/kuiperinfer:datawhale /bin/bash
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="4">
+<li>
+<p>在容器中输入<code>ifconfig</code>命令查看<code>ip</code>地址。（注意，这里使用的必须是172开头的地址）</p>
+</li>
+<li>
+<p>在宿主机使用ssh（容器内已经存在开发所需要的环境和openssh）连接容器，这里的<strong>用户名固定是<code>me</code>, <code>ip</code>地址是上方<code>ipconfig</code>输出中的<code>inet</code>, 登录密码是1.</strong></p>
+</li>
+</ol>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>ssh me@172.17.0.2
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="vscode连接容器">VSCode连接容器</h4>
+<ol>
+<li>
+<p>在 VSCode 中，连接容器是一件很简单的事情，首先你需要安装 Docker 插件，点击左侧的扩展栏（或是按下 ctrl+shift+X），键入 Docker，随后选择安装。</p>
+<p>在成功进入容器之前，我们还需要再安装几个小插件，我们接着搜索 <code>Dev container</code> 以及 <code>Remote Development</code> 插件，都安装第一个即可。</p>
+</li>
+<li>
+<p>接下来，你需要右键之前启动的容器 <code>registry.cn-hangzhou.aliyuncs.com/hellofss/kuiperinfer:datawhale</code>，选择 <strong>附加 Visual Studio Code</strong> 进入 Docker 环境。</p>
+<p>在进入 Docker 环境后，我们还需要手动再次 clone 课程代码，你可以执行 <code>ctrl + J</code> 调出控制台终端，在终端中输入：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#658b00">cd</span> /home 
+</span></span><span style="display:flex;"><span>git clone https://github.com/zjhellofss/kuiperdatawhale.git
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>然后在左上角选择<strong>文件 —— 打开文件夹 —— /home/kuiperdatawhale —— 确定</strong>即可进入课程主界面。</p>
+</li>
+<li>
+<p>进入 Docker 环境后的 VSCode 拥有独立的插件环境，所以我们需要重新安装有关插件：</p>
+<p>你需要在此时的主界面找到扩展，且根据安装 Docker 插件的步骤自行搜索完成以下几款插件的安装：</p>
+<p>CMake 相关插件的安装。</p>
+<p>C++ 相关插件的安装。</p>
+</li>
+<li>
+<p>首先，你需要点击工具图表，选择 <code>GCC 9.4.0 x86_64-linux-gnu</code> 版本的编译工具，确保编译工具一致。接下来让我们尝试编译运行主程序，只需要在 ▶ 键右侧选择对应的编译目标（比如图中我选择了 <code>kuiper_datawhale_course1</code>），再点击▶ 按钮 即可开始编译运行。</p>
+</li>
+</ol>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img92.jpg" alt=""></p>
+<h4 id="用-clion-连接容器">用 Clion 连接容器</h4>
+<p>容器在运行的时候已经打开了一个<code>ssh</code>服务，所以我们只需要用<code>Clion</code>进行连接即可，在连接成功之后项目的代码就可以直接在容器中进行编译运行。</p>
+<ol>
+<li>
+<p>在<code>Clion</code>的左上角点击<code>File--&gt;Open</code>，打开项目所在的文件夹，也就是刚才的<code>~/code/kuiperdatawhale/kuiperdatawhale</code>文件夹。</p>
+</li>
+<li>
+<p>在<strong>容器内</strong>输入<code>ifconfig</code>, 注意是<strong>容器内，不是你宿主机上</strong>！</p>
+</li>
+</ol>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>eth0: <span style="color:#00688b">flags</span>=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu <span style="color:#b452cd">1500</span>
+</span></span><span style="display:flex;"><span>        inet 172.17.0.4  netmask 255.255.0.0  broadcast 172.17.255.255
+</span></span><span style="display:flex;"><span>        ether 02:42:ac:11:00:04  txqueuelen <span style="color:#b452cd">0</span>  (Ethernet)
+</span></span><span style="display:flex;"><span>        RX packets <span style="color:#b452cd">55</span>  bytes <span style="color:#b452cd">8479</span> (8.4 KB)
+</span></span><span style="display:flex;"><span>        RX errors <span style="color:#b452cd">0</span>  dropped <span style="color:#b452cd">0</span>  overruns <span style="color:#b452cd">0</span>  frame <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>        TX packets <span style="color:#b452cd">0</span>  bytes <span style="color:#b452cd">0</span> (0.0 B)
+</span></span><span style="display:flex;"><span>        TX errors <span style="color:#b452cd">0</span>  dropped <span style="color:#b452cd">0</span> overruns <span style="color:#b452cd">0</span>  carrier <span style="color:#b452cd">0</span>  collisions <span style="color:#b452cd">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="3">
+<li>
+<p>在确保容器已经在运行后，再在<code>Clion</code>的<code>Toolchain</code>设置为容器内的编程环境</p>
+<ul>
+<li>点击<code>Clion</code>软件左上角的<code>File-&gt;Settings</code>, 并在左侧对应位置找到<code>Toolchains</code></li>
+</ul>
+<ul>
+<li>
+<p>在3处将host修改为容器中输入<code>ifconfig</code>命令得到的<code>ip</code>地址，<strong>并将<code>username</code>设置为<code>me</code>, 登录方式为密码登录，密码为1</strong>.</p>
+</li>
+<li>
+<p>所有信息填好之后点击<code>Test Connection</code>. 如果连接成功，则会显示<code>Connected Successfully</code>,  如果此处连接失败，可以尝试替换映射端口或自行查阅资料解决。<img src="https://i.imgur.com/6tJcIbQ.png" alt=""></p>
+</li>
+<li>
+<p>随后将<code>datawhale</code>一栏拖动到最上方（鼠标左键拖动），表示<strong>软件默认使用容器内的编译工具链</strong>。</p>
+</li>
+</ul>
+</li>
+<li>
+<p>现在编程环境已经配置到了<code>Docker</code>容器中，随后点击菜单栏的<code>Helps-&gt;Find actions</code>, 再输入<code>Reload Cmake Project</code> 对项目进行重新加载，包括如果你之后修改了<code>Cmake</code>文件，最好都用这个命令重新加载下项目。</p>
+<ul>
+<li><strong>如果发现头文件报错或者不能智能提示</strong>，可以在<code>Find actions</code>中输入<code>resync with remote hosts</code>来同步远程的头文件。</li>
+</ul>
+</li>
+<li>
+<p>随后就可以选择<code>course1</code>并点击三角形按钮对项目代码进行执行。
+<img src="https://i.imgur.com/eRHKML8.png" alt=""></p>
+<p>如果配置成功，程序会出现如下的运行结果，出现<code>Failed</code>这是因为本节课作业需要完成一定的代码，若作业都正确完成，<code>Failed</code>标签就会在运行结果中消失。</p>
+</li>
+</ol>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>[==========] Running <span style="color:#b452cd">7</span> tests from <span style="color:#b452cd">1</span> <span style="color:#658b00">test</span> suite.
+</span></span><span style="display:flex;"><span>[----------] Global <span style="color:#658b00">test</span> environment set-up.
+</span></span><span style="display:flex;"><span>[----------] <span style="color:#b452cd">7</span> tests from test_arma
+</span></span><span style="display:flex;"><span>[ RUN      ] test_arma.Axby
+</span></span><span style="display:flex;"><span>/tmp/tmp.dvfnZylz2q/course1/test/axby.cpp:32: Failure
+</span></span><span style="display:flex;"><span>Expected equality of these values:
+</span></span><span style="display:flex;"><span>  approx_equal(y, answer, <span style="color:#cd5555">&#34;absdiff&#34;</span>, 1e-5f)
+</span></span><span style="display:flex;"><span>    Which is: <span style="color:#658b00">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#658b00">true</span>
+</span></span><span style="display:flex;"><span>[  FAILED  ] test_arma.Axby (<span style="color:#b452cd">0</span> ms)
+</span></span><span style="display:flex;"><span>[ RUN      ] test_arma.e_power_minus
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="如何进行单元测试">如何进行单元测试</h4>
+<p>搭建好了环境，我们来写一些单元测试看看运行情况。同时，在这个过程中，我们也试着去写项目的单元测试。单元测试框架使用了<code>Google</code>的<code>Google Test</code>, 该框架已经在<code>Docker</code>镜像中提供。 我们以矩阵库<code>armadillo</code>的计算接口作为我们的测试目标，在测试的过程中也去熟悉这个矩阵库的基本用法，以下是<code>armadillo</code>矩阵库的文档地址，以供我们在学习的过程中查阅：<a href="https://arma.sourceforge.net/docs.html">armadillo documentation</a>.</p>
+<p>Example:</p>
+<ol>
+<li>
+<p><code>test_add</code>函数用来测试<code>armadillo</code>的矩阵加法接口</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;armadillo&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;glog/logging.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;gtest/gtest.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span>TEST(test_arma, add) {
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">using</span> <span style="color:#8b008b;font-weight:bold">namespace</span> arma;
+</span></span><span style="display:flex;"><span>  fmat in_matrix1 = <span style="color:#cd5555">&#34;1,2,3;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#cd5555">&#34;4,5,6;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#cd5555">&#34;7,8,9&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  fmat in_matrix2 = <span style="color:#cd5555">&#34;1,2,3;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#cd5555">&#34;4,5,6;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#cd5555">&#34;7,8,9&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> fmat &amp;out_matrix1 = <span style="color:#cd5555">&#34;2,4,6;&#34;</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#cd5555">&#34;8,10,12;&#34;</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#cd5555">&#34;14,16,18&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> fmat &amp;out_matrix2 = in_matrix1 + in_matrix2;
+</span></span><span style="display:flex;"><span>  ASSERT_EQ(approx_equal(out_matrix1, out_matrix2, <span style="color:#cd5555">&#34;absdiff&#34;</span>, <span style="color:#b452cd">1e-5</span>), <span style="color:#658b00">true</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p><code>test_sub</code>函数用来测试<code>armadillo</code>的矩阵减法接口</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;armadillo&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;glog/logging.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&lt;gtest/gtest.h&gt;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span>TEST(test_arma, sub) {
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">using</span> <span style="color:#8b008b;font-weight:bold">namespace</span> arma;
+</span></span><span style="display:flex;"><span>  fmat in_matrix1 = <span style="color:#cd5555">&#34;1,2,3;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#cd5555">&#34;4,5,6;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#cd5555">&#34;7,8,9&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  fmat in_matrix2 = <span style="color:#cd5555">&#34;1,2,3;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#cd5555">&#34;4,5,6;&#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#cd5555">&#34;7,8,9&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> fmat &amp;out_matrix1 = <span style="color:#cd5555">&#34;0,0,0;&#34;</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#cd5555">&#34;0,0,0;&#34;</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#cd5555">&#34;0,0,0;&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> fmat &amp;out_matrix2 = in_matrix1 - in_matrix2;
+</span></span><span style="display:flex;"><span>  ASSERT_EQ(approx_equal(out_matrix1, out_matrix2, <span style="color:#cd5555">&#34;absdiff&#34;</span>, <span style="color:#b452cd">1e-5</span>), <span style="color:#658b00">true</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ol>
+<p>所有的测试代码都放在了<code>test</code>文件夹下，<code>Cmake</code>构建系统会去自动读取该文件夹下的单元测试文件，<strong>如果新添加了<code>.cpp</code>文件或者新的单元测试函数</strong>，需要使用<code>Reload Cmake Project</code>重新进行载入。</p>
+<h3 id="第二课张量的设计与实现">第二课：张量的设计与实现</h3>
+<p>对于一个张量类而言，数据将被设计成依次摆放的三维格式，分别是<code>channels</code>(通道数),  <code>rows</code>(行数)，<code>cols</code>(列数)。一个张量类主要由以下部分组成：</p>
+<ol>
+<li>
+<p>数据本身存储在该类的数据空间中，数据可包括双精度(<code>double</code>)、单精度(<code>float</code>)或整型(<code>int</code>)。</p>
+</li>
+<li>
+<p>为了处理多维张量数据，需要使用<code>shape</code>变量来存储张量的维度信息。例如，对于一个维度为<code>3</code>，长和宽均为<code>224</code>的张量，其维度信息可以表示为<code>(3, 224, 224)</code>。</p>
+</li>
+<li>
+<p>张量类中定义了多个类方法，如返回张量的宽度、高度、填充数据和张量变形 (<code>reshape</code>)等操作。</p>
+</li>
+</ol>
+<h4 id="张量类的设计">张量类的设计</h4>
+<p>从头设计一个张量类具有较大的编码难度，因此，在本项目中，我们选择在<code>arma::fcube</code>（三维矩阵）的基础上进行开发。</p>
+<p>三维的<code>arma::fcube</code>是由多个二维矩阵<code>matrix</code>（即上一节课中介绍的<code>arma::fmat</code>）沿通道维度叠加得到。在此基础上，我们的张量类将在叠加而成的三维矩阵<code>arma::fcube</code>的基础上提供扩充和封装，以使其更适用于我们的推理框架项目。</p>
+<p>对于这样的一个Tensor类，我们主要需要做以下的两个工作：</p>
+<ol>
+<li>提供对外的接口，对外接口由<code>Tensor</code>类在<code>fcube</code>类的基础上进行提供，以供用户更好地访问多维数据。</li>
+<li>封装矩阵相关的计算功能，这样一来不仅有更友好的数据访问和使用方式，也能有高效的矩阵算法实现。</li>
+</ol>
+<blockquote>
+<p><code>arma::fmat</code> 与 <code>arma::fcube</code> 的区别。</p>
+</blockquote>
+<p><code>arma::fcube</code> 是<code>arma::fmat</code>沿通道维度进行叠加而成。</p>
+<h4 id="数据的摆放顺序">数据的摆放顺序</h4>
+<p>其实就是操作系统中提到两个概念为<code>行优先</code>和<code>列优先</code>，对应到这里就是<code>行主序</code>和<code>列主序</code>。<strong>在<code>armadillo</code>中默认的顺序就是列主序的，而Pytorch张量默认顺序是行主序的，所以我们在程序中需要进行一定适应和调整。</strong></p>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2023-08-13</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+			下回<br>已经到头啦。
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2023/%E5%8D%8E%E4%B8%BA%E6%98%87%E8%85%BE%E9%83%A8%E7%BD%B2/atc%E6%A8%A1%E5%9E%8B%E8%BD%AC%E6%8D%A2%E5%B7%A5%E5%85%B7/">
+			上回<br>ATC模型转换工具
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2023 🌀Jarson Cai&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "https://twikoo-rho-olive.vercel.app/",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

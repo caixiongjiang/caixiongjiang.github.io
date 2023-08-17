@@ -1168,7 +1168,7 @@ color: #515151;
                             
                             66 min
                             
-                            13 s.
+                            16 s.
                         
                     </div>
                 </div>
@@ -2584,7 +2584,7 @@ color: #515151;
 <pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ yolo yolo <span style="color:#00688b">cfg</span>=<span style="color:#cd5555">&#39;default_copy.yaml&#39;</span>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ yolo <span style="color:#00688b">cfg</span>=<span style="color:#cd5555">&#39;default_copy.yaml&#39;</span>
 </span></span></code></pre></td></tr></table>
 </div>
 </div><ul>
@@ -3500,9 +3500,11 @@ boxes.data  # 原始目标框参数坐标 (x, y, w, h)、置信度以及类别, 
 </span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">img2input</span>(img):
+</span></span><span style="display:flex;"><span>    img = cv2.cvtColor(img, cv.COLOR_BGR2RGB) <span style="color:#228b22"># BGR转RGB</span>
 </span></span><span style="display:flex;"><span>    img = np.transpose(img, (<span style="color:#b452cd">2</span>, <span style="color:#b452cd">0</span>, <span style="color:#b452cd">1</span>))
 </span></span><span style="display:flex;"><span>    img = img/<span style="color:#b452cd">255</span> <span style="color:#228b22"># 归一化像素值</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> np.expand_dims(img, axis=<span style="color:#b452cd">0</span>).astype(np.float32)  <span style="color:#228b22"># (1,3,640,640)</span>
@@ -3524,11 +3526,11 @@ boxes.data  # 原始目标框参数坐标 (x, y, w, h)、置信度以及类别, 
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>sess = rt.InferenceSession(<span style="color:#cd5555">&#39;runs/detect/train49/weights/best.onnx&#39;</span>)
-</span></span><span style="display:flex;"><span>    input_name = sess.get_inputs()[<span style="color:#b452cd">0</span>].name
-</span></span><span style="display:flex;"><span>    label_name = sess.get_outputs()[<span style="color:#b452cd">0</span>].name
-</span></span><span style="display:flex;"><span>    pred = sess.run([label_name], {input_name: data})[<span style="color:#b452cd">0</span>]  
-</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># 自己的模型使用yolov8微调，最后分类的类别数为7</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#228b22"># (bs, 11=7cls+4reg, 8400=3种尺度的特征图叠加)， 这里的预测框的回归参数是xywh，而不是中心点到框边界的距离</span>
+</span></span><span style="display:flex;"><span>input_name = sess.get_inputs()[<span style="color:#b452cd">0</span>].name
+</span></span><span style="display:flex;"><span>label_name = sess.get_outputs()[<span style="color:#b452cd">0</span>].name
+</span></span><span style="display:flex;"><span>pred = sess.run([label_name], {input_name: data})[<span style="color:#b452cd">0</span>]  
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 自己的模型使用yolov8微调，最后分类的类别数为7</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># (bs, 11=7cls+4reg, 8400=3种尺度的特征图叠加)， 这里的预测框的回归参数是xywh，而不是中心点到框边界的距离</span>
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>模型得到的输出格式为（1$\times$11$\times$8400），11=边界框预测值 4+数据集类别 7， yolov8不另外对置信度预测， 而是采用类别里面最大的概率作为置信度score，8400是v8模型各尺度输出特征图叠加之后的结果（具体如何叠加可以看源码，一般推理不需要管）。本文对模型的输出进行如下操作，方便后处理：</p>

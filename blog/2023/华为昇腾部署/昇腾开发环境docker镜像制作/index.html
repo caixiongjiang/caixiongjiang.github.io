@@ -914,9 +914,9 @@ color: #515151;
                             
 
                             
-                            9 min
+                            10 min
                             
-                            46 s.
+                            3 s.
                         
                     </div>
                 </div>
@@ -1327,35 +1327,10 @@ color: #515151;
 </div><p>网上找到了解决方案：<a href="https://bbs.huaweicloud.com/blogs/344623">https://bbs.huaweicloud.com/blogs/344623</a></p>
 <p>按照它的方法操作了之后，成功了！</p>
 <h4 id="8月28日更新">8月28日更新</h4>
-<p>对于上述命令行转化工具<code>atc</code>的环境变量问题，在官方找到了正确的配置方法：</p>
-<ul>
-<li>以root用户安装Ascend-cann-toolkit包:</li>
-</ul>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#228b22">#若开发套件包Ascend-cann-toolkit在非昇腾设备上安装，则如下环境变量必须执行，用于设置动态链接库所在路径，否则无需执行</span>
-</span></span><span style="display:flex;"><span><span style="color:#658b00">export</span> <span style="color:#00688b">LD_LIBRARY_PATH</span>=/usr/local/Ascend/ascend-toolkit/latest/&lt;arch&gt;-linux/devlib:<span style="color:#00688b">$LD_LIBRARY_PATH</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><ul>
-<li>以非root用户安装Ascend-cann-toolkit包：</li>
-</ul>
-<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#228b22">#若开发套件包Ascend-cann-toolkit在非昇腾设备上安装，则如下环境变量必须执行，用于设置动态链接库所在路径，否则无需执行</span>
-</span></span><span style="display:flex;"><span><span style="color:#658b00">export</span> <span style="color:#00688b">LD_LIBRARY_PATH</span>=<span style="color:#cd5555">${</span><span style="color:#00688b">HOME</span><span style="color:#cd5555">}</span>/Ascend/ascend-toolkit/latest/&lt;arch&gt;-linux/devlib:<span style="color:#00688b">$LD_LIBRARY_PATH</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><strong>当然这只在当前页面有效果，所以还是将其配置到<code>~/.bashrc</code>中比较好！</strong></p>
-<p>目前还需要解决的问题，在python环境下无法初始化pyACL：</p>
+<p>对于上述命令行转化工具<code>atc</code>的环境变量问题，在华为官方issues维护人员的帮助下，解决了环境问题。</p>
+<p><strong>首先需要纠正的是nnrt和toolkit包是有重叠的。toolkit包含了离线推理和模型转换，而nnrt是只有包含离线推理的地方。</strong></p>
+<p>其次，在我自制的Docker镜像中发现需要设置驱动的库文件的环境变量。</p>
+<p>所以容器中<code>~/.bashrc</code>关于toolkit的配置为：</p>
 <div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
 <table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -1365,11 +1340,50 @@ color: #515151;
 </span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ python3
-</span></span><span style="display:flex;"><span>$ &gt;&gt;&gt;import acl
-</span></span><span style="display:flex;"><span>$ &gt;&gt;&gt;acl.init()
-</span></span><span style="display:flex;"><span>[ERROR]: stub library cannot be used <span style="color:#8b008b;font-weight:bold">for</span> execution, please check your environment variables and compilation options to make sure you use the correct ACL library.
-</span></span><span style="display:flex;"><span><span style="color:#b452cd">100039</span>
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bashrc" data-lang="bashrc"><span style="display:flex;"><span><span style="color:#228b22"># toolkit</span>
+</span></span><span style="display:flex;"><span>. /usr/local/Ascend/ascend-toolkit/set_env.sh
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># driver</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">export</span> <span style="color:#00688b">LD_LIBRARY_PATH</span>=/usr/local/Ascend/driver/lib64/stub:＄LD_LIBRARY_PATH 
+</span></span><span style="display:flex;"><span><span style="color:#658b00">export</span> LD_LIBRARY_PATH-/usr/local/Ascend/driver/lib64/driver:＄LD_LIBRARY_PATH
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>顺便记录一下我的Docker启动命令：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>sudo docker run -it -u root <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>--device=/dev/davinci0 <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>--device=/dev/davinci_manager <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>--device=/dev/devmm_svm <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>--device=/dev/hisi_hdc <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>-v /usr/local/dcmi:/usr/local/dcmi <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>-v /var/log/npu:/var/log/npu <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>-v /usr/local/Ascend/driver:/usr/local/Ascend/driver <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>-v /usr/slog:/usr/slog <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>-v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>-v /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/ <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>-v /usr/local/Ascend/driver/tools/:/usr/local/Ascend/driver/tools/ <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>-v /usr/local/Ascend/add-ons/:/usr/local/Ascend/add-ons/ <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>-v /home/foot/caixj:/work_dir <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>caixj/ascend910b:python <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>/bin/bash
 </span></span></code></pre></td></tr></table>
 </div>
 </div>

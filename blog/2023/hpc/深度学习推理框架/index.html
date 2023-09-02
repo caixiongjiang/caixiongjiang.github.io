@@ -1,0 +1,2235 @@
+<!DOCTYPE html>
+<html><head>
+<title>从零自制深度学习推理框架</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="深度学习推理框架的架构，以及细节实现！">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="从零自制深度学习推理框架" />
+<meta property="og:description" content="深度学习推理框架的架构，以及细节实现！" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://caixiongjiang.github.io/blog/2023/hpc/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2023-08-01T18:18:05+08:00" />
+<meta property="article:modified_time" content="2023-09-01T09:19:06+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/avater.jfif">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.5.11/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://caixiongjiang.github.io/">
+    
+        <div class="nav-title">
+            🌀Jarson Cai&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            头脑是日用品，不是装饰品
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://github.com/caixiongjiang">
+    GitHub
+</a>
+<br>
+
+<a href="https://jarson-cai.gitee.io/jarson-cai-blog">
+    MiFeng
+</a>
+<br>
+
+<a href="nau_cxj@163.com">
+    Email
+</a>
+<br>
+
+<a href="https://leetcode-cn.com/u/cai-xiong-jiang/">
+    Leetcode
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2023 🌀Jarson Cai&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#kuiperdatawhale" onclick="onNavClick(`#kuiperdatawhale-nav`)" id="kuiperdatawhale-nav">
+									KuiperDatawhale
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%80%e7%8e%af%e5%a2%83%e6%90%ad%e5%bb%ba" onclick="onNavClick(`#一环境搭建-nav`)" id="一环境搭建-nav">
+									一：环境搭建
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%8c%e5%bc%a0%e9%87%8f%e7%9a%84%e8%ae%be%e8%ae%a1%e4%b8%8e%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#二张量的设计与实现-nav`)" id="二张量的设计与实现-nav">
+									二：张量的设计与实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%b8%89%e8%ae%a1%e7%ae%97%e5%9b%be%e7%9a%84%e5%ae%9a%e4%b9%89" onclick="onNavClick(`#三计算图的定义-nav`)" id="三计算图的定义-nav">
+									三：计算图的定义
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%9b%e6%9e%84%e5%bb%ba%e8%ae%a1%e7%ae%97%e5%9b%be%e5%85%b3%e7%b3%bb%e5%92%8c%e6%89%a7%e8%a1%8c%e9%a1%ba%e5%ba%8f" onclick="onNavClick(`#四构建计算图关系和执行顺序-nav`)" id="四构建计算图关系和执行顺序-nav">
+									四：构建计算图关系和执行顺序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%94%e7%ae%97%e5%ad%90%e5%92%8c%e6%b3%a8%e5%86%8c%e5%b7%a5%e5%8e%82" onclick="onNavClick(`#五算子和注册工厂-nav`)" id="五算子和注册工厂-nav">
+									五：算子和注册工厂
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%ad%e5%8d%b7%e7%a7%af%e5%92%8c%e6%b1%a0%e5%8c%96%e7%ae%97%e5%ad%90%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#六卷积和池化算子的实现-nav`)" id="六卷积和池化算子的实现-nav">
+									六：卷积和池化算子的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#kuiperdatawhale" onclick="onNavClick(`#kuiperdatawhale-nav`)" id="kuiperdatawhale-nav">
+									KuiperDatawhale
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%80%e7%8e%af%e5%a2%83%e6%90%ad%e5%bb%ba" onclick="onNavClick(`#一环境搭建-nav`)" id="一环境搭建-nav">
+									一：环境搭建
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%8c%e5%bc%a0%e9%87%8f%e7%9a%84%e8%ae%be%e8%ae%a1%e4%b8%8e%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#二张量的设计与实现-nav`)" id="二张量的设计与实现-nav">
+									二：张量的设计与实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%b8%89%e8%ae%a1%e7%ae%97%e5%9b%be%e7%9a%84%e5%ae%9a%e4%b9%89" onclick="onNavClick(`#三计算图的定义-nav`)" id="三计算图的定义-nav">
+									三：计算图的定义
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%9b%e6%9e%84%e5%bb%ba%e8%ae%a1%e7%ae%97%e5%9b%be%e5%85%b3%e7%b3%bb%e5%92%8c%e6%89%a7%e8%a1%8c%e9%a1%ba%e5%ba%8f" onclick="onNavClick(`#四构建计算图关系和执行顺序-nav`)" id="四构建计算图关系和执行顺序-nav">
+									四：构建计算图关系和执行顺序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%94%e7%ae%97%e5%ad%90%e5%92%8c%e6%b3%a8%e5%86%8c%e5%b7%a5%e5%8e%82" onclick="onNavClick(`#五算子和注册工厂-nav`)" id="五算子和注册工厂-nav">
+									五：算子和注册工厂
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%ad%e5%8d%b7%e7%a7%af%e5%92%8c%e6%b1%a0%e5%8c%96%e7%ae%97%e5%ad%90%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#六卷积和池化算子的实现-nav`)" id="六卷积和池化算子的实现-nav">
+									六：卷积和池化算子的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://caixiongjiang.github.io/">
+            🌀Jarson Cai&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://caixiongjiang.github.io/">
+        <div class="single-column-header-title">🌀Jarson Cai&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">头脑是日用品，不是装饰品</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/CUDA_title.jpg')"
+                    
+                
+            >
+                <div class="post-title">
+                    从零自制深度学习推理框架
+                    
+                    <div class="post-subtitle">
+                        深度学习推理框架的架构，以及细节实现！
+                    </div>
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2023-08-01 18:18
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/">[C&#43;&#43;]</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6">推理框架</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            43 min
+                            
+                            51 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h2 id="kuiperdatawhale">KuiperDatawhale</h2>
+<p>本次课程为<code>KuiperInfer</code>的子项目（学习项目）。</p>
+<p>完整推理框架项目地址：<a href="https://github.com/zjhellofss/kuiperinfer">https://github.com/zjhellofss/kuiperInfer</a></p>
+<p>B站课程地址：<a href="https://www.bilibili.com/video/BV118411f7yM/?spm_id_from=333.788&amp;vd_source=841bd3506b40b195573d34fef4c5bdf7">https://www.bilibili.com/video/BV118411f7yM/?spm_id_from=333.788&amp;vd_source=841bd3506b40b195573d34fef4c5bdf7</a></p>
+<p>本人学习项目地址：<a href="https://github.com/caixiongjiang/HPC">https://github.com/caixiongjiang/HPC</a></p>
+<h3 id="一环境搭建">一：环境搭建</h3>
+<blockquote>
+<p>推理框架要完成的功能</p>
+</blockquote>
+<ul>
+<li>对已经训练完成的神经网络模型文件进行加载</li>
+<li>根据网络结构和权重参数对输入图像进行预测</li>
+<li>推理阶段的权重已经固定，不需要后向传播技术</li>
+</ul>
+<blockquote>
+<p>推理框架的模块</p>
+</blockquote>
+<ul>
+<li><code>Operator</code>:深度学习计算图中的计算节点，包含：
+<ul>
+<li>存储输入输出的张量</li>
+<li>计算节点的类型和名称</li>
+<li>计算节点参数信息（Params：卷积的步长，卷积核的大小等）</li>
+<li>计算节点的权重信息（attributes：存储weights和bias）</li>
+</ul>
+</li>
+<li><code>Graph</code>:多个<code>Operator</code>串联得到的有向无环图，规定了各个节点（<code>Operator</code>）执行的流程和顺序。</li>
+<li><code>Layer</code>:计算节点运算具体的执行者，<code>Layer</code>类先读入输入张量中的数据，然后对输入张量进行计算，<strong>不同的算子中Layer的计算过程会不一致！</strong></li>
+<li><code>Tensor</code>：用于存放<strong>多维数据</strong>的数据结构，方便数据在计算节点之间传递，同时该结构也封装矩阵乘、点积等与矩阵相关的基本操作。</li>
+</ul>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img96.jpg" alt=""></p>
+<blockquote>
+<p>使用的模块</p>
+</blockquote>
+<ul>
+<li>
+<p>C++运算库：<code>Armadillo</code>+<code>OpenBLAS</code>。</p>
+</li>
+<li>
+<p>算子加速：<code>OpenMP</code></p>
+</li>
+<li>
+<p>单元测试：<code>Google Test</code></p>
+</li>
+<li>
+<p>性能测试：<code>Google Benchmark</code></p>
+</li>
+</ul>
+<blockquote>
+<p>作业：完成测试用例</p>
+</blockquote>
+<p>目的是了解<code>Armadillo</code>数学库的基本用法。</p>
+<h3 id="二张量的设计与实现">二：张量的设计与实现</h3>
+<blockquote>
+<p>张量类的设计</p>
+</blockquote>
+<p>这里在<code>arma::fmat</code>和<code>arma::fcube</code>的基础上进行开发，<code>f</code>代表<code>float</code>，<code>fcube</code>可以看做是<code>fmat</code>的堆叠而成的结构。</p>
+<p>与Pytorch中的矩阵存储不同的是，<code>fmat</code>是列主序的，需要进行区分。</p>
+<blockquote>
+<p>张量类的方法</p>
+</blockquote>
+<ul>
+<li>创建张量以及返回张量的维度信息：主要有4个属性，<code>rows</code>，<code>cols</code>，<code>channels</code>，<code>raw_shapes</code>。</li>
+</ul>
+<p>其中创建的方法调用了fcube的创建方法：<code>arma::fcube(rows, cols, channels)</code>。返回维度信息的方法分别是<code>rows()</code>，<code>cols()</code>，<code>channels()</code>，<code>size()</code>。</p>
+<ul>
+<li>张量的填充方法（Fill）：需要注意转置的过程（列主序和行主序的区别）</li>
+<li>对张量进行变形（Reshape）</li>
+<li>返回是否为空（empty）</li>
+</ul>
+<blockquote>
+<p>作业为实现Flatten和Padding方法</p>
+</blockquote>
+<p>Flatten:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;::Flatten(<span style="color:#00688b;font-weight:bold">bool</span> row_major) {
+</span></span><span style="display:flex;"><span>  CHECK(!<span style="color:#8b008b;font-weight:bold">this</span>-&gt;data_.empty());
+</span></span><span style="display:flex;"><span>  <span style="color:#228b22">/// Homework1: 请补充代码
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> total_elems = <span style="color:#8b008b;font-weight:bold">this</span>-&gt;data_.size();
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> rows = <span style="color:#8b008b;font-weight:bold">this</span>-&gt;rows();
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> cols = <span style="color:#8b008b;font-weight:bold">this</span>-&gt;cols();
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> channels = <span style="color:#8b008b;font-weight:bold">this</span>-&gt;data_.n_slices;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  std::vector&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt; flattened_data(total_elems);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">if</span> (row_major) {
+</span></span><span style="display:flex;"><span>      <span style="color:#228b22">// 按行主序取数据, arma::fcube数据中，每个channel内的取值顺序是按列主序的，所以需要改变一下取值顺序
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>      <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> i = <span style="color:#b452cd">0</span>; i &lt; channels; ++i) {
+</span></span><span style="display:flex;"><span>          <span style="color:#8b008b;font-weight:bold">auto</span>&amp; channel_data = <span style="color:#8b008b;font-weight:bold">this</span>-&gt;data_.slice(i);
+</span></span><span style="display:flex;"><span>          <span style="color:#228b22">// t()代表转置，&amp;的作用：channel_data.t()` 返回的是一个新的 `arma::fmat` 对象，
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>          <span style="color:#228b22">// 如果没有使用引用类型的变量来接收它，那么程序就无法操作这个新的对象。
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>          <span style="color:#8b008b;font-weight:bold">const</span> arma::fmat &amp;channel_data_t = channel_data.t();
+</span></span><span style="display:flex;"><span>          std::copy(channel_data_t.begin(), channel_data_t.end(), flattened_data.begin() + i * rows * cols);
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>  } <span style="color:#8b008b;font-weight:bold">else</span> {
+</span></span><span style="display:flex;"><span>      <span style="color:#228b22">/// memptr()属于arma数学库中数据的方法，而begin()是c++中vector的方法，作用是相同的，都是返回第一个元素的地址
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>      <span style="color:#228b22">// 因为arma的数据本身就是列主序，只要将数据所有拷贝到flatten_data中就好了
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>      std::copy(<span style="color:#8b008b;font-weight:bold">this</span>-&gt;data_.memptr(), <span style="color:#8b008b;font-weight:bold">this</span>-&gt;data_.memptr() + total_elems, flattened_data.begin());
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#228b22">// 改变数组的shapes
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#8b008b;font-weight:bold">this</span>-&gt;data_.set_size(<span style="color:#b452cd">1</span>, total_elems, <span style="color:#b452cd">1</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#228b22">// 将flatten数据拷贝回原来的张量，第三个参数接收的是需要拷贝的起始地址
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  std::copy(flattened_data.begin(), flattened_data.end(), <span style="color:#8b008b;font-weight:bold">this</span>-&gt;data_.memptr());
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">this</span>-&gt;raw_shapes_ = std::vector&lt;<span style="color:#00688b;font-weight:bold">uint32_t</span>&gt;{total_elems};
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Padding:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;::Padding(<span style="color:#8b008b;font-weight:bold">const</span> std::vector&lt;<span style="color:#00688b;font-weight:bold">uint32_t</span>&gt;&amp; pads,
+</span></span><span style="display:flex;"><span>                            <span style="color:#00688b;font-weight:bold">float</span> padding_value) {
+</span></span><span style="display:flex;"><span>  CHECK(!<span style="color:#8b008b;font-weight:bold">this</span>-&gt;data_.empty());
+</span></span><span style="display:flex;"><span>  CHECK_EQ(pads.size(), <span style="color:#b452cd">4</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#228b22">// 四周填充的维度
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#00688b;font-weight:bold">uint32_t</span> pad_rows1 = pads.at(<span style="color:#b452cd">0</span>);  <span style="color:#228b22">// up
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#00688b;font-weight:bold">uint32_t</span> pad_rows2 = pads.at(<span style="color:#b452cd">1</span>);  <span style="color:#228b22">// bottom
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#00688b;font-weight:bold">uint32_t</span> pad_cols1 = pads.at(<span style="color:#b452cd">2</span>);  <span style="color:#228b22">// left
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#00688b;font-weight:bold">uint32_t</span> pad_cols2 = pads.at(<span style="color:#b452cd">3</span>);  <span style="color:#228b22">// right
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#228b22">/// Homework2：请补充代码
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> channels = <span style="color:#8b008b;font-weight:bold">this</span>-&gt;channels();
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> rows = <span style="color:#8b008b;font-weight:bold">this</span>-&gt;rows();
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> cols = <span style="color:#8b008b;font-weight:bold">this</span>-&gt;cols();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> new_rows = rows + pad_rows1 + pad_rows2;
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> new_cols = cols + pad_cols1 + pad_cols2;
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">auto</span> new_tensor = arma::fcube(new_rows, new_cols, channels);
+</span></span><span style="display:flex;"><span>  new_tensor.fill(padding_value);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#228b22">/// `cols()` 和 `rows()` 方法分别返回数据张量的列数和行数。
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#228b22">/// 这个张量的大小是在创建对象时指定的，一旦创建后就不能再改变大小。
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#228b22">/// 拷贝原来张量中的元素到新的张量中
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> i = <span style="color:#b452cd">0</span>; i &lt; channels; ++i) {
+</span></span><span style="display:flex;"><span>      <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> j = <span style="color:#b452cd">0</span>; j &lt; cols; ++j) {
+</span></span><span style="display:flex;"><span>          <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> k = <span style="color:#b452cd">0</span>; k &lt; rows; ++k) {
+</span></span><span style="display:flex;"><span>              <span style="color:#228b22">//计算新的单元位置
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>              <span style="color:#00688b;font-weight:bold">uint32_t</span> new_j = j + pad_cols1;
+</span></span><span style="display:flex;"><span>              <span style="color:#00688b;font-weight:bold">uint32_t</span> new_k = k + pad_rows1;
+</span></span><span style="display:flex;"><span>              <span style="color:#228b22">//拷贝元素
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>              new_tensor.at(new_k, new_j, i) = <span style="color:#8b008b;font-weight:bold">this</span>-&gt;data_.at(k, j, i);
+</span></span><span style="display:flex;"><span>          }
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#228b22">// 将新的张量赋值给 data_ 使用move函数，直接将整个对象拷贝了过来
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#8b008b;font-weight:bold">this</span>-&gt;data_ =  std::move(new_tensor);
+</span></span><span style="display:flex;"><span>  <span style="color:#228b22">// 我们在创建new_tensor的时候已经定义了cols，rows，channels。 还需要指定类内成员raw_shape()_的值
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#8b008b;font-weight:bold">this</span>-&gt;raw_shapes_ = std::vector&lt;<span style="color:#00688b;font-weight:bold">uint32_t</span>&gt;{channels, new_rows, new_cols};
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="三计算图的定义">三：计算图的定义</h3>
+<p>我们使用的PNNX计算图，相对于ONNX，其可以<strong>使用模版匹配将子图用大的算子代替许多小算子，Pytorch中的算数表达式会被保留，PNNX有大量的图优化技术，包括了算子融合，常量折叠和消除，公共表达式消除等技术！</strong></p>
+<blockquote>
+<p>PNNX计算图的格式</p>
+</blockquote>
+<p>PNNX主要由图结构(Graph)，运算符（Operator）和操作数(Operand)三种结构组成，设计简洁。</p>
+<ol>
+<li><code>Operator</code>类用来<strong>表示计算图中的运算符（算子）</strong>，比如一个模型中的<code>Convolution</code>, <code>Pooling</code>等算子；</li>
+<li><code>Operand</code>类用来<strong>表示计算图中的操作数</strong>，即<strong>与一个运算符有关的输入和输出张量</strong>；</li>
+<li><code>Graph</code>类的成员函数提供了方便的接口用来<strong>创建和访问操作符和操作数</strong>，以构建和遍历计算图。同时，它也是模型中<strong>运算符（算子）和操作数的集合</strong>。</li>
+</ol>
+<blockquote>
+<p>Operator结构的组成</p>
+</blockquote>
+<p>在PNNX中，<code>Operator</code>用来表示一个算子，它由以下几个部分组成：</p>
+<ol>
+<li><code>inputs</code>：类型为<code>std::vector&lt;operand&gt;</code>, 表示这个算子在计算过程中所需要的<strong>输入操作数</strong><code>operand</code>；</li>
+<li><code>outputs</code>：类型为<code>std::vector&lt;operand&gt;</code>, 表示这个算子在计算过程中得到的<strong>输出操作数</strong><code>operand</code>；</li>
+<li><code>type</code>和<code>name</code>类型均为<code>std::string</code>, 分别表示<strong>该运算符号的类型和名称</strong>；</li>
+<li><code>params</code>, 类型为<code>std::map</code>, 用于存放<strong>该运算符的所有参数</strong>（例如卷积运算符中的<code>params</code>中将存放<code>stride</code>, <code>padding</code>, <code>kernel size</code>等信息）；</li>
+<li><code>attrs</code>, 类型为<code>std::map</code>, 用于存放<strong>该运算符所需要的具体权重属性</strong>（例如卷积运算符中的<code>attrs</code>中就存放着卷积的权重和偏移量，通常是一个<code>float32</code>数组）。</li>
+</ol>
+<blockquote>
+<p>Operand的结构组成</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">Operand</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">void</span> remove_consumer(<span style="color:#8b008b;font-weight:bold">const</span> Operator* c);
+</span></span><span style="display:flex;"><span>    Operator* producer;
+</span></span><span style="display:flex;"><span>    std::vector&lt;Operator*&gt; consumers;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> type;
+</span></span><span style="display:flex;"><span>    std::vector&lt;<span style="color:#00688b;font-weight:bold">int</span>&gt; shape;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    std::string name;
+</span></span><span style="display:flex;"><span>    std::map&lt;std::string, Parameter&gt; params;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>操作数结构中的<code>producer</code>和<code>customers</code>, 分别表示<strong>产生这个操作数的算子</strong>和<strong>使用这个操作数的算子</strong>。</p>
+<p>值得注意的是产生这个操作数的算子只能有一个，而使用这个操作数的算子可以有很多个。</p>
+<blockquote>
+<p>使用前，需要对PNNX::Operator再次封装</p>
+</blockquote>
+<p>定义了一个名为<code>RuntimeOperator</code>的结构体。结构体包含以下成员变量：</p>
+<ol>
+<li>
+<p><code>name</code>: <strong>运算符节点的名称</strong>，可以用来区分一个唯一节点，例如 <code>Conv_1</code>, <code>Conv_2</code> 等；</p>
+</li>
+<li>
+<p><code>type</code>: <strong>运算符节点的类型</strong>，例如 <code>Convolution</code>, <code>Relu</code> 等类型；</p>
+</li>
+<li>
+<p><code>layer</code>: <strong>负责完成具体计算的组件</strong>，例如在 <code>Convolution Operator</code> 中，<code>layer</code> 对输入进行卷积计算，即计算其相应的卷积值；</p>
+</li>
+<li>
+<p><code>input_operands</code> 和 <code>output_operands</code> 分别表示<strong>该运算符的输入和输出操作数</strong>。</p>
+<p>如果一个运算符(<code>RuntimeOperator</code>)的输入大小为 <code>(4, 3, 224, 224)</code>，那么在 <code>input_operands</code> 变量中，<code>datas</code> 数组的长度为 4，数组中每个元素的张量大小为 <code>(3, 224, 224)</code>；</p>
+</li>
+<li>
+<p><code>params</code> 是运算符(<code>RuntimeOperator</code>)的<strong>参数信息</strong>，包括卷积层的卷积核大小、步长等信息；</p>
+</li>
+<li>
+<p><code>attribute</code> 是运算符(<code>RuntimeOperator</code>)的<strong>权重、偏移量信息</strong>，例如 <code>Matmul</code> 层或 <code>Convolution</code> 层需要的权重数据；</p>
+</li>
+<li>
+<p>其他变量的含义可参考注释。</p>
+</li>
+</ol>
+<blockquote>
+<p>按照要求，需要将PNNX中的Operator封装到到新的RuntimeOperator</p>
+</blockquote>
+<p>具体来说，有三个方面：</p>
+<ul>
+<li>提取PNNX中的操作数Operand到RuntimeOperand</li>
+<li>提取PNNX中的权重(Attribute)到RuntimeAttribute</li>
+<li>提取PNNX中的参数(Param)到RuntimeParam（作业）</li>
+</ul>
+<blockquote>
+<p>作业代码如下</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 63
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 64
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 65
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 66
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 67
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 68
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 69
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 70
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 71
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 72
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 73
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 74
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 75
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 76
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 77
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 78
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 79
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 80
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 81
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 82
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 83
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 84
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 85
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 86
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 87
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 88
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 89
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 90
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 91
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 92
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 93
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 94
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 95
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 96
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 97
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 98
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 99
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">100
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">101
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">102
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">103
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">104
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">105
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">106
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">107
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">108
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">109
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">110
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">111
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">112
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">113
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">114
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">115
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">116
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">117
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">118
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">119
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">120
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">121
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">122
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span> <span style="color:#228b22">/// 提取PNNX中的操作数Operand到RuntimeOperand 包含（InitGraphOperatorsInput）和（InitGraphOperatorsOutput）两个函数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#228b22">/// 两个参数分别为运算符的所有输入操作数 Operand 和待初始化的 RuntimeOperator
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">void</span> RuntimeGraph::InitGraphOperatorsInput(
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> std::vector&lt;pnnx::Operand *&gt; &amp;inputs,
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> std::shared_ptr&lt;RuntimeOperator&gt; &amp;runtime_operator) {
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// 遍历所有输入的张量
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#8b008b;font-weight:bold">const</span> pnnx::Operand *input: inputs) {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> (!input) {
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">continue</span>;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> pnnx::Operator *producer = input-&gt;producer;
+</span></span><span style="display:flex;"><span>            std::shared_ptr&lt;RuntimeOperand&gt; runtime_operand =
+</span></span><span style="display:flex;"><span>                    std::make_shared&lt;RuntimeOperand&gt;();
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 搬运name和shape
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            runtime_operand-&gt;name = producer-&gt;name;
+</span></span><span style="display:flex;"><span>            runtime_operand-&gt;shapes = input-&gt;shape;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">switch</span> (input-&gt;type) {
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#b452cd">1</span>: {
+</span></span><span style="display:flex;"><span>                    <span style="color:#228b22">// 搬运类型
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                    runtime_operand-&gt;type = RuntimeDataType::kTypeFloat32;
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#b452cd">0</span>: {
+</span></span><span style="display:flex;"><span>                    runtime_operand-&gt;type = RuntimeDataType::kTypeUnknown;
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">default</span>: {
+</span></span><span style="display:flex;"><span>                    LOG(FATAL) &lt;&lt; <span style="color:#cd5555">&#34;Unknown input operand type: &#34;</span> &lt;&lt; input-&gt;type;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            runtime_operator-&gt;input_operands.insert({producer-&gt;name, runtime_operand});
+</span></span><span style="display:flex;"><span>            runtime_operator-&gt;input_operands_seq.push_back(runtime_operand);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">/// 两个参数分别为运算符的所有输出操作数 Operand 和待初始化的 RuntimeOperator
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">void</span> RuntimeGraph::InitGraphOperatorsOutput(
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> std::vector&lt;pnnx::Operand *&gt; &amp;outputs,
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> std::shared_ptr&lt;RuntimeOperator&gt; &amp;runtime_operator) {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#8b008b;font-weight:bold">const</span> pnnx::Operand *output: outputs) {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> (!output) {
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">continue</span>;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span> &amp;consumers = output-&gt;consumers;
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span> &amp;c: consumers) {
+</span></span><span style="display:flex;"><span>                runtime_operator-&gt;output_names.push_back(c-&gt;name);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">/// 提取PNNX中的参数（Param）到RuntimeParam
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">void</span> RuntimeGraph::InitGraphParams(
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> std::map&lt;std::string, pnnx::Parameter&gt; &amp;params,
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> std::shared_ptr&lt;RuntimeOperator&gt; &amp;runtime_operator) {
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// 一个名字对应一个data
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span> &amp;[name, parameter]:params) {
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">//拷贝类型
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">int</span> type = parameter.type;
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 0=null 1=b 2=i 3=f 4=s 5=ai 6=af 7=as 8=others
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">switch</span> (type) {
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#008b45">int</span>(RuntimeParameterType::kParameterUnknown): {
+</span></span><span style="display:flex;"><span>                    <span style="color:#228b22">// 创建一个空的RuntimeParameter类型的数据,因为数据为空，直接插入
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                    RuntimeParameter *runtime_parameter = <span style="color:#8b008b;font-weight:bold">new</span> RuntimeParameter;
+</span></span><span style="display:flex;"><span>                    runtime_operator-&gt;params.insert({name, runtime_parameter});
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#008b45">int</span>(RuntimeParameterType::kParameterBool): {
+</span></span><span style="display:flex;"><span>                    RuntimeParameterBool *runtime_parameter = <span style="color:#8b008b;font-weight:bold">new</span> RuntimeParameterBool;
+</span></span><span style="display:flex;"><span>                    runtime_parameter-&gt;value = parameter.b; <span style="color:#228b22">//拷贝数据
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                    runtime_operator-&gt;params.insert({name, runtime_parameter});
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#008b45">int</span>(RuntimeParameterType::kParameterInt): {
+</span></span><span style="display:flex;"><span>                    RuntimeParameterInt *runtime_parameter = <span style="color:#8b008b;font-weight:bold">new</span> RuntimeParameterInt;
+</span></span><span style="display:flex;"><span>                    runtime_parameter-&gt;value = parameter.i;
+</span></span><span style="display:flex;"><span>                    runtime_operator-&gt;params.insert({name, runtime_parameter});
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#008b45">int</span>(RuntimeParameterType::kParameterFloat): {
+</span></span><span style="display:flex;"><span>                    RuntimeParameterFloat *runtime_parameter = <span style="color:#8b008b;font-weight:bold">new</span> RuntimeParameterFloat;
+</span></span><span style="display:flex;"><span>                    runtime_parameter-&gt;value = parameter.f;
+</span></span><span style="display:flex;"><span>                    runtime_operator-&gt;params.insert({name, runtime_parameter});
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#008b45">int</span>(RuntimeParameterType::kParameterString): {
+</span></span><span style="display:flex;"><span>                    RuntimeParameterString *runtime_parameter = <span style="color:#8b008b;font-weight:bold">new</span> RuntimeParameterString;
+</span></span><span style="display:flex;"><span>                    runtime_parameter-&gt;value = parameter.s;
+</span></span><span style="display:flex;"><span>                    runtime_operator-&gt;params.insert({name, runtime_parameter});
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#008b45">int</span>(RuntimeParameterType::kParameterIntArray): {
+</span></span><span style="display:flex;"><span>                    RuntimeParameterIntArray * runtime_parameter = <span style="color:#8b008b;font-weight:bold">new</span> RuntimeParameterIntArray;
+</span></span><span style="display:flex;"><span>                    runtime_parameter-&gt;value = parameter.ai;
+</span></span><span style="display:flex;"><span>                    runtime_operator-&gt;params.insert({name, runtime_parameter});
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#008b45">int</span>(RuntimeParameterType::kParameterFloatArray): {
+</span></span><span style="display:flex;"><span>                    RuntimeParameterFloatArray *runtime_parameter = <span style="color:#8b008b;font-weight:bold">new</span> RuntimeParameterFloatArray;
+</span></span><span style="display:flex;"><span>                    runtime_parameter-&gt;value = parameter.af;
+</span></span><span style="display:flex;"><span>                    runtime_operator-&gt;params.insert({name, runtime_parameter});
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#008b45">int</span>(RuntimeParameterType::kParameterStringArray): {
+</span></span><span style="display:flex;"><span>                    RuntimeParameterStringArray *runtime_parameter = <span style="color:#8b008b;font-weight:bold">new</span> RuntimeParameterStringArray;
+</span></span><span style="display:flex;"><span>                    runtime_parameter-&gt;value = parameter.as;
+</span></span><span style="display:flex;"><span>                    runtime_operator-&gt;params.insert({name, runtime_parameter});
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">default</span>: {
+</span></span><span style="display:flex;"><span>                    LOG(FATAL) &lt;&lt; <span style="color:#cd5555">&#34;Unknown parameter type: &#34;</span> &lt;&lt; type;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="四构建计算图关系和执行顺序">四：构建计算图关系和执行顺序</h3>
+<p>深度学习模型是一个有向无环图。对于<strong>有向图结构中的节点</strong>，可以认为是深度学习模型中的<strong>计算节点（算子）</strong>，而<strong>有向图结构中的边</strong>可以认为是算子之间<strong>连接和前后依赖关系</strong>。</p>
+<p>步骤：</p>
+<ol>
+<li>计算图初始化（第三节的内容）</li>
+<li>计算图的构建</li>
+<li>计算图的顺序执行（递归方法）</li>
+</ol>
+<p>我们通常使用拓扑排序来找到一个节点序列，在序列中<strong>每个节点的前驱节点都能排在这个节点的前面</strong>。</p>
+<blockquote>
+<p>基于深度优先的拓扑排序计算步骤</p>
+</blockquote>
+<ol>
+<li>选定一个入度为零的节点(<code>current_op</code>)，入度为零指的是<strong>该节点没有前驱节点或所有前驱节点已经都被执行过</strong>，在选定的同时将该节点的已执行标记置为<code>True</code>，并将该节点传入到<code>ReverseTopo</code>函数中；</li>
+<li>遍历1步骤中节点的后继节点(<code>current_op-&gt;output_operators</code>)；</li>
+<li>如果1的某个后继节点没有被执行过（已执行标记为<code>False</code>），则递归将<strong>该后继节点</strong>传入到<code>ReverseTopo</code>函数中；</li>
+<li>第2步中的遍历结束后，我们将当前节点放入到执行队列(<code>topo_operators_</code>)中。</li>
+</ol>
+<p>计算图递归执行的程序:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> RuntimeGraph::ReverseTopo(
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> std::shared_ptr&lt;RuntimeOperator&gt; &amp;root_op) {
+</span></span><span style="display:flex;"><span>  CHECK(root_op != <span style="color:#8b008b;font-weight:bold">nullptr</span>) &lt;&lt; <span style="color:#cd5555">&#34;current operator is nullptr&#34;</span>;
+</span></span><span style="display:flex;"><span>  root_op-&gt;has_forward = <span style="color:#658b00">true</span>; <span style="color:#228b22">// 将已执行的标志设置为true
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span> &amp;next_ops = root_op-&gt;output_operators; <span style="color:#228b22">// 后继节点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span> &amp;[_, op] : next_ops) { <span style="color:#228b22">// 遍历后继节点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">if</span> (op != <span style="color:#8b008b;font-weight:bold">nullptr</span>) {
+</span></span><span style="display:flex;"><span>      <span style="color:#8b008b;font-weight:bold">if</span> (!op-&gt;has_forward) { <span style="color:#228b22">// 如果其中一个后继节点没有遍历过
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">this</span>-&gt;ReverseTopo(op); <span style="color:#228b22">// 则直接将该节点当做当前节点递归执行该程序
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span> &amp;[_, op] : next_ops) {
+</span></span><span style="display:flex;"><span>    CHECK_EQ(op-&gt;has_forward, <span style="color:#658b00">true</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">this</span>-&gt;topo_operators_.push_back(root_op); <span style="color:#228b22">// 将没有后继节点的节点放入root_op中
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>使用一个简单的计算图例子来走一下上述过程：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img97.jpg" alt=""></p>
+<p>执行队列的顺序：</p>
+<p>按照执行顺序，首先没有后继节点的是<code>op4</code>，第二个没有后继节点的为<code>output</code>。</p>
+<p>[<code>op4</code>，<code>output</code>，<code>op5</code>，<code>op3</code>，<code>op1</code>，<code>input</code>]，逆序之后，真正的执行顺序为[<code>input</code>，<code>op1</code>，<code>op3</code>，<code>op5</code>，<code>output</code>, <code>op4</code>]。</p>
+<blockquote>
+<p>模型的状态</p>
+</blockquote>
+<p><code>RuntimeGraph</code>一共有三种状态，表示同一个模型的不同状态（待初始化，待构建，构建完成）：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">enum</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">GraphState</span> {
+</span></span><span style="display:flex;"><span>  NeedInit = -<span style="color:#b452cd">2</span>;
+</span></span><span style="display:flex;"><span>  NeedBuild = -<span style="color:#b452cd">1</span>;
+</span></span><span style="display:flex;"><span>  Complete = <span style="color:#b452cd">0</span>,
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>在初始情况下</strong>模型的状态<code>graph_state_</code>为<code>NeedInit</code>，表示模型目前<strong>待初始化</strong>。因此我们不能在此刻直接调用<code>Build</code>函数中的功能，<strong>而是需要在此之前先调用模型的<code>Init</code>函数</strong>，在初始化函数(<code>Init</code>)调用成功后会将模型的状态调整为<code>NeedBuild</code>.</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scss" data-lang="scss"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">NeedInit</span> ---&gt; <span style="color:#8b008b;font-weight:bold">NeedBuild</span> ---&gt; <span style="color:#8b008b;font-weight:bold">Complete</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>构建图关系</p>
+</blockquote>
+<p>该部分代码为：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>	<span style="color:#228b22">// 构建图关系
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span> &amp;current_op : <span style="color:#8b008b;font-weight:bold">this</span>-&gt;operators_) {
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 获取当前节点的所有后继节点的names，遍历根据next_op_name从operators_maps_中插入所需要的节点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">const</span> std::vector&lt;std::string&gt; &amp;output_names = current_op-&gt;output_names;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span> &amp;kOutputName : output_names) {
+</span></span><span style="display:flex;"><span>      <span style="color:#8b008b;font-weight:bold">if</span> (<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span> &amp;output_op = <span style="color:#8b008b;font-weight:bold">this</span>-&gt;operators_maps_.find(kOutputName);
+</span></span><span style="display:flex;"><span>          output_op != <span style="color:#8b008b;font-weight:bold">this</span>-&gt;operators_maps_.end()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// output_operator 代表该节点的后继节点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        current_op-&gt;output_operators.insert({kOutputName, output_op-&gt;second});
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以看到每次都是通过节点的names，遍历根据next_op_name，然后插入该节点的后继节点。</p>
+<blockquote>
+<p>节点输出张量的初始化</p>
+</blockquote>
+<p>我们在<code>Build</code>函数中还需要<strong>完成计算节点中输出张量空间的初始化</strong>，这样是为了节省运行时申请内存需要的时间，从下图中可以看出每个节点都有一个形状不同的输出张量，用来存放该节点的计算输出。</p>
+<p><em>那为什么我们不需要对输入空间进行初始化呢？</em></p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img98.jpg" alt=""></p>
+<p><strong>主要的原因就是每个节点的输出空间和下个节点的输入是相同的，所以不需要申请额外的空间。</strong></p>
+<p>其中的函数是：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#228b22">// 第一个参数是pnnx的计算节点 ，第二个参数是RuntimeGraph的计算节点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>InitOperatorOutput(graph_-&gt;ops, operators_);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>具体代码很长，其具体过程：</p>
+<ol>
+<li>先判断PNNX和Runtime_op是否等长</li>
+<li>获得第i个计算节点中的所有输出计算数<code>operand</code>, <strong>我们需要根据这个<code>pnnx</code>计算数<code>Operand</code>中记录的<code>Shape</code>和<code>Type</code>信息来初始化我们<code>runtime_op</code>中输出数据存储的空间</strong></li>
+<li>我们输出张量的维度只支持二维的、三维以及四维的，所以需要在以上代码上做<code>check</code>.</li>
+<li>初始化结构中<strong>存放输出数据的<code>datas</code>变量</strong>，它是一个张量的数组类型，数组的长度等于该计算节点的<code>batch_size</code>大小。</li>
+<li>在循环后结束后，<strong>我们会将初始化好的<code>output_operands</code>绑定到对应的计算节点中用于保存计算节点的输出数据。</strong></li>
+</ol>
+<blockquote>
+<p>作业：使用另一种方式实现拓扑排序（不使用递归）</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> RuntimeGraph::ReverseTopo(<span style="color:#8b008b;font-weight:bold">const</span> std::shared_ptr&lt;RuntimeOperator&gt; &amp;root_op) {
+</span></span><span style="display:flex;"><span>    CHECK(root_op != <span style="color:#8b008b;font-weight:bold">nullptr</span>) &lt;&lt; <span style="color:#cd5555">&#34;current operator is nullptr&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    std::stack&lt;std::shared_ptr&lt;RuntimeOperator&gt;&gt; stack;
+</span></span><span style="display:flex;"><span>    stack.push(root_op);
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">while</span>(!stack.empty()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">auto</span> current_op = stack.top();
+</span></span><span style="display:flex;"><span>        stack.pop();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span>(!current_op-&gt;has_forward){ <span style="color:#228b22">//其中一个后继节点没有遍历过
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            current_op-&gt;has_forward = <span style="color:#658b00">true</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span>&amp; next_ops = current_op-&gt;output_operators;
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span>&amp;[_, op] : next_ops) {
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> (op != <span style="color:#8b008b;font-weight:bold">nullptr</span> &amp;&amp; !op-&gt;has_forward){
+</span></span><span style="display:flex;"><span>                    stack.push(op);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#8b008b;font-weight:bold">auto</span> &amp;[_, op] : next_ops) {
+</span></span><span style="display:flex;"><span>                CHECK_EQ(op-&gt;has_forward, <span style="color:#658b00">true</span>);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="五算子和注册工厂">五：算子和注册工厂</h3>
+<p>一个完整的计算图，包括了输入、输出节点以及计算节点等。计算节点在我们这个项目中被称之为<code>RuntimeOperator</code>, 具体的结构定义如下的代码所示：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">struct</span> <span style="color:#008b45;font-weight:bold">RuntimeOperator</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">virtual</span> ~RuntimeOperator();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#00688b;font-weight:bold">bool</span> has_forward = <span style="color:#658b00">false</span>;
+</span></span><span style="display:flex;"><span>  std::string name;      <span style="color:#228b22">/// 计算节点的名称
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  std::string type;      <span style="color:#228b22">/// 计算节点的类型
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  std::shared_ptr&lt;Layer&gt; layer;  <span style="color:#228b22">/// 节点对应的计算Layer
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    
+</span></span><span style="display:flex;"><span>  std::map&lt;std::string, std::shared_ptr&lt;RuntimeOperand&gt;&gt;
+</span></span><span style="display:flex;"><span>      input_operands;  <span style="color:#228b22">/// 节点的输入操作数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  std::shared_ptr&lt;RuntimeOperand&gt; output_operands;  <span style="color:#228b22">/// 节点的输出操作数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  std::vector&lt;std::shared_ptr&lt;RuntimeOperand&gt;&gt;
+</span></span><span style="display:flex;"><span>      input_operands_seq;  <span style="color:#228b22">/// 节点的输入操作数，顺序排列
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  std::map&lt;std::string, std::shared_ptr&lt;RuntimeOperator&gt;&gt;
+</span></span><span style="display:flex;"><span>      output_operators;  <span style="color:#228b22">/// 输出节点的名字和节点对应
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>  ...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>现在我们要实现Layer的功能，其作用其实就是进行计算，为所有算子的父类。</p>
+<p>其整体的工作流程为：通过访问<code>RuntimeOperator</code>的输入数(<code>input_operand</code>)，<code>layer</code>可以获取计算所需的输入张量数据，<strong>并根据<code>layer</code>各派生类别中定义的计算函数(<code>forward</code>)对输入张量数据进行计算</strong>。计算完成后，计算结果将存储在该节点的输出数(<code>output_operand</code>)中。</p>
+<p>流程图如下所示：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img99.jpg" alt=""></p>
+<p>各个类与方法的关系如下：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img100.jpg" alt=""></p>
+<p><code>RuntimeOperator</code>会去调用<code>Layer</code>类中的forward方法，forward方法则会去调用子方法。</p>
+<p>其中不带参数的<code>forward</code>版本的调用流程如下：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img101.jpg" alt=""></p>
+<p>这里的准备输入输出是在父类Layer中进行的！</p>
+<blockquote>
+<p>如何解决多个前置输入节点的计算问题</p>
+</blockquote>
+<p><code>input_operand_datas</code>存放了所有的输入数据，通过循环的方式将所有数据平铺放入<code>Layer类</code>中的变量<code>layer_input_data</code>中。同样的，参数<code>outputs</code>存放输出的结果，是一个预申请的空间，从Layer相关联的Runtime_Operater类中的<code>output_operand</code>作为输出数组。</p>
+<blockquote>
+<p>全局算子注册器</p>
+</blockquote>
+<p>在<code>KuiperInfer</code>中算子注册机制使用了<code>单例模式</code>和<code>工厂模式</code>。首先，在全局范围内创建一个唯一的注册表<code>registry</code>，它是一个<code>map</code>实现的。<strong>这个注册表的键是算子的类型，而值是算子的初始化过程，初始化过程的值具体是一个函数指针。</strong></p>
+<p>开发者完成一个算子的开发后，需要通过特定的注册机制将算子写入全局注册表中。需要使用某个算子时，可以根据算子的类型从全局注册表中方便地获取对应的算子。</p>
+<p>当支持的算子被添加到注册表之后，可以使用<code>registry.find(layer_type)</code>来获取特定类型算子的初始化过程，并调用该过程来获取相应算子的实例。</p>
+<ul>
+<li>算子初始化的函数都符合下面的标准：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span> <span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#008b45">ParseParameterAttrStatus</span> (*Creator)
+</span></span><span style="display:flex;"><span>      (<span style="color:#8b008b;font-weight:bold">const</span> std::shared_ptr&lt;RuntimeOperator&gt; &amp;op,std::shared_ptr&lt;Layer&gt; &amp;layer) {
+</span></span><span style="display:flex;"><span>   <span style="color:#228b22">// 实例化一个layer的空指针，由于这里是示例，没有用到op的各种信息
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>   layer = std::make_shared&lt;Layer&gt;(<span style="color:#cd5555">&#34;test_layer&#34;</span>);
+</span></span><span style="display:flex;"><span>   <span style="color:#8b008b;font-weight:bold">return</span> ParseParameterAttrStatus::kParameterAttrParseSuccess;
+</span></span><span style="display:flex;"><span> }
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><em>这个初始化函数有两个参数，op记录了算子初始化需要的各种变量（参数、权重等等），layer位一个待初始化的空指针。</em></p>
+<blockquote>
+<p>从注册器中取出算子</p>
+</blockquote>
+<p>正如上面所说，因为注册器本质上是一个map，我们可以通过<code>registry.find(layer_type)-&gt;second</code>来取出算子的初始化过程。</p>
+<blockquote>
+<p>ReLU算子的实现</p>
+</blockquote>
+<p><code>ReLU</code>的计算过程非常简单，有如下的定义:$ReLU(x)=max(x,0)$.</p>
+<p>根据公式$ReLU(x) = max(x,0)$可以看出，<code>ReLU</code>算子不会改变输入张量的大小，也就是说输入和输出张量的维度应该是相同的。因此，<strong>代码逻辑： 首先检查输入数组是否为空，然后检查输入数组和输出数组中的元素（张量）个数是否相同，如果不满足该条件，程序返回并记录相关错误日志。</strong></p>
+<blockquote>
+<p>作业：Sigmoid算子实现</p>
+</blockquote>
+<p><strong>等待实现！</strong></p>
+<h3 id="六卷积和池化算子的实现">六：卷积和池化算子的实现</h3>
+<blockquote>
+<p>池化算子实现</p>
+</blockquote>
+<p>池化算子按照类型可以分为平均池化和最大池化，池化算子需要确定的参数有步长(<code>stride height</code>)，窗口大小（<code>pooling height</code>、<code>pooling width</code>），其顺序一般是从左到右，从上到下。</p>
+<p>输入大小和输出大小之间有这样的关系：
+$$
+output\ size = floor(\frac{input\ size - pooling\ size}{stride} + 1)
+$$
+$4\times 4$的按照大小为2，stride为2的池化后，特征图的大小减小了2倍。</p>
+<p><strong>当池化中加入了Padding后，等式发生了一些改变：</strong>
+$$
+output\ size = floor(\frac{input\ size + 2 \times padding- pooling\ size}{stride} + 1)
+$$
+对于多通道的池化只是单通道池化的堆叠。</p>
+<ul>
+<li>使用最大池化举例，如何定位输出张量的具体位置，并进行赋值：</li>
+</ul>
+<ol>
+<li><code>output_data-&gt;slice(ic)</code>获取第<code>ic</code>个输出张量</li>
+<li><code>output_channel.colptr(int(c / stride_w_));</code>计算第ic个张量的输出列位置</li>
+<li><code>*(output_channel_ptr + int(r / stride_h_)) = max_value</code>，将对应位置的值使用最大值填充。</li>
+</ol>
+<blockquote>
+<p>池化算子的注册和实例化</p>
+</blockquote>
+<p><strong>MaxPoolingLayer::GetInstance</strong>：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>LayerRegistererWrapper <span style="color:#008b45">kMaxPoolingGetInstance</span>(<span style="color:#cd5555">&#34;nn.MaxPool2d&#34;</span>,
+</span></span><span style="display:flex;"><span>                                           MaxPoolingLayer::GetInstance);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>具体的实例化函数如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>ParseParameterAttrStatus MaxPoolingLayer::GetInstance(
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> std::shared_ptr&lt;RuntimeOperator&gt;&amp; op,
+</span></span><span style="display:flex;"><span>    std::shared_ptr&lt;Layer&gt;&amp; max_layer) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> std::map&lt;std::string, std::shared_ptr&lt;RuntimeParameter&gt;&gt;&amp; params =
+</span></span><span style="display:flex;"><span>      op-&gt;params;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>卷积算子的实现</p>
+</blockquote>
+<p>我们这里以二维的输入为主，此处以单通道为例：
+$$
+Y[i, j] = \sum_{m} \sum_{n} H[m, n] \cdot X[i+m, j+n]
+$$
+其中，$X$表示输入矩阵，$H$表示卷积核，$Y$表示输出矩阵，$i$和$j$表示输出矩阵中的输出像素坐标，$m$和$n$表示卷积核中的坐标，$i+m$和$j+n$用于将卷积核和输入矩阵进行对齐，分别表示输入图像中的某个元素坐标。<strong>通过这两个偏移量，我们可以确定卷积核在输入矩阵中的位置，并将其与对应位置的像素值相乘，然后求和得到输出矩阵的每个元素 $Y[i,j]$。</strong></p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img102.jpg" alt=""></p>
+<p><em>其中<code>i</code>、<code>j</code>其实代表的是卷积核的位置（左上角），而<code>m</code>和<code>n</code>代表的是卷积核内的偏移量。</em></p>
+<p>**如果输入改为多通道，最后得到一个单通道，需要如何处理？**如下图所示：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img103.jpg" alt=""></p>
+<p><em>需要注意的是，这里只有一个卷积核，画成两个是因为重复计算了(这里假设张量有两个通道)！</em></p>
+<p><strong>如果输出改成了多通道，那么卷积核的个数就要增加</strong>，如图所示：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img104.jpg" alt=""></p>
+<p>从上面的过程可以看出，二维卷积的计算如下：
+$$
+output, size = floor(\frac{input,size+ 2\times padding-kernel ,size}{stride }+1)
+$$
+<em>可以发现和池化算子的输入输出大小计算是非常相似的！</em></p>
+<blockquote>
+<p>im2col优化卷积计算</p>
+</blockquote>
+<p>其核心思想是将卷积计算转化为矩阵计算，利用现有的矩阵加速方法实现卷积运算的加速。</p>
+<p>举一个具体的例子就可以明白，其实就是将一个卷积核大小的张量进行展开成为矩阵中的一行，如图所示：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img105.jpg" alt=""></p>
+<p>如果对于多通道的输入，需要如何进行优化呢？</p>
+<p>其实很简单，就是将每个通道的矩阵进行平铺，而卷积核则进行列铺就ok了：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img106.jpg" alt=""></p>
+<p>输出张量也变为多通道，则增加卷积核的个数，也就是增加卷积核张开的张量的列数：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img107.jpg" alt=""></p>
+<blockquote>
+<p>分组卷积的实现</p>
+</blockquote>
+<p>假设<code>group</code> 的数量为2，如果输入特征图的通道数为4，共有4个卷积核。</p>
+<p>那么输入特征图的4个通道被分为2组，每组的输入通道数为2，卷积核也被分为两组，每组的卷积核个数也是2！</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img108.jpg" alt=""></p>
+<p><strong>一个红框代表一个卷积核，画两次是因为输入张量每组的通道数为2，则需要重复计算两次！上述图中有4个卷积核，分别处理channel为0，1，2，3的输入通道数！可以看到分组卷积相对普通卷积少了2倍，也就是输入张量每次需要处理的通道数减少了一半，卷积核的总数是不变的！</strong></p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img109.jpg" alt=""></p>
+<p>展开之后如上图所示，只是这里为了方便，把卷积核的展开放在了前面且变成行展开，原理是一样的。</p>
+<p>假设单输入单输出通道的卷积计算量为<code>X</code>，那么原先4输出4输出的的计算量为<code>16X</code>，分组卷积变为了$2\times 2 + 2\times 2=8$,<code>8X</code>的计算量。</p>
+<p><strong>因为我们的armadillo自身是列主序的，所以im2Col自然就变为了im2Row！</strong></p>
+<blockquote>
+<p>参数汇总</p>
+</blockquote>
+<p>那么实现上述功能的卷积，需要的参数有：</p>
+<ol>
+<li>
+<p><code>input</code>: 输入特征图像</p>
+</li>
+<li>
+<p><code>kernel_*</code>: 卷积核的大小</p>
+</li>
+<li>
+<p><code>input_*</code>: 输入特征图像的尺寸大小，也就是<code>input</code>的尺寸大小</p>
+</li>
+<li>
+<p><code>input_c_group</code>: 每个<code>group</code>处理的通道数量，<strong>如前文所叙，我们会将输入特征图的通道按照组数进行切分</strong></p>
+</li>
+<li>
+<p><code>group</code>: 当前进行<code>Im2Col</code>的组数(group)</p>
+</li>
+<li>
+<p><code>row_len</code>: $kernel_w\times kernel_h$, 也就是<strong>一个卷积窗口展开后的行长度（下图中的9）。</strong></p>
+</li>
+<li>
+<p><code>col_len</code>: 卷积滑动的次数，也就是**卷积窗口滑动的次数，或者是一个通道输入展开后的列长度*（下图中的4）。*</p>
+</li>
+</ol>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img110.jpg" alt=""></p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>  arma::fmat input_matrix(input_c_group * row_len, col_len);
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> input_padded_h = input_h + <span style="color:#b452cd">2</span> * padding_h_;
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> input_padded_w = input_w + <span style="color:#b452cd">2</span> * padding_w_;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>input_matrix</code>用于存储对输入图像展开后的矩阵, <code>input_padded_*</code>表示输入填充后的尺寸大小。为什么这里的<code>input_matrix</code>行数等于$input_c_group\times row_len$呢，我们从下方的图中可以看出，对于多输入通道的情况，它的列数等于输入通道数和卷积核相乘（<strong>因为我们是列主序的，实际执行<code>Im2Row</code>，所以行列相反</strong>），它的行数等于<code>col_len</code>（行列相反），也就是卷积窗口进行滑动的次数。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img111.jpg" alt=""></p>
+<p>接下去就将输入的卷积区域展开为矩阵，代码如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> ic = <span style="color:#b452cd">0</span>; ic &lt; input_c_group; ++ic) {
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 获取当前通道的输入
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>   <span style="color:#00688b;font-weight:bold">float</span>* input_channel_ptr =
+</span></span><span style="display:flex;"><span>       input-&gt;matrix_raw_ptr(ic + group * input_c_group);
+</span></span><span style="display:flex;"><span>   <span style="color:#00688b;font-weight:bold">uint32_t</span> current_col = <span style="color:#b452cd">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 当前通道的展开应该放在哪个行位置
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#228b22">// 因为多个通道同一位置是横向摆放的
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>   <span style="color:#00688b;font-weight:bold">uint32_t</span> channel_row = ic * row_len;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 表示在一个输入通道上进行滑动
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>   <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> w = <span style="color:#b452cd">0</span>; w &lt; input_padded_w - kernel_w + <span style="color:#b452cd">1</span>; w += stride_w_) {
+</span></span><span style="display:flex;"><span>     <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> r = <span style="color:#b452cd">0</span>; r &lt; input_padded_h - kernel_h + <span style="color:#b452cd">1</span>; r += stride_h_) {
+</span></span><span style="display:flex;"><span>       <span style="color:#00688b;font-weight:bold">float</span>* input_matrix_ptr =
+</span></span><span style="display:flex;"><span>           input_matrix.colptr(current_col) + channel_row;
+</span></span><span style="display:flex;"><span>       <span style="color:#a61717;background-color:#e3d2d2">···</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>后面就是实现矩阵内部的处理了，不再描述。</p>
+<blockquote>
+<p>卷积算子实现的流程</p>
+</blockquote>
+<ul>
+<li>
+<p>对批次数据逐个处理（按Batch Size的大小做循环）</p>
+</li>
+<li>
+<p>计算输入输出张量的尺寸、以及卷积窗口执行的次数（<code>col_len</code>）</p>
+</li>
+<li>
+<p>对group进行迭代遍历，<code>g</code>表示当前组号，<strong><code>input_c_group</code>表示每组卷积需要处理的通道数，<code>Im2Col</code>函数中会对属于该组的输入通道进行展开。</strong></p>
+</li>
+<li>
+<p>随后进行矩阵相乘的操作</p>
+</li>
+</ul>
+<blockquote>
+<p>KuiperInfer中的GEMM实现（矩阵乘法操作）</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> ConvolutionLayer::ConvGemmBias(
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> arma::fmat&amp; input_matrix, sftensor output_tensor, <span style="color:#00688b;font-weight:bold">uint32_t</span> group,
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">uint32_t</span> kernel_index, <span style="color:#00688b;font-weight:bold">uint32_t</span> kernel_count_group,
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> arma::frowvec&amp; kernel, <span style="color:#00688b;font-weight:bold">uint32_t</span> output_w, <span style="color:#00688b;font-weight:bold">uint32_t</span> output_h) <span style="color:#8b008b;font-weight:bold">const</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#a61717;background-color:#e3d2d2">···</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>传入到这个函数中的参数，依次是：</p>
+<ol>
+<li><code>input_matrix</code>: 展开后的输入特征</li>
+<li><code>output_tensor</code>: 用于存放输出的矩阵</li>
+<li><code>group</code>: 当前进行<code>Im2Col</code>的组(group)数</li>
+<li><code>kernel*</code> :用于定位当前展开后的卷积核</li>
+<li><code>output_*</code>: 输出矩阵的尺度大小</li>
+</ol>
+<p><strong>这里只需要注意是否有bias需要分情况讨论即可</strong></p>
+<blockquote>
+<p>卷积算子的实例化</p>
+</blockquote>
+<ul>
+<li>首先我们需要将Runtime_operator中的信息(<code>params</code>)拿出来</li>
+<li>加载卷积算子中的权重（<code>Attributes</code>）</li>
+<li>然后赋值给<code>Conv Layer</code>进行初始化后，注册到算子工厂</li>
+</ul>
+<p><strong>因为对于一个卷积算子来说，它的输入是不确定的，所以我们需要在运行时再调用<code>Im2Col</code>进行展开，而一个卷积算子中的权重是固定的，所以可以在初始化的时候进行展开。</strong></p>
+<blockquote>
+<p>课程作业：调试代码 + 写group不为1的单元测试并进行调试</p>
+</blockquote>
+<p><strong>等待调试！</strong></p>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2023-09-01</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="https://caixiongjiang.github.io/blog/2023/%E5%8D%8E%E4%B8%BA%E6%98%87%E8%85%BE%E9%83%A8%E7%BD%B2/%E6%98%87%E8%85%BE%E8%AE%A1%E7%AE%97%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/">
+			下回<br>昇腾计算开发环境配置
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2023/%E5%AE%9E%E4%B9%A0/m1-mac-%E5%AE%89%E8%A3%85labelimg/">
+			上回<br>M1 Mac安装LabelImg及使用
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2023 🌀Jarson Cai&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "https://twikoo-rho-olive.vercel.app/",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

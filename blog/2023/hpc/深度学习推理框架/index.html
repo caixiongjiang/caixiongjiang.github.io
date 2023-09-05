@@ -774,9 +774,9 @@ color: #515151;
                             
 
                             
-                            43 min
+                            47 min
                             
-                            51 s.
+                            35 s.
                         
                     </div>
                 </div>
@@ -1665,8 +1665,217 @@ color: #515151;
 <blockquote>
 <p>作业：Sigmoid算子实现</p>
 </blockquote>
-<p><strong>等待实现！</strong></p>
-<h3 id="六卷积和池化算子的实现">六：卷积和池化算子的实现</h3>
+<p>Sigmoid.hpp:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#1e889b">#ifndef KUIPER_DATAWHALE_SIGMOID_HPP
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#define KUIPER_DATAWHALE_SIGMOID_HPP
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&#34;layer/abstract/non_param_layer.hpp&#34;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">namespace</span> kuiper_infer{
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">SigmoidLayer</span> : <span style="color:#8b008b;font-weight:bold">public</span> NonParamLayer{
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span>:
+</span></span><span style="display:flex;"><span>    SigmoidLayer() : NonParamLayer(<span style="color:#cd5555">&#34;Sigmoid&#34;</span>){}
+</span></span><span style="display:flex;"><span>        InferStatus <span style="color:#008b45">Forward</span>(
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> std::vector&lt;std::shared_ptr&lt;Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;&gt;&gt;&amp; inputs,
+</span></span><span style="display:flex;"><span>            std::vector&lt;std::shared_ptr&lt;Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;&gt;&gt;&amp; outputs) <span style="color:#8b008b;font-weight:bold">override</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">static</span> ParseParameterAttrStatus <span style="color:#008b45">GetInstance</span>(
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> std::shared_ptr&lt;RuntimeOperator&gt;&amp; op,
+</span></span><span style="display:flex;"><span>            std::shared_ptr&lt;Layer&gt;&amp; sigmoid_layer);
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>} <span style="color:#228b22">// namespace kuiper_infer
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#1e889b">#endif </span><span style="color:#228b22">//KUIPER_DATAWHALE_SIGMOID_HPP
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Sigmoid.cpp:</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">68
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">69
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">70
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">71
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">72
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">73
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">74
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">75
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">76
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">77
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">78
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">79
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#228b22">//
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">// Created by 蔡雄江 on 2023/9/5.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">//
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>
+</span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&#34;sigmoid.hpp&#34;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#include</span> <span style="color:#1e889b">&#34;layer/abstract/layer_factory.hpp&#34;</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b"></span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">namespace</span> kuiper_infer {
+</span></span><span style="display:flex;"><span>    InferStatus SigmoidLayer::Forward(<span style="color:#8b008b;font-weight:bold">const</span> std::vector&lt;std::shared_ptr&lt;Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;&gt;&gt; &amp;inputs,
+</span></span><span style="display:flex;"><span>                                      std::vector&lt;std::shared_ptr&lt;Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;&gt;&gt; &amp;outputs) {
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">//判断输入是否为空
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">if</span> (inputs.empty()) {
+</span></span><span style="display:flex;"><span>            LOG(ERROR) &lt;&lt; <span style="color:#cd5555">&#34;The input tensor array in the sigmoid layer is empty&#34;</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">return</span> InferStatus::kInferFailedInputEmpty;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// 判断输入输出维度是否相同
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">if</span> (inputs.size() != outputs.size()) {
+</span></span><span style="display:flex;"><span>            LOG(ERROR) &lt;&lt; <span style="color:#cd5555">&#34;The input and output tensor array size of the sigmoid layer do not match&#34;</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">return</span> InferStatus::kInferFailedInputOutSizeMatchError;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> batch_size = inputs.size();
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> i = <span style="color:#b452cd">0</span>; i &lt; batch_size; ++i) {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> sftensor &amp;input_data = inputs.at(i);
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> sftensor &amp;output_data = outputs.at(i);
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 判断每一个batch是否为空
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span> (input_data == <span style="color:#8b008b;font-weight:bold">nullptr</span> || input_data-&gt;empty()) {
+</span></span><span style="display:flex;"><span>                LOG(ERROR)
+</span></span><span style="display:flex;"><span>                        &lt;&lt; <span style="color:#cd5555">&#34;The input tensor array in the sigmoid layer has an empty tensor &#34;</span>
+</span></span><span style="display:flex;"><span>                        &lt;&lt; i &lt;&lt; <span style="color:#cd5555">&#34; th&#34;</span>;
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">return</span> InferStatus::kInferFailedInputEmpty;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">//判断每一个batch的维度是否相同
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span> (output_data != <span style="color:#8b008b;font-weight:bold">nullptr</span> &amp;&amp; !output_data-&gt;empty()) {
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> (input_data-&gt;shapes() != output_data-&gt;shapes()) {
+</span></span><span style="display:flex;"><span>                    LOG(ERROR) &lt;&lt; <span style="color:#cd5555">&#34;The input and output tensor shapes of the sigmoid layer do not match &#34;</span>
+</span></span><span style="display:flex;"><span>                               &lt;&lt; i &lt;&lt; <span style="color:#cd5555">&#34; th&#34;</span>;
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">return</span> InferStatus::kInferFailedInputOutSizeMatchError;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> i = <span style="color:#b452cd">0</span>; i &lt; batch_size; ++i) {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> std::shared_ptr&lt;Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;&gt; &amp;input = inputs.at(i); <span style="color:#228b22">// 输入是保持不变的
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            CHECK(input != <span style="color:#8b008b;font-weight:bold">nullptr</span> || !input-&gt;empty())
+</span></span><span style="display:flex;"><span>                            &lt;&lt; <span style="color:#cd5555">&#34;The input tensor array in the sigmoid layer has an empty tensor &#34;</span>
+</span></span><span style="display:flex;"><span>                            &lt;&lt; i &lt;&lt; <span style="color:#cd5555">&#34; th&#34;</span>;
+</span></span><span style="display:flex;"><span>            std::shared_ptr&lt;Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;&gt; output = outputs.at(i); <span style="color:#228b22">// 输出是要改变的，所以是变量
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span> (output == <span style="color:#8b008b;font-weight:bold">nullptr</span> || output-&gt;empty()) {
+</span></span><span style="display:flex;"><span>                DLOG(ERROR) &lt;&lt; <span style="color:#cd5555">&#34;The output tensor array in the sigmoid layer has an empty tensor &#34;</span>
+</span></span><span style="display:flex;"><span>                            &lt;&lt; i &lt;&lt; <span style="color:#cd5555">&#34; th&#34;</span>;
+</span></span><span style="display:flex;"><span>                output = std::make_shared&lt;Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;&gt;(input-&gt;shapes());
+</span></span><span style="display:flex;"><span>                outputs.at(i) = output;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            CHECK(output-&gt;shapes() == input-&gt;shapes())
+</span></span><span style="display:flex;"><span>                            &lt;&lt; <span style="color:#cd5555">&#34;The input and output tensor shapes of the sigmoid layer do not match &#34;</span>
+</span></span><span style="display:flex;"><span>                            &lt;&lt; i &lt;&lt; <span style="color:#cd5555">&#34; th&#34;</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">/// Sigmoid算子的运算逻辑（取出一个张量的一个数据，进行运算）
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> j = <span style="color:#b452cd">0</span>; j &lt; input-&gt;size(); ++j) {
+</span></span><span style="display:flex;"><span>                <span style="color:#00688b;font-weight:bold">float</span> value = input-&gt;index(j);
+</span></span><span style="display:flex;"><span>                output-&gt;index(j) = <span style="color:#b452cd">1</span> / (<span style="color:#b452cd">1.f</span> + expf(-value));
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> InferStatus::kInferSuccess;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">/// 实例化函数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    ParseParameterAttrStatus SigmoidLayer::GetInstance(
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">const</span> std::shared_ptr&lt;RuntimeOperator&gt; &amp;op,
+</span></span><span style="display:flex;"><span>            std::shared_ptr&lt;Layer&gt; &amp;sigmoid_layer) {
+</span></span><span style="display:flex;"><span>        CHECK(op != <span style="color:#8b008b;font-weight:bold">nullptr</span>) &lt;&lt; <span style="color:#cd5555">&#34;Sigmoid operator is nullptr&#34;</span>;
+</span></span><span style="display:flex;"><span>        sigmoid_layer = std::make_shared&lt;SigmoidLayer&gt;();
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> ParseParameterAttrStatus::kParameterAttrParseSuccess;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">/// 使用工具类注册算子
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    LayerRegistererWrapper <span style="color:#008b45">kSigmoidGetInstance</span>(<span style="color:#cd5555">&#34;nn.Sigmoid&#34;</span>, SigmoidLayer::GetInstance);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="六卷积和池化算子的实现">六：卷积和池化算子的实现</h3>
 <blockquote>
 <p>池化算子实现</p>
 </blockquote>
@@ -1901,8 +2110,103 @@ $$
 <blockquote>
 <p>课程作业：调试代码 + 写group不为1的单元测试并进行调试</p>
 </blockquote>
-<p><strong>等待调试！</strong></p>
-
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#228b22">/// group为2的情况 （通道数和卷积核个数必须为偶数）
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>TEST(test_registry, create_layer_convforward_group) {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> batch_size = <span style="color:#b452cd">1</span>;
+</span></span><span style="display:flex;"><span>    std::vector&lt;std::shared_ptr&lt;Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;&gt;&gt; inputs(batch_size);
+</span></span><span style="display:flex;"><span>    std::vector&lt;std::shared_ptr&lt;Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;&gt;&gt; outputs(batch_size);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> in_channel = <span style="color:#b452cd">2</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> i = <span style="color:#b452cd">0</span>; i &lt; batch_size; ++i) {
+</span></span><span style="display:flex;"><span>        sftensor input = std::make_shared&lt;ftensor&gt;(in_channel, <span style="color:#b452cd">4</span>, <span style="color:#b452cd">4</span>);
+</span></span><span style="display:flex;"><span>        input-&gt;data().slice(<span style="color:#b452cd">0</span>) = arma::fmat(<span style="color:#cd5555">&#34;1,2,3,4;&#34;</span>
+</span></span><span style="display:flex;"><span>                                            <span style="color:#cd5555">&#34;5,6,7,8;&#34;</span>
+</span></span><span style="display:flex;"><span>                                            <span style="color:#cd5555">&#34;9,10,11,12;&#34;</span>
+</span></span><span style="display:flex;"><span>                                            <span style="color:#cd5555">&#34;13,14,15,16;&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        input-&gt;data().slice(<span style="color:#b452cd">1</span>) = arma::fmat(<span style="color:#cd5555">&#34;1,2,3,4;&#34;</span>
+</span></span><span style="display:flex;"><span>                                            <span style="color:#cd5555">&#34;5,6,7,8;&#34;</span>
+</span></span><span style="display:flex;"><span>                                            <span style="color:#cd5555">&#34;9,10,11,12;&#34;</span>
+</span></span><span style="display:flex;"><span>                                            <span style="color:#cd5555">&#34;13,14,15,16;&#34;</span>);
+</span></span><span style="display:flex;"><span>        inputs.at(i) = input;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> kernel_h = <span style="color:#b452cd">3</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> kernel_w = <span style="color:#b452cd">3</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> stride_h = <span style="color:#b452cd">1</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> stride_w = <span style="color:#b452cd">1</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> kernel_count = <span style="color:#b452cd">2</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">const</span> <span style="color:#00688b;font-weight:bold">uint32_t</span> group = <span style="color:#b452cd">2</span>;  <span style="color:#228b22">// 设置分组数为2
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>
+</span></span><span style="display:flex;"><span>    std::vector&lt;sftensor&gt; weights;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">uint32_t</span> i = <span style="color:#b452cd">0</span>; i &lt; kernel_count; ++i) {
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">/// channel数计算： in_channel / group  kernel的计算次数也要随着分组减少
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        sftensor kernel = std::make_shared&lt;Tensor&lt;<span style="color:#00688b;font-weight:bold">float</span>&gt;&gt;(in_channel / group, kernel_h, kernel_w);  <span style="color:#228b22">// 更新卷积核的通道数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        kernel-&gt;data().slice(<span style="color:#b452cd">0</span>) = arma::fmat(<span style="color:#cd5555">&#34;1,2,3;&#34;</span>
+</span></span><span style="display:flex;"><span>                                             <span style="color:#cd5555">&#34;3,2,1;&#34;</span>
+</span></span><span style="display:flex;"><span>                                             <span style="color:#cd5555">&#34;1,2,3;&#34;</span>);
+</span></span><span style="display:flex;"><span>        weights.push_back(kernel);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    ConvolutionLayer <span style="color:#008b45">conv_layer</span>(kernel_count, in_channel, kernel_h, kernel_w, <span style="color:#b452cd">0</span>,
+</span></span><span style="display:flex;"><span>                                <span style="color:#b452cd">0</span>, stride_h, stride_w, group, <span style="color:#658b00">false</span>);  <span style="color:#228b22">// 设置分组数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    conv_layer.set_weights(weights);
+</span></span><span style="display:flex;"><span>    conv_layer.Forward(inputs, outputs);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    outputs.at(<span style="color:#b452cd">0</span>)-&gt;Show();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
                     
                     <HR width="100%" id="EOF">
 		            <p style="color:#777;">最后修改于 2023-09-01</p>

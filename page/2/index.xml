@@ -1985,7 +1985,173 @@ $$
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;- https://caixiongjiang.github.io/blog/2023/hpc/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6/ - </description>
+&lt;/div&gt;&lt;h3 id=&#34;七表达式层的实现&#34;&gt;七：表达式层的实现&lt;/h3&gt;
+&lt;p&gt;表达式层的实现主要目的是为了&lt;code&gt;折叠计算过程&lt;/code&gt;和&lt;code&gt;消除中间变量&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;PNNX&lt;/code&gt;中的表达式是一个二元计算过程，类似：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;output_mid = input1 + input2;
+output = output_mid * input3;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;在&lt;code&gt;PNNX&lt;/code&gt;的表达式层（Expression Layer）中，提供了一种计算表达式，该表达式能够在一定程度上折叠计算过程并消除中间变量。例如，在残差结构中的add操作在&lt;code&gt;PNNX&lt;/code&gt;中就是一个表达式层。&lt;/p&gt;
+&lt;p&gt;下面是&lt;code&gt;PNNX&lt;/code&gt;中对上述过程的计算表达式表示，其中的&lt;code&gt;@0&lt;/code&gt;和&lt;code&gt;@1&lt;/code&gt;代表之前提到的计算数&lt;code&gt;RuntimeOperand&lt;/code&gt;，用于表示计算表达式中的输入节点。&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;mul(@2, add(@0, @1));
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;如果在表达式极为复杂的情况下，需要一个强大可靠的表达式解析和语法树构建功能。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;词法定义&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;词法解析的目的是将**add(@0, mul(@1, @2))**拆分为多个Token，拆分后的Token依次为：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Identifier: &lt;strong&gt;add&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Left bracket: &lt;strong&gt;(&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Input number: &lt;strong&gt;@0&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Comma: &lt;strong&gt;,&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Identifier: &lt;strong&gt;mul&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Left bracket: &lt;strong&gt;(&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Input number: &lt;strong&gt;@1&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Comma: &lt;strong&gt;,&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Input number:  &lt;strong&gt;@2&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Right bracket: &lt;strong&gt;)&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;code&gt;Token&lt;/code&gt;的类型定义如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;enum&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;TokenType&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  TokenUnknown = -&lt;span style=&#34;color:#b452cd&#34;&gt;9&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  TokenInputNumber = -&lt;span style=&#34;color:#b452cd&#34;&gt;8&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  TokenComma = -&lt;span style=&#34;color:#b452cd&#34;&gt;7&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  TokenAdd = -&lt;span style=&#34;color:#b452cd&#34;&gt;6&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  TokenMul = -&lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  TokenLeftBracket = -&lt;span style=&#34;color:#b452cd&#34;&gt;4&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  TokenRightBracket = -&lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Token的定义如下，包括以下变量：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Token类型，包括add（加法），mul（乘法），bracket（左右括号）等；&lt;/li&gt;
+&lt;li&gt;Token在原句子中的开始和结束位置，即&lt;code&gt;start_pos&lt;/code&gt;和&lt;code&gt;end_pos&lt;/code&gt;；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;对于表达式&lt;strong&gt;add(@0, mul(@1, @2))&lt;/strong&gt;，我们可以将它切分为多个Token，其中Token(add)的&lt;code&gt;start_pos&lt;/code&gt;为0，&lt;code&gt;end_pos&lt;/code&gt;为3。Token(left bracket)的&lt;code&gt;start_pos&lt;/code&gt;为3，&lt;code&gt;end_pos&lt;/code&gt;为4。Token(@0)的&lt;code&gt;start_pos&lt;/code&gt;为4，&lt;code&gt;end_pos&lt;/code&gt;为5，以此类推。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;// 词语Token
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Token&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    TokenType token_type = TokenType::TokenUnknown;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int32_t&lt;/span&gt; start_pos = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;; &lt;span style=&#34;color:#228b22&#34;&gt;// 词语开始的位置
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int32_t&lt;/span&gt; end_pos = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;;   &lt;span style=&#34;color:#228b22&#34;&gt;// 词语结束的位置
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    Token(TokenType token_type, &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int32_t&lt;/span&gt; start_pos, &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int32_t&lt;/span&gt; end_pos)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        : token_type(token_type), start_pos(start_pos), end_pos(end_pos) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;最后，在词法解析结束后，我们还需要按照它们&lt;code&gt;出现的顺序&lt;/code&gt;和&lt;code&gt;层级关系&lt;/code&gt;组成一颗语法树。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;// 语法树的节点
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;TokenNode&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int32_t&lt;/span&gt; num_index = -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    std::shared_ptr&amp;lt;TokenNode&amp;gt; left = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;nullptr&lt;/span&gt;;   &lt;span style=&#34;color:#228b22&#34;&gt;// 语法树的左节点
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    std::shared_ptr&amp;lt;TokenNode&amp;gt; right = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;nullptr&lt;/span&gt;;  &lt;span style=&#34;color:#228b22&#34;&gt;// 语法树的右节点
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    TokenNode(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int32_t&lt;/span&gt; num_index, std::shared_ptr&amp;lt;TokenNode&amp;gt; left,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;              std::shared_ptr&amp;lt;TokenNode&amp;gt; right);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    TokenNode() = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;default&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;词法解析&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;此部分可以看代码，在&lt;code&gt;course7&lt;/code&gt;中的&lt;code&gt;source/parser/parse_expression.cpp&lt;/code&gt;中。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;语法解析&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在进行语法分析时，我们可以根据词法分析得到的 &lt;code&gt;token&lt;/code&gt; 数组构建抽象语法树。抽象语法树是一个由二叉树组成的结构，每个节点都存储了操作符号或值，并通过左子节点和右子节点与其他节点连接。&lt;/p&gt;
+&lt;p&gt;对于表达式 &amp;ldquo;add (@0, @1)&amp;quot;，当 &lt;code&gt;num_index&lt;/code&gt; 等于 1 时，表示计算数为 @0；当 &lt;code&gt;num_index&lt;/code&gt; 等于 2 时，表示计算数为 @1。若 &lt;code&gt;num_index&lt;/code&gt; 为负数，则说明当前节点是一个计算节点，如 &amp;ldquo;mul&amp;rdquo; 或 &amp;ldquo;add&amp;rdquo; 等。&lt;/p&gt;
+&lt;p&gt;以下是一个简单的示例：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;     add
+    /   \
+  @0     @1
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;在这个示例中，根节点是 &amp;ldquo;add&amp;rdquo;，左子节点是 &amp;ldquo;@0&amp;rdquo;，右子节点是 &amp;ldquo;@1&amp;rdquo;。这个抽象语法树表示了一个将 &amp;ldquo;@0&amp;rdquo; 和 &amp;ldquo;@1&amp;rdquo; 进行相加的表达式。&lt;/p&gt;
+&lt;p&gt;通过将词法分析得到的 &lt;code&gt;token&lt;/code&gt; 数组解析并构建抽象语法树，我们可以进一步对表达式进行语义分析和求值等操作。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;current_token代表第一个token，必须要以下面三个类型开头（InputNumber、Add、Mul）&amp;quot;，&amp;quot;、&amp;rdquo;(&amp;quot; &amp;ldquo;)&amp;ldquo;不能为开头&lt;/li&gt;
+&lt;li&gt;current_token 为 InputNumber的情况，直接返回一个叶子节点&lt;/li&gt;
+&lt;li&gt;current_token 为 mul或者add的情况 需要进行下一层递归构建对应的左子节点和右子节点（具体规则看代码）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;流程解析&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;按照&lt;code&gt;add(@0, @1)&lt;/code&gt;的流程进行解析。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;词法解析，将&lt;code&gt;add&lt;/code&gt;、&lt;code&gt;(&lt;/code&gt;、&lt;code&gt;@0&lt;/code&gt;、&lt;code&gt;,&lt;/code&gt;、&lt;code&gt;@1&lt;/code&gt;、&lt;code&gt;)&lt;/code&gt;构建成为一个单词（Token）数组&lt;/li&gt;
+&lt;li&gt;表达式传入语法解析模块，按照语法解析的规则构建&lt;code&gt;抽象语法树&lt;/code&gt;。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;对语法树表达式的转化：逆波兰式&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;例子：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;add(@0, @1)&lt;/code&gt;，逆波兰式为：&lt;code&gt;@0, @1, add&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;做法很简单，其实就是对原有的二叉树进行后续遍历，再将括号消除即可。&lt;strong&gt;这样的计算顺序更加直观，并且再遇到计算（add、mul）时可以立即进行运算，因为需要的输入数已经准备好了。&lt;/strong&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;两个输入操作数 &amp;amp;&amp;amp; 三个输入操作数&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;两个输入操作数：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img112.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;三个输入操作数：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img113.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;表达式层的计算，其实就是用了一个经典的栈结构的计算，遇到输入数就压入栈中，遇到操作数就将前面的输入数出栈进行计算，将得到的结果再次压入栈中。循环下去，直到结束。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;课程作业：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;词法解析和语法解析支持sin(三角函数)操作&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;对于sin(@1)，单输入如何适应，保证输出结果的正确性&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;具体见&lt;code&gt;source/parser/parse_expression.cpp&lt;/code&gt;，&lt;code&gt;source/layer/details/expression.cpp&lt;/code&gt;、&lt;code&gt;include/data/tensor_util.hpp&lt;/code&gt;和&lt;code&gt;source/tensor_utils.cpp&lt;/code&gt;的修改，已经通过homework的测试以及原有的测试（保证原有功能的正确性）。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;需要特别注意的是在进行forward逻辑修改的时候，需要单独考虑sin(@1)的逻辑，不要和add，mul一起考虑。如果遇到sin就单独做一次出栈，sin之后再入栈，跳过剩下的部分，重新进行处理逻辑！&lt;/strong&gt;&lt;/p&gt;
+- https://caixiongjiang.github.io/blog/2023/hpc/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%8E%A8%E7%90%86%E6%A1%86%E6%9E%B6/ - </description>
         </item>
     
     

@@ -411,6 +411,24 @@ color: #515151;
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%b8%83%e8%a1%a8%e8%be%be%e5%bc%8f%e5%b1%82%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#七表达式层的实现-nav`)" id="七表达式层的实现-nav">
+									七：表达式层的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -676,6 +694,24 @@ color: #515151;
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%b8%83%e8%a1%a8%e8%be%be%e5%bc%8f%e5%b1%82%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#七表达式层的实现-nav`)" id="七表达式层的实现-nav">
+									七：表达式层的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -774,9 +810,9 @@ color: #515151;
                             
 
                             
-                            47 min
+                            56 min
                             
-                            35 s.
+                            44 s.
                         
                     </div>
                 </div>
@@ -2206,7 +2242,173 @@ $$
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></td></tr></table>
 </div>
+</div><h3 id="七表达式层的实现">七：表达式层的实现</h3>
+<p>表达式层的实现主要目的是为了<code>折叠计算过程</code>和<code>消除中间变量</code>。</p>
+<p><code>PNNX</code>中的表达式是一个二元计算过程，类似：</p>
+<pre tabindex="0"><code>output_mid = input1 + input2;
+output = output_mid * input3;
+</code></pre><p>在<code>PNNX</code>的表达式层（Expression Layer）中，提供了一种计算表达式，该表达式能够在一定程度上折叠计算过程并消除中间变量。例如，在残差结构中的add操作在<code>PNNX</code>中就是一个表达式层。</p>
+<p>下面是<code>PNNX</code>中对上述过程的计算表达式表示，其中的<code>@0</code>和<code>@1</code>代表之前提到的计算数<code>RuntimeOperand</code>，用于表示计算表达式中的输入节点。</p>
+<pre tabindex="0"><code>mul(@2, add(@0, @1));
+</code></pre><p>如果在表达式极为复杂的情况下，需要一个强大可靠的表达式解析和语法树构建功能。</p>
+<blockquote>
+<p>词法定义</p>
+</blockquote>
+<p>词法解析的目的是将**add(@0, mul(@1, @2))**拆分为多个Token，拆分后的Token依次为：</p>
+<ol>
+<li>Identifier: <strong>add</strong></li>
+<li>Left bracket: <strong>(</strong></li>
+<li>Input number: <strong>@0</strong></li>
+<li>Comma: <strong>,</strong></li>
+<li>Identifier: <strong>mul</strong></li>
+<li>Left bracket: <strong>(</strong></li>
+<li>Input number: <strong>@1</strong></li>
+<li>Comma: <strong>,</strong></li>
+<li>Input number:  <strong>@2</strong></li>
+<li>Right bracket: <strong>)</strong></li>
+</ol>
+<p><code>Token</code>的类型定义如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">enum</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">TokenType</span> {
+</span></span><span style="display:flex;"><span>  TokenUnknown = -<span style="color:#b452cd">9</span>,
+</span></span><span style="display:flex;"><span>  TokenInputNumber = -<span style="color:#b452cd">8</span>,
+</span></span><span style="display:flex;"><span>  TokenComma = -<span style="color:#b452cd">7</span>,
+</span></span><span style="display:flex;"><span>  TokenAdd = -<span style="color:#b452cd">6</span>,
+</span></span><span style="display:flex;"><span>  TokenMul = -<span style="color:#b452cd">5</span>,
+</span></span><span style="display:flex;"><span>  TokenLeftBracket = -<span style="color:#b452cd">4</span>,
+</span></span><span style="display:flex;"><span>  TokenRightBracket = -<span style="color:#b452cd">3</span>,
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></td></tr></table>
 </div>
+</div><p>Token的定义如下，包括以下变量：</p>
+<ol>
+<li>Token类型，包括add（加法），mul（乘法），bracket（左右括号）等；</li>
+<li>Token在原句子中的开始和结束位置，即<code>start_pos</code>和<code>end_pos</code>；</li>
+</ol>
+<p>对于表达式<strong>add(@0, mul(@1, @2))</strong>，我们可以将它切分为多个Token，其中Token(add)的<code>start_pos</code>为0，<code>end_pos</code>为3。Token(left bracket)的<code>start_pos</code>为3，<code>end_pos</code>为4。Token(@0)的<code>start_pos</code>为4，<code>end_pos</code>为5，以此类推。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#228b22">// 词语Token
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">struct</span> <span style="color:#008b45;font-weight:bold">Token</span> {
+</span></span><span style="display:flex;"><span>    TokenType token_type = TokenType::TokenUnknown;
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int32_t</span> start_pos = <span style="color:#b452cd">0</span>; <span style="color:#228b22">// 词语开始的位置
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">int32_t</span> end_pos = <span style="color:#b452cd">0</span>;   <span style="color:#228b22">// 词语结束的位置
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    Token(TokenType token_type, <span style="color:#00688b;font-weight:bold">int32_t</span> start_pos, <span style="color:#00688b;font-weight:bold">int32_t</span> end_pos)
+</span></span><span style="display:flex;"><span>        : token_type(token_type), start_pos(start_pos), end_pos(end_pos) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>最后，在词法解析结束后，我们还需要按照它们<code>出现的顺序</code>和<code>层级关系</code>组成一颗语法树。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#228b22">// 语法树的节点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">struct</span> <span style="color:#008b45;font-weight:bold">TokenNode</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int32_t</span> num_index = -<span style="color:#b452cd">1</span>;
+</span></span><span style="display:flex;"><span>    std::shared_ptr&lt;TokenNode&gt; left = <span style="color:#8b008b;font-weight:bold">nullptr</span>;   <span style="color:#228b22">// 语法树的左节点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    std::shared_ptr&lt;TokenNode&gt; right = <span style="color:#8b008b;font-weight:bold">nullptr</span>;  <span style="color:#228b22">// 语法树的右节点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    TokenNode(<span style="color:#00688b;font-weight:bold">int32_t</span> num_index, std::shared_ptr&lt;TokenNode&gt; left,
+</span></span><span style="display:flex;"><span>              std::shared_ptr&lt;TokenNode&gt; right);
+</span></span><span style="display:flex;"><span>    TokenNode() = <span style="color:#8b008b;font-weight:bold">default</span>;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>词法解析</p>
+</blockquote>
+<p>此部分可以看代码，在<code>course7</code>中的<code>source/parser/parse_expression.cpp</code>中。</p>
+<blockquote>
+<p>语法解析</p>
+</blockquote>
+<p>在进行语法分析时，我们可以根据词法分析得到的 <code>token</code> 数组构建抽象语法树。抽象语法树是一个由二叉树组成的结构，每个节点都存储了操作符号或值，并通过左子节点和右子节点与其他节点连接。</p>
+<p>对于表达式 &ldquo;add (@0, @1)&quot;，当 <code>num_index</code> 等于 1 时，表示计算数为 @0；当 <code>num_index</code> 等于 2 时，表示计算数为 @1。若 <code>num_index</code> 为负数，则说明当前节点是一个计算节点，如 &ldquo;mul&rdquo; 或 &ldquo;add&rdquo; 等。</p>
+<p>以下是一个简单的示例：</p>
+<pre tabindex="0"><code>     add
+    /   \
+  @0     @1
+</code></pre><p>在这个示例中，根节点是 &ldquo;add&rdquo;，左子节点是 &ldquo;@0&rdquo;，右子节点是 &ldquo;@1&rdquo;。这个抽象语法树表示了一个将 &ldquo;@0&rdquo; 和 &ldquo;@1&rdquo; 进行相加的表达式。</p>
+<p>通过将词法分析得到的 <code>token</code> 数组解析并构建抽象语法树，我们可以进一步对表达式进行语义分析和求值等操作。</p>
+<ul>
+<li>current_token代表第一个token，必须要以下面三个类型开头（InputNumber、Add、Mul）&quot;，&quot;、&rdquo;(&quot; &ldquo;)&ldquo;不能为开头</li>
+<li>current_token 为 InputNumber的情况，直接返回一个叶子节点</li>
+<li>current_token 为 mul或者add的情况 需要进行下一层递归构建对应的左子节点和右子节点（具体规则看代码）</li>
+</ul>
+<blockquote>
+<p>流程解析</p>
+</blockquote>
+<p>按照<code>add(@0, @1)</code>的流程进行解析。</p>
+<ol>
+<li>词法解析，将<code>add</code>、<code>(</code>、<code>@0</code>、<code>,</code>、<code>@1</code>、<code>)</code>构建成为一个单词（Token）数组</li>
+<li>表达式传入语法解析模块，按照语法解析的规则构建<code>抽象语法树</code>。</li>
+</ol>
+<blockquote>
+<p>对语法树表达式的转化：逆波兰式</p>
+</blockquote>
+<p>例子：</p>
+<p><code>add(@0, @1)</code>，逆波兰式为：<code>@0, @1, add</code></p>
+<p>做法很简单，其实就是对原有的二叉树进行后续遍历，再将括号消除即可。<strong>这样的计算顺序更加直观，并且再遇到计算（add、mul）时可以立即进行运算，因为需要的输入数已经准备好了。</strong></p>
+<blockquote>
+<p>两个输入操作数 &amp;&amp; 三个输入操作数</p>
+</blockquote>
+<ul>
+<li>两个输入操作数：</li>
+</ul>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img112.jpg" alt=""></p>
+<ul>
+<li>三个输入操作数：</li>
+</ul>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E9%AB%98%E6%80%A7%E8%83%BD%E8%AE%A1%E7%AE%97/img113.jpg" alt=""></p>
+<p>表达式层的计算，其实就是用了一个经典的栈结构的计算，遇到输入数就压入栈中，遇到操作数就将前面的输入数出栈进行计算，将得到的结果再次压入栈中。循环下去，直到结束。</p>
+<blockquote>
+<p>课程作业：</p>
+<ol>
+<li>
+<p>词法解析和语法解析支持sin(三角函数)操作</p>
+</li>
+<li>
+<p>对于sin(@1)，单输入如何适应，保证输出结果的正确性</p>
+</li>
+</ol>
+</blockquote>
+<p>具体见<code>source/parser/parse_expression.cpp</code>，<code>source/layer/details/expression.cpp</code>、<code>include/data/tensor_util.hpp</code>和<code>source/tensor_utils.cpp</code>的修改，已经通过homework的测试以及原有的测试（保证原有功能的正确性）。</p>
+<p><strong>需要特别注意的是在进行forward逻辑修改的时候，需要单独考虑sin(@1)的逻辑，不要和add，mul一起考虑。如果遇到sin就单独做一次出栈，sin之后再入栈，跳过剩下的部分，重新进行处理逻辑！</strong></p>
+
                     
                     <HR width="100%" id="EOF">
 		            <p style="color:#777;">最后修改于 2023-09-01</p>

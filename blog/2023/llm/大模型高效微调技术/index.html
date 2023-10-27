@@ -648,6 +648,52 @@ color: #515151;
 						
 						
 						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%8a%80%e6%9c%af%e5%8e%9f%e7%90%86-5" onclick="onNavClick(`#技术原理-5-nav`)" id="技术原理-5-nav">
+									技术原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e6%b3%95%e6%95%88%e6%9e%9c-5" onclick="onNavClick(`#方法效果-5-nav`)" id="方法效果-5-nav">
+									方法效果
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
 						
 							<li>
 								<a href="#p-tuning" onclick="onNavClick(`#p-tuning-nav`)" id="p-tuning-nav">
@@ -1233,6 +1279,52 @@ color: #515151;
 						
 						
 						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%8a%80%e6%9c%af%e5%8e%9f%e7%90%86-5" onclick="onNavClick(`#技术原理-5-nav`)" id="技术原理-5-nav">
+									技术原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e6%b3%95%e6%95%88%e6%9e%9c-5" onclick="onNavClick(`#方法效果-5-nav`)" id="方法效果-5-nav">
+									方法效果
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
 						
 							<li>
 								<a href="#p-tuning" onclick="onNavClick(`#p-tuning-nav`)" id="p-tuning-nav">
@@ -1414,9 +1506,9 @@ color: #515151;
                             
 
                             
-                            9 min
+                            17 min
                             
-                            9 s.
+                            59 s.
                         
                     </div>
                 </div>
@@ -1439,7 +1531,26 @@ color: #515151;
 <p><strong>Adapter通过引入额外的0.5%~5%参数可以媲美全量微调的效果，缺点是引入的参数在Transformer Block内部，在面对不同的任务时，需要保存不同的权重副本。</strong></p>
 <h3 id="adapter-fusion">Adapter Fusion</h3>
 <h4 id="技术原理-1">技术原理</h4>
+<p>论文：<strong>AdapterFusion: Non-Destructive Task Composition for Transfer Learning</strong></p>
+<p>论文链接：<a href="https://arxiv.org/pdf/2005.00247.pdf">https://arxiv.org/pdf/2005.00247.pdf</a></p>
+<p>整合多个任务的知识，传统的两个方法是按一定顺序微调（Sequential fine-tuning）或者多任务学习（multi-task learning）。前者的问题是灾难性遗忘，后者的问题是不同的任务会相互影响，也难以平衡数据集差距很大的任务，对于新添加任务，需要进行完整的联合训练，这对于大成本的任务是不可取的。</p>
+<p>作者在<code>Adapter Tuning</code>的启发下，考虑将多个任务的Adapter参数结合起来。作者提出了<code>Adapter Fusion</code>，这是一种两阶段学习方法，可以同时结合多个任务的知识。第一阶段知识提取，学习适配器的特定参数，这些参数封装了特定任务的信息；第二阶段知识组合，将所有的任务信息进行组合；按照这两步走，可以学习到多个任务中的表示，并且是非破坏性的。</p>
+<p><code>Adapter Fusion</code>根据了Adapter Tuning的优点和局限性，提出了两步训练的方法。</p>
+<ul>
+<li>第一步：该步骤有两种方法，第一种是对每个任务进行单独微调，各个任务之间互不干扰；第二种方法是对所有任务进行多任务学习，联合优化。</li>
+<li>第二步：为了避免特定任务接入的灾难性遗忘的问题。Adapter Fusion联合了第一个阶段的N个Adapter信息，新引入AdapterFusion结构的参数，目标函数也是学习针对特定任务m的AdapterFusion的参数。</li>
+</ul>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img12.jpg" alt=""></p>
+<p><strong>AdapterFusion的结构</strong>：</p>
+<p>AdapterFusion具体结构就是一个Attention，它的参数包括query，key, value的矩阵参数，在transformer的每一层都存在，它的query是transformer每个子模块的输出结果，它的key跟value则是N个任务的adapter的输出。通过AdapterFusion，模型可以为不同的任务对应的adapter分配不同的权重，聚合N个任务的信息，从而为特定任务输出更合适的结果。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img13.jpg" alt=""></p>
 <h4 id="方法效果-1">方法效果</h4>
+<p><code>ST-A</code>：单任务Adapter Tuning</p>
+<p><code>MT-A</code>：多任务Adapter Tuning 联合调优</p>
+<p><code>F.w/ST-A</code>：第一阶段使用ST-A，第二阶段使用AdapterFusion</p>
+<p><code>F.w/MT-A</code>：第一阶段使用MT-A，第二阶段使用AdapterFusion</p>
+<p>可以看到，在第一阶段的只微调分类头的部分，效果并不好，<code>ST-A</code>微调大多数任务都能达到全量微调的水准，而<code>MT-A</code>在进行联合微调的时候发生了明显的任务不平衡的问题，这说明MT-A虽然可以学习到一个通用的表征，但是由于不同任务的差异性，很难保证在所有任务上都取得最优的效果。<code>F.w/ST-A</code>是最有效的方法，在多个数据集上的平均效果达到了最佳。而<code>F.w/MT-A</code>在于第一阶段其实已经联合了多个任务的信息了，所以AdapterFusion的作用没有那么明显，同时MT-A这种多任务联合训练的方式需要投入较多的成本，并不算一种高效的参数更新方式。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img14.jpg" alt=""></p>
 <h3 id="adapter-drop">Adapter Drop</h3>
 <h4 id="技术原理-2">技术原理</h4>
 <h4 id="方法效果-2">方法效果</h4>
@@ -1458,7 +1569,7 @@ color: #515151;
 <h4 id="技术原理-4">技术原理</h4>
 <p>论文：<strong>Preﬁx-Tuning: Optimizing Continuous Prompts for Generation</strong></p>
 <p>论文链接：<a href="https://arxiv.org/pdf/2101.00190.pdf">https://arxiv.org/pdf/2101.00190.pdf</a></p>
-<p><code>Prefix Tuning</code>是一种优化前缀提示的微调方法。与前文对模型参数的微调不同，前缀微调的方法对预训练的模型没有任何改动，其目标是通过微调输入的向量参数来改变模型的生成行为。前缀被添加到输入文本的开头，并且通过调整前缀的内容和长度，可以引导模型生成符合用户意图的输出。但是直接更新前缀表示通常会对模型产生较大的负面影响，所以该方法优化了输入向量参数，即前缀的表示，以控制模型的生成结果。</p>
+<p><code>Prefix Tuning</code>是一种优化前缀提示的微调方法。与前文对模型参数的微调不同，前缀微调的方法对原本预训练的模型没有任何改动（前缀部分参数不会包含在模型里，但依旧算是模型的部分权重，只不过与原模型分离），其目标是通过微调输入的向量参数来改变模型的生成行为。前缀被添加到输入文本的开头，并且通过调整前缀的内容和长度，可以引导模型生成符合用户意图的输出。但是直接更新前缀表示通常会对模型产生较大的负面影响，所以该方法优化了输入向量参数，即前缀的表示，以控制模型的生成结果。</p>
 <p>正如下图表示，对于原有的Transformer预训练模型不需要进行改动，而是针对不同的任务训练不同的前缀提示。</p>
 <p>为了实现这个目标，文中使用了多层感知机（MLP）来将前缀与模型输入进行连接。通过训练MLP的参数，可以将前缀映射到与模型输入相同的维度，并且学习前缀和输入之间的复杂映射关系。这样还解决了前缀的长度可能与模型预期的输入长度不匹配的问题，通过使用MLP可以将前缀映射到与模型输入相同的维度。</p>
 <p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img5.jpg" alt=""></p>
@@ -1470,7 +1581,19 @@ color: #515151;
 <p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img7.jpg" alt=""></p>
 <p>论文还对不同的前缀提示长度做了消融研究，发现提示的长度越长，MLP进行转化的效果越好，当然这种增长并不是线性的，随着前缀变长，增长的幅度会越来越小。</p>
 <p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img8.jpg" alt=""></p>
+<p><strong>Prefix Tuning通过引入可训练的前缀参数和转化的MLP参数达到全量微调的效果，对原来的预训练参数没有任何改变。严格来说，它还是属于模型调优的范畴，只是这种方法不需要对不同的任务保存模型权重副本，只需要保存不同任务前缀提示和MLP转化的参数。</strong></p>
 <h3 id="prompt-tuning">Prompt Tuning</h3>
+<h4 id="技术原理-5">技术原理</h4>
+<p>论文：<strong>The Power of Scale for Parameter-Efﬁcient Prompt Tuning</strong></p>
+<p>论文链接：<a href="https://arxiv.org/pdf/2104.08691.pdf">https://arxiv.org/pdf/2104.08691.pdf</a></p>
+<p><code>Prompt Tuning</code>可以视为<code>Prefix Tuning</code>的简化版本，它给每个任务定义了自己的Prompt，然后拼接到数据上作为输入，只在输入层加入<code>prompt tokens</code>，并且不需要加入MLP来调整难以训练的问题。<code>Prompt Tuning</code>可以实现多任务混合推理，因为在模型层面并没有发生任何改变，相当于只需要根据令牌提示来指定我们想要完成的任务。与<code>Prefix Tuning</code>最大的不同是它对模型层面完全没有改变，即时调优（没有中间层前缀或特定任务的输出层）就足以与模型调优竞争。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img9.jpg" alt=""></p>
+<h4 id="方法效果-5">方法效果</h4>
+<p>与全量微调，以及模型高效调优相比，在参数量较低的情况下，<code>Prompt Tuning</code>的方法不如它们。随着模型参数的不断提升，<code>Prompt Tuning</code>能够达到全量微调的效果。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img10.jpg" alt=""></p>
+<p>此外，Prompt Tuning 还提出了 Prompt Ensembling，也就是在一个批次（Batch）里同时训练同一个任务的不同 prompt（即采用多种不同方式询问同一个问题），这样相当于训练了不同模型，比模型集成的成本小多了。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img11.jpg" alt=""></p>
+<p><strong>Prompt Tuning简化了Prefix Tuning的运行方式，并实现了多任务推理、以及多任务集成训练，在模型层面没有进行任何的改动。</strong></p>
 <h3 id="p-tuning">P-Tuning</h3>
 <h3 id="p-tuning-v2">P-Tuning v2</h3>
 <h3 id="lora">LoRA</h3>

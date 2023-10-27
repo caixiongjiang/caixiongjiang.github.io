@@ -30,7 +30,26 @@
 &lt;p&gt;&lt;strong&gt;Adapter通过引入额外的0.5%~5%参数可以媲美全量微调的效果，缺点是引入的参数在Transformer Block内部，在面对不同的任务时，需要保存不同的权重副本。&lt;/strong&gt;&lt;/p&gt;
 &lt;h3 id=&#34;adapter-fusion&#34;&gt;Adapter Fusion&lt;/h3&gt;
 &lt;h4 id=&#34;技术原理-1&#34;&gt;技术原理&lt;/h4&gt;
+&lt;p&gt;论文：&lt;strong&gt;AdapterFusion: Non-Destructive Task Composition for Transfer Learning&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;论文链接：&lt;a href=&#34;https://arxiv.org/pdf/2005.00247.pdf&#34;&gt;https://arxiv.org/pdf/2005.00247.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;整合多个任务的知识，传统的两个方法是按一定顺序微调（Sequential fine-tuning）或者多任务学习（multi-task learning）。前者的问题是灾难性遗忘，后者的问题是不同的任务会相互影响，也难以平衡数据集差距很大的任务，对于新添加任务，需要进行完整的联合训练，这对于大成本的任务是不可取的。&lt;/p&gt;
+&lt;p&gt;作者在&lt;code&gt;Adapter Tuning&lt;/code&gt;的启发下，考虑将多个任务的Adapter参数结合起来。作者提出了&lt;code&gt;Adapter Fusion&lt;/code&gt;，这是一种两阶段学习方法，可以同时结合多个任务的知识。第一阶段知识提取，学习适配器的特定参数，这些参数封装了特定任务的信息；第二阶段知识组合，将所有的任务信息进行组合；按照这两步走，可以学习到多个任务中的表示，并且是非破坏性的。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Adapter Fusion&lt;/code&gt;根据了Adapter Tuning的优点和局限性，提出了两步训练的方法。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;第一步：该步骤有两种方法，第一种是对每个任务进行单独微调，各个任务之间互不干扰；第二种方法是对所有任务进行多任务学习，联合优化。&lt;/li&gt;
+&lt;li&gt;第二步：为了避免特定任务接入的灾难性遗忘的问题。Adapter Fusion联合了第一个阶段的N个Adapter信息，新引入AdapterFusion结构的参数，目标函数也是学习针对特定任务m的AdapterFusion的参数。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img12.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;AdapterFusion的结构&lt;/strong&gt;：&lt;/p&gt;
+&lt;p&gt;AdapterFusion具体结构就是一个Attention，它的参数包括query，key, value的矩阵参数，在transformer的每一层都存在，它的query是transformer每个子模块的输出结果，它的key跟value则是N个任务的adapter的输出。通过AdapterFusion，模型可以为不同的任务对应的adapter分配不同的权重，聚合N个任务的信息，从而为特定任务输出更合适的结果。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img13.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h4 id=&#34;方法效果-1&#34;&gt;方法效果&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;ST-A&lt;/code&gt;：单任务Adapter Tuning&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;MT-A&lt;/code&gt;：多任务Adapter Tuning 联合调优&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;F.w/ST-A&lt;/code&gt;：第一阶段使用ST-A，第二阶段使用AdapterFusion&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;F.w/MT-A&lt;/code&gt;：第一阶段使用MT-A，第二阶段使用AdapterFusion&lt;/p&gt;
+&lt;p&gt;可以看到，在第一阶段的只微调分类头的部分，效果并不好，&lt;code&gt;ST-A&lt;/code&gt;微调大多数任务都能达到全量微调的水准，而&lt;code&gt;MT-A&lt;/code&gt;在进行联合微调的时候发生了明显的任务不平衡的问题，这说明MT-A虽然可以学习到一个通用的表征，但是由于不同任务的差异性，很难保证在所有任务上都取得最优的效果。&lt;code&gt;F.w/ST-A&lt;/code&gt;是最有效的方法，在多个数据集上的平均效果达到了最佳。而&lt;code&gt;F.w/MT-A&lt;/code&gt;在于第一阶段其实已经联合了多个任务的信息了，所以AdapterFusion的作用没有那么明显，同时MT-A这种多任务联合训练的方式需要投入较多的成本，并不算一种高效的参数更新方式。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img14.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;adapter-drop&#34;&gt;Adapter Drop&lt;/h3&gt;
 &lt;h4 id=&#34;技术原理-2&#34;&gt;技术原理&lt;/h4&gt;
 &lt;h4 id=&#34;方法效果-2&#34;&gt;方法效果&lt;/h4&gt;
@@ -49,7 +68,7 @@
 &lt;h4 id=&#34;技术原理-4&#34;&gt;技术原理&lt;/h4&gt;
 &lt;p&gt;论文：&lt;strong&gt;Preﬁx-Tuning: Optimizing Continuous Prompts for Generation&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;论文链接：&lt;a href=&#34;https://arxiv.org/pdf/2101.00190.pdf&#34;&gt;https://arxiv.org/pdf/2101.00190.pdf&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;Prefix Tuning&lt;/code&gt;是一种优化前缀提示的微调方法。与前文对模型参数的微调不同，前缀微调的方法对预训练的模型没有任何改动，其目标是通过微调输入的向量参数来改变模型的生成行为。前缀被添加到输入文本的开头，并且通过调整前缀的内容和长度，可以引导模型生成符合用户意图的输出。但是直接更新前缀表示通常会对模型产生较大的负面影响，所以该方法优化了输入向量参数，即前缀的表示，以控制模型的生成结果。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Prefix Tuning&lt;/code&gt;是一种优化前缀提示的微调方法。与前文对模型参数的微调不同，前缀微调的方法对原本预训练的模型没有任何改动（前缀部分参数不会包含在模型里，但依旧算是模型的部分权重，只不过与原模型分离），其目标是通过微调输入的向量参数来改变模型的生成行为。前缀被添加到输入文本的开头，并且通过调整前缀的内容和长度，可以引导模型生成符合用户意图的输出。但是直接更新前缀表示通常会对模型产生较大的负面影响，所以该方法优化了输入向量参数，即前缀的表示，以控制模型的生成结果。&lt;/p&gt;
 &lt;p&gt;正如下图表示，对于原有的Transformer预训练模型不需要进行改动，而是针对不同的任务训练不同的前缀提示。&lt;/p&gt;
 &lt;p&gt;为了实现这个目标，文中使用了多层感知机（MLP）来将前缀与模型输入进行连接。通过训练MLP的参数，可以将前缀映射到与模型输入相同的维度，并且学习前缀和输入之间的复杂映射关系。这样还解决了前缀的长度可能与模型预期的输入长度不匹配的问题，通过使用MLP可以将前缀映射到与模型输入相同的维度。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img5.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
@@ -61,7 +80,19 @@
 &lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img7.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;论文还对不同的前缀提示长度做了消融研究，发现提示的长度越长，MLP进行转化的效果越好，当然这种增长并不是线性的，随着前缀变长，增长的幅度会越来越小。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img8.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Prefix Tuning通过引入可训练的前缀参数和转化的MLP参数达到全量微调的效果，对原来的预训练参数没有任何改变。严格来说，它还是属于模型调优的范畴，只是这种方法不需要对不同的任务保存模型权重副本，只需要保存不同任务前缀提示和MLP转化的参数。&lt;/strong&gt;&lt;/p&gt;
 &lt;h3 id=&#34;prompt-tuning&#34;&gt;Prompt Tuning&lt;/h3&gt;
+&lt;h4 id=&#34;技术原理-5&#34;&gt;技术原理&lt;/h4&gt;
+&lt;p&gt;论文：&lt;strong&gt;The Power of Scale for Parameter-Efﬁcient Prompt Tuning&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;论文链接：&lt;a href=&#34;https://arxiv.org/pdf/2104.08691.pdf&#34;&gt;https://arxiv.org/pdf/2104.08691.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Prompt Tuning&lt;/code&gt;可以视为&lt;code&gt;Prefix Tuning&lt;/code&gt;的简化版本，它给每个任务定义了自己的Prompt，然后拼接到数据上作为输入，只在输入层加入&lt;code&gt;prompt tokens&lt;/code&gt;，并且不需要加入MLP来调整难以训练的问题。&lt;code&gt;Prompt Tuning&lt;/code&gt;可以实现多任务混合推理，因为在模型层面并没有发生任何改变，相当于只需要根据令牌提示来指定我们想要完成的任务。与&lt;code&gt;Prefix Tuning&lt;/code&gt;最大的不同是它对模型层面完全没有改变，即时调优（没有中间层前缀或特定任务的输出层）就足以与模型调优竞争。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img9.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;方法效果-5&#34;&gt;方法效果&lt;/h4&gt;
+&lt;p&gt;与全量微调，以及模型高效调优相比，在参数量较低的情况下，&lt;code&gt;Prompt Tuning&lt;/code&gt;的方法不如它们。随着模型参数的不断提升，&lt;code&gt;Prompt Tuning&lt;/code&gt;能够达到全量微调的效果。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img10.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;此外，Prompt Tuning 还提出了 Prompt Ensembling，也就是在一个批次（Batch）里同时训练同一个任务的不同 prompt（即采用多种不同方式询问同一个问题），这样相当于训练了不同模型，比模型集成的成本小多了。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img11.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Prompt Tuning简化了Prefix Tuning的运行方式，并实现了多任务推理、以及多任务集成训练，在模型层面没有进行任何的改动。&lt;/strong&gt;&lt;/p&gt;
 &lt;h3 id=&#34;p-tuning&#34;&gt;P-Tuning&lt;/h3&gt;
 &lt;h3 id=&#34;p-tuning-v2&#34;&gt;P-Tuning v2&lt;/h3&gt;
 &lt;h3 id=&#34;lora&#34;&gt;LoRA&lt;/h3&gt;
@@ -1347,7 +1378,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;. /usr/local/Ascend/ascend-toolkit/set_env.sh
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# driver&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#658b00&#34;&gt;export&lt;/span&gt; &lt;span style=&#34;color:#00688b&#34;&gt;LD_LIBRARY_PATH&lt;/span&gt;=/usr/local/Ascend/driver/lib64/stub:＄LD_LIBRARY_PATH 
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#658b00&#34;&gt;export&lt;/span&gt; LD_LIBRARY_PATH-/usr/local/Ascend/driver/lib64/driver:＄LD_LIBRARY_PATH
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#658b00&#34;&gt;export&lt;/span&gt; &lt;span style=&#34;color:#00688b&#34;&gt;LD_LIBRARY_PATH&lt;/span&gt;=/usr/local/Ascend/driver/lib64/driver:＄LD_LIBRARY_PATH
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;顺便记录一下我的Docker启动命令：&lt;/p&gt;

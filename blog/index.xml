@@ -17,22 +17,22 @@
 该方法设计了一个Adapter结构，嵌入Transformer结构中。针对一个Transformer Block，增加两个Adapter结构，增加都放在残差结构之前。训练时，固定住原来的预训练模型参数不变，只对Adapter结构和Layer Normal层进行微调。Adapter层是一个类似于Squeeze-and-Excitation层思想的结构，首先使用较高维度的特征投影到较低维度的特征，中间通过一个非线性层，再将低维特征重新映射回原来的高维特征。其参数量主要低维特征的维度决定。
 方法效果 对$BERT_{LARGE}$在各个任务上进行全量微调和Adapter-Tuning的结果如下，在不同的任务上，低维特征的维度m不同时效果不同。将m固定在64时，性能会略微下降。
 Adapter通过引入额外的0.5%~5%参数可以媲美全量微调的效果，缺点是引入的参数在Transformer Block内部，在面对不同的任务时，需要保存不同的权重副本。
-Adapter Fusion 技术原理 方法效果 Adapter Drop 技术原理 方法效果 BitFit 技术原理 论文：BitFit: Simple Parameter-efﬁcient Fine-tuning for Transformer-based Masked Language-models
+Adapter Fusion 技术原理 论文：AdapterFusion: Non-Destructive Task Composition for Transfer Learning
+论文链接：https://arxiv.org/pdf/2005.00247.pdf
+整合多个任务的知识，传统的两个方法是按一定顺序微调（Sequential fine-tuning）或者多任务学习（multi-task learning）。前者的问题是灾难性遗忘，后者的问题是不同的任务会相互影响，也难以平衡数据集差距很大的任务，对于新添加任务，需要进行完整的联合训练，这对于大成本的任务是不可取的。
+作者在Adapter Tuning的启发下，考虑将多个任务的Adapter参数结合起来。作者提出了Adapter Fusion，这是一种两阶段学习方法，可以同时结合多个任务的知识。第一阶段知识提取，学习适配器的特定参数，这些参数封装了特定任务的信息；第二阶段知识组合，将所有的任务信息进行组合；按照这两步走，可以学习到多个任务中的表示，并且是非破坏性的。
+Adapter Fusion根据了Adapter Tuning的优点和局限性，提出了两步训练的方法。
+第一步：该步骤有两种方法，第一种是对每个任务进行单独微调，各个任务之间互不干扰；第二种方法是对所有任务进行多任务学习，联合优化。 第二步：为了避免特定任务接入的灾难性遗忘的问题。Adapter Fusion联合了第一个阶段的N个Adapter信息，新引入AdapterFusion结构的参数，目标函数也是学习针对特定任务m的AdapterFusion的参数。 AdapterFusion的结构：
+AdapterFusion具体结构就是一个Attention，它的参数包括query，key, value的矩阵参数，在transformer的每一层都存在，它的query是transformer每个子模块的输出结果，它的key跟value则是N个任务的adapter的输出。通过AdapterFusion，模型可以为不同的任务对应的adapter分配不同的权重，聚合N个任务的信息，从而为特定任务输出更合适的结果。
+方法效果 ST-A：单任务Adapter Tuning
+MT-A：多任务Adapter Tuning 联合调优
+F.w/ST-A：第一阶段使用ST-A，第二阶段使用AdapterFusion
+F.w/MT-A：第一阶段使用MT-A，第二阶段使用AdapterFusion
+可以看到，在第一阶段的只微调分类头的部分，效果并不好，ST-A微调大多数任务都能达到全量微调的水准，而MT-A在进行联合微调的时候发生了明显的任务不平衡的问题，这说明MT-A虽然可以学习到一个通用的表征，但是由于不同任务的差异性，很难保证在所有任务上都取得最优的效果。F.w/ST-A是最有效的方法，在多个数据集上的平均效果达到了最佳。而F.w/MT-A在于第一阶段其实已经联合了多个任务的信息了，所以AdapterFusion的作用没有那么明显，同时MT-A这种多任务联合训练的方式需要投入较多的成本，并不算一种高效的参数更新方式。
+Adapter Drop 技术原理 方法效果 BitFit 技术原理 论文：BitFit: Simple Parameter-efﬁcient Fine-tuning for Transformer-based Masked Language-models
 论文链接：https://arxiv.org/pdf/2106.10199.pdf
 Bitfit是一种稀疏微调的方法，它冻结了大部分transformer-encoder参数，只更新bias参数跟特定任务的分类层参数。涉及到的bias参数有attention模块中计算query,key,value跟合并多个attention结果时涉及到的bias，MLP层中的bias，Layernormalization层的bias参数。方法的技术原理非常简单，且需要微调的参数量极小。
-方法效果 使用$BERT_{LARGE}$进行全量微调，以及一些对比的高效微调方法，在不同的任务数据集上进行了实验。可以看到仅微调bias的Bitfit方法也能达到略低于3.6%参数的Adapter和使用0.5%参数的Diff-Prune方法的水平，而需要微调的参数量只有0.08%。
-而且通过消融实验也可以看出，bias参数的变化并不是在所有结构的部分都比较大。从结果来看，计算query和FFN层的bias参数变化最为明显，只更新这一部分参数也能达到较为不错的效果。
-Bitfit只引入了0.03%~0.09%的参数，达到了较好的微调效果，其参数量比其他model tuning的方法少了将近10倍，缺点是更新bias参数依旧需要根据不同的任务保存不同模型的副本。
-Prefix Tuning 技术原理 论文：Preﬁx-Tuning: Optimizing Continuous Prompts for Generation
-论文链接：https://arxiv.org/pdf/2101.00190.pdf
-Prefix Tuning是一种优化前缀提示的微调方法。与前文对模型参数的微调不同，前缀微调的方法对预训练的模型没有任何改动，其目标是通过微调输入的向量参数来改变模型的生成行为。前缀被添加到输入文本的开头，并且通过调整前缀的内容和长度，可以引导模型生成符合用户意图的输出。但是直接更新前缀表示通常会对模型产生较大的负面影响，所以该方法优化了输入向量参数，即前缀的表示，以控制模型的生成结果。
-正如下图表示，对于原有的Transformer预训练模型不需要进行改动，而是针对不同的任务训练不同的前缀提示。
-为了实现这个目标，文中使用了多层感知机（MLP）来将前缀与模型输入进行连接。通过训练MLP的参数，可以将前缀映射到与模型输入相同的维度，并且学习前缀和输入之间的复杂映射关系。这样还解决了前缀的长度可能与模型预期的输入长度不匹配的问题，通过使用MLP可以将前缀映射到与模型输入相同的维度。
-Prefix Tuning与构造Prompt比较相似，构造Prompt是人为的，较不稳定，不同的Prompt可能会产生极大的差异。而Prefix可以视为隐藏式的Prompt，且该Prompt是可以训练的！
-方法效果 使用$GPT-2_{MEDIUM}$和$GPT-2_{LARGE}$作为基础模型进行全量微调和一些常用的高效微调方法，在不同任务上都进行了实验。可以看到在很多任务上的微调效果都很不错，引入额外的参数为0.1%，该部分参数不在模型内部。
-通过消融实验证明，在部分实验上仅仅对Embedding层添加前缀表现力不够，性能将会远不如Full Fine-Tuning，因此在每个Layer都增加了一个可训练的提示前缀，尽量逼近全量微调的效果，参数量上涨为2%。
-论文还对不同的前缀提示长度做了消融研究，发现提示的长度越长，MLP进行转化的效果越好，当然这种增长并不是线性的，随着前缀变长，增长的幅度会越来越小。
-Prompt Tuning P-Tuning P-Tuning v2 LoRA AdaLoRA QLoRA </description>
+方法效果 使用$BERT_{LARGE}$进行全量微调，以及一些对比的高效微调方法，在不同的任务数据集上进行了实验。可以看到仅微调bias的Bitfit方法也能达到略低于3.6%参数的Adapter和使用0.5%参数的Diff-Prune方法的水平，而需要微调的参数量只有0.08%。</description>
     </item>
     
     <item>

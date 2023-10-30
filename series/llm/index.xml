@@ -29,10 +29,12 @@ MT-A：多任务Adapter Tuning 联合调优
 F.w/ST-A：第一阶段使用ST-A，第二阶段使用AdapterFusion
 F.w/MT-A：第一阶段使用MT-A，第二阶段使用AdapterFusion
 可以看到，在第一阶段的只微调分类头的部分，效果并不好，ST-A微调大多数任务都能达到全量微调的水准，而MT-A在进行联合微调的时候发生了明显的任务不平衡的问题，这说明MT-A虽然可以学习到一个通用的表征，但是由于不同任务的差异性，很难保证在所有任务上都取得最优的效果。F.w/ST-A是最有效的方法，在多个数据集上的平均效果达到了最佳。而F.w/MT-A在于第一阶段其实已经联合了多个任务的信息了，所以AdapterFusion的作用没有那么明显，同时MT-A这种多任务联合训练的方式需要投入较多的成本，并不算一种高效的参数更新方式。
-Adapter Drop 技术原理 方法效果 BitFit 技术原理 论文：BitFit: Simple Parameter-efﬁcient Fine-tuning for Transformer-based Masked Language-models
-论文链接：https://arxiv.org/pdf/2106.10199.pdf
-Bitfit是一种稀疏微调的方法，它冻结了大部分transformer-encoder参数，只更新bias参数跟特定任务的分类层参数。涉及到的bias参数有attention模块中计算query,key,value跟合并多个attention结果时涉及到的bias，MLP层中的bias，Layernormalization层的bias参数。方法的技术原理非常简单，且需要微调的参数量极小。
-方法效果 使用$BERT_{LARGE}$进行全量微调，以及一些对比的高效微调方法，在不同的任务数据集上进行了实验。可以看到仅微调bias的Bitfit方法也能达到略低于3.6%参数的Adapter和使用0.5%参数的Diff-Prune方法的水平，而需要微调的参数量只有0.08%。</description>
+Adapter Drop 技术原理 论文：AdapterDrop: On the Efﬁciency of Adapters in Transformers
+论文链接：https://arxiv.org/pdf/2010.11918.pdf
+作者通过对Adapter的计算效率进行分析，发现与全量微调相比，Adapter在训练时快60%，但是在推理时慢4%-6%。
+基于此，作者提出了AdapterDrop方法缓解该问题。
+Adapter Drop 在不影响任务性能的情况下，对Adapter层进行动态删除，尽可能减少模型的参数量，提高模型在训练和特别是推理时的效率。
+实验表明，从较低的 Transformer 层中删除Adapter可以显着提高多任务设置中的推理速度。 例如，将前五个Transformer层中的Adapter丢弃，在对 8 个任务进行推理时，速度提高了 39%。并且即使有多个丢弃层，AdapterDrop 也能保持良好的结果。</description>
     </item>
     
   </channel>

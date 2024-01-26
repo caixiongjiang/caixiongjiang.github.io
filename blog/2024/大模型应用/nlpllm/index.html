@@ -684,6 +684,42 @@ color: #515151;
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a3%80%e7%b4%a2%e5%a2%9e%e5%bc%ba%e7%94%9f%e6%88%90" onclick="onNavClick(`#检索增强生成-nav`)" id="检索增强生成-nav">
+									检索增强生成
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rlhf%e8%ae%ad%e7%bb%83" onclick="onNavClick(`#rlhf训练-nav`)" id="rlhf训练-nav">
+									RLHF训练
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -1227,6 +1263,42 @@ color: #515151;
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a3%80%e7%b4%a2%e5%a2%9e%e5%bc%ba%e7%94%9f%e6%88%90" onclick="onNavClick(`#检索增强生成-nav`)" id="检索增强生成-nav">
+									检索增强生成
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rlhf%e8%ae%ad%e7%bb%83" onclick="onNavClick(`#rlhf训练-nav`)" id="rlhf训练-nav">
+									RLHF训练
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -1325,9 +1397,9 @@ color: #515151;
                             
 
                             
-                            18 min
+                            28 min
                             
-                            52 s.
+                            50 s.
                         
                     </div>
                 </div>
@@ -1398,8 +1470,38 @@ color: #515151;
 <h4 id="chatglm">ChatGLM</h4>
 <p>论文：<strong>GLM: General Language Model Pretraining with Autoregressive Blank Inﬁlling</strong></p>
 <p>链接：<a href="https://arxiv.org/pdf/2103.10360.pdf">https://arxiv.org/pdf/2103.10360.pdf</a></p>
+<p>自动编码模型（例如BERT）、自动回归模型（例如GPT）和编码器-解码器模型（例如T5）。然而，没有一个预训练框架对三个主要类别的所有任务表现最好，包括自然语言理解（NLU）、无条件生成和条件生成。</p>
+<p>GLM通过添加2D位置编码和允许任意顺序预测跨度来改进空白填充预训练，从而在NLU任务上比BERT和T5的性能提高。</p>
+<ul>
+<li>任务1：自动回归空白填充
+<ul>
+<li>mask的token方面：（1）一个句子随机抽取连续的几个token，使用一个Span盖住，再把Span随机打乱（为了充分捕捉不同Span之前见的依赖关系，使用随机跨度顺序，类似于排列语言模型）</li>
+<li>被mask的部分：（1）单向注意力（前面预测后面，带箭头）（2）不参与预测没有被mask的部分。（如下图所示）</li>
+<li>没有被mask的部分：双向注意力（前后双向预测，不带箭头）</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img40.jpg" alt=""></p>
+<ul>
+<li>2D位置编码过程</li>
+</ul>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img41.jpg" alt=""></p>
+<p>其中(a)为原始序列，被分为A和B两个序列。图(d)中表示了具体的自注意力mask。</p>
+<ul>
+<li>多任务学习：使用了Document level和Sentence level两个级别进行学习。</li>
+</ul>
 <p>论文：<strong>Glm-130b: An open bilingual pre-trained model</strong></p>
 <p>链接：<a href="https://arxiv.org/pdf/2210.02414.pdf">https://arxiv.org/pdf/2210.02414.pdf</a></p>
+<p>GLM-130b是对标GPT-3 175B参数规模大小的模型。训练100B左右规模的模型与训练10B规模模型在训练效率、稳定性和收敛性上带来了很多技术和工程上的挑战。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img42.jpg" alt=""></p>
+<p>上表是描述两个开源大模型工作和GPT-3以及PaLM使用的架构、语种、数据类型、稳定性策略、量化、推理要求等对比。</p>
+<p>可以看到，经过量化到INT4类型后，仅需要4张3090（4$\times$24）或者8张1080Ti（8$\times$12）就可以进行130B模型的推理。</p>
+<p>![](/Users/caixiongjiang/Library/Application Support/typora-user-images/image-20240125142645093.png)</p>
+<p>大体量LLM的训练，相对于10B规模的训练不同，需要大量的工程优化技术，且参数比较难以训练。控制训练过程中的梯度非常重要，这成为了模型是否训练成功的关键。</p>
+<ul>
+<li>INT4量化：研究团队根据不同架构模型的权重精度分布来表现量化对性能的影响，可以看到GLM的权重精度分布使得其直接进行量化后few shot性能几乎没有影响。</li>
+</ul>
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img43.jpg" style="zoom:50%;" />
 <h4 id="qwen">Qwen</h4>
 <p>论文：<strong>Qwen Technical Report</strong></p>
 <p>链接：<a href="https://arxiv.org/pdf/2309.16609.pdf">https://arxiv.org/pdf/2309.16609.pdf</a></p>
@@ -1415,6 +1517,17 @@ color: #515151;
 <h4 id="deepseek">DeepSeek</h4>
 <p>论文：<strong>DeepSeek LLM Scaling Open-Source Language Models with Longtermism</strong></p>
 <p>链接：<a href="https://arxiv.org/pdf/2401.02954.pdf">https://arxiv.org/pdf/2401.02954.pdf</a></p>
+<blockquote>
+<p>数据</p>
+</blockquote>
+<p>为了全面增强数据集的丰富性和多样性，将数据收集的手段的方法分为了三个阶段：数据删除、过滤和重新混合。</p>
+<blockquote>
+<p>架构</p>
+</blockquote>
+<p>DeepSeek LLM的微观设计在很大程度上遵循了LLaMA的设计，采用具有RMSNorm功能的Pre-Norm结构，并使用SwiGLU作为前馈网络的激活函数，中间层尺寸为38d模型。它还纳入了旋转嵌入用于位置编码。为了优化推理成本，67B模型使用GroupedQuery Attention，而不是传统的多头注意力。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img44.jpg" alt=""></p>
+<p>DeepSeek一共有两个版本的模型，分别是7B和67B。DeepSeek在模型训练上没有使用传统的余弦退火学习策略。而采用了多步学习率下调策略，可以看到下图是他们训练结果的区别。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img45.jpg" alt=""></p>
 <h3 id="llm训练">LLM训练</h3>
 <h4 id="common-nlu和nlg任务">Common NLU和NLG任务</h4>
 <p>NLU (Natural Language Understanding) 和 NLG (Natural Language Generation) 是自然语言处理中常见的任务类型。</p>
@@ -1467,6 +1580,239 @@ color: #515151;
 <li><strong>Selective methods</strong>: 这种方法主要是通过自由选择网络的一些层进行微调，例如调整偏置（bias）等，以及一些稀疏更新的方法，然而不受限制的非结构化稀疏性在当代硬件上很难得到很好的加速。</li>
 <li><strong>Reparametrization-based methods</strong>: 该类别方法使用了低秩矩阵分解的原理，最大限度地减少可训练的参数。</li>
 </ul>
+<h4 id="检索增强生成">检索增强生成</h4>
+<p>论文：<strong>Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</strong></p>
+<p>链接：<a href="https://proceedings.neurips.cc/paper/2020/file/6b493230205f780e1bc26945df7481e5-Paper.pdf">https://proceedings.neurips.cc/paper/2020/file/6b493230205f780e1bc26945df7481e5-Paper.pdf</a></p>
+<p>该论文针对序列到序列（seq2seq）模型的”幻觉”问题，提出了一种检索增强生成的问题。</p>
+<p>大模型通常在知识密集型任务上低于特定任务架构的性能。该文提出的RAG只要由参数存储器（参数可调整模型）和非参数存储器相结合，如下图所示。其中编码器和检索器组成了非参数存储器，而生成器（后面演变成LLM）充当参数存储器。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img39.jpg" alt=""></p>
+<p>RAG有两种训练范式：</p>
+<ul>
+<li>RAG-Sequence Model：使用序列级别的检索来增强生成模型。生成模型负责生成目标序列，检索模型负责从候选文档集中选择相关的文档或片段，组合模块将生成模型和检索模型的输出结合起来，以生成最终的结果。</li>
+<li>RAG-Token Model：将检索模型的输出直接融入到生成模型中，而不是作为上下文输入。具体而言，RAG-Token Model将检索模型的输出表示为一个可学习的标记嵌入向量，并将其与输入序列的标记嵌入向量进行拼接或加权求和。</li>
+</ul>
+<p>为了深入理解这种区别，我们将<code>BART</code>模型分别作为分词器和生成器，使用代码来解释这种区别。</p>
+<ul>
+<li>RAG-Sequence Model：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">transformers</span> <span style="color:#8b008b;font-weight:bold">import</span> RagTokenizer, RagSequenceForGeneration, RagRetriever
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 定义检索器（Retriever）</span>
+</span></span><span style="display:flex;"><span>retriever = RagRetriever.from_pretrained(<span style="color:#cd5555">&#39;facebook/dpr-ctx_encoder-single-nq-base&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 定义生成器（Generator）</span>
+</span></span><span style="display:flex;"><span>generator = RagSequenceForGeneration.from_pretrained(<span style="color:#cd5555">&#39;facebook/bart-large&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 定义分词器（Tokenizer）</span>
+</span></span><span style="display:flex;"><span>tokenizer = RagTokenizer.from_pretrained(<span style="color:#cd5555">&#39;facebook/bart-large&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 输入查询</span>
+</span></span><span style="display:flex;"><span>query = <span style="color:#cd5555">&#34;What is the capital of France?&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 输入候选文档</span>
+</span></span><span style="display:flex;"><span>documents = [
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;France is a country located in Western Europe. Its capital is Paris.&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;Paris is the capital and most populous city of France.&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;The capital city of France is Paris.&#34;</span>
+</span></span><span style="display:flex;"><span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 对查询和候选文档进行编码</span>
+</span></span><span style="display:flex;"><span>inputs = tokenizer.prepare_seq2seq_batch(
+</span></span><span style="display:flex;"><span>    queries=query,
+</span></span><span style="display:flex;"><span>    documents=documents,
+</span></span><span style="display:flex;"><span>    return_tensors=<span style="color:#cd5555">&#39;pt&#39;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 检索相关文档</span>
+</span></span><span style="display:flex;"><span>retrieved_docs = retriever(inputs[<span style="color:#cd5555">&#39;input_ids&#39;</span>], attention_mask=inputs[<span style="color:#cd5555">&#39;attention_mask&#39;</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 将检索到的文档作为上下文输入，生成结果</span>
+</span></span><span style="display:flex;"><span>generated = generator.generate(
+</span></span><span style="display:flex;"><span>    input_ids=inputs[<span style="color:#cd5555">&#39;input_ids&#39;</span>],
+</span></span><span style="display:flex;"><span>    attention_mask=inputs[<span style="color:#cd5555">&#39;attention_mask&#39;</span>],
+</span></span><span style="display:flex;"><span>    context_input_ids=retrieved_docs[<span style="color:#cd5555">&#39;context_input_ids&#39;</span>],
+</span></span><span style="display:flex;"><span>    context_attention_mask=retrieved_docs[<span style="color:#cd5555">&#39;context_attention_mask&#39;</span>],
+</span></span><span style="display:flex;"><span>    max_length=<span style="color:#b452cd">50</span>,
+</span></span><span style="display:flex;"><span>    num_return_sequences=<span style="color:#b452cd">1</span>,
+</span></span><span style="display:flex;"><span>    num_beams=<span style="color:#b452cd">4</span>,
+</span></span><span style="display:flex;"><span>    no_repeat_ngram_size=<span style="color:#b452cd">2</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 解码生成的结果</span>
+</span></span><span style="display:flex;"><span>result = tokenizer.batch_decode(generated, skip_special_tokens=<span style="color:#8b008b;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(result)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>RAG-Token Model：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">transformers</span> <span style="color:#8b008b;font-weight:bold">import</span> RagTokenizer, RagTokenForGeneration, RagRetriever
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 定义检索器（Retriever）</span>
+</span></span><span style="display:flex;"><span>retriever = RagRetriever.from_pretrained(<span style="color:#cd5555">&#39;facebook/dpr-ctx_encoder-single-nq-base&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 定义生成器（Generator）</span>
+</span></span><span style="display:flex;"><span>generator = RagTokenForGeneration.from_pretrained(<span style="color:#cd5555">&#39;facebook/bart-large&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 定义分词器（Tokenizer）</span>
+</span></span><span style="display:flex;"><span>tokenizer = RagTokenizer.from_pretrained(<span style="color:#cd5555">&#39;facebook/bart-large&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 输入查询</span>
+</span></span><span style="display:flex;"><span>query = <span style="color:#cd5555">&#34;What is the capital of France?&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 输入候选文档</span>
+</span></span><span style="display:flex;"><span>documents = [
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;France is a country located in Western Europe. Its capital is Paris.&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;Paris is the capital and most populous city of France.&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;The capital city of France is Paris.&#34;</span>
+</span></span><span style="display:flex;"><span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 对查询和候选文档进行编码</span>
+</span></span><span style="display:flex;"><span>inputs = tokenizer.prepare_seq2seq_batch(
+</span></span><span style="display:flex;"><span>    queries=query,
+</span></span><span style="display:flex;"><span>    documents=documents,
+</span></span><span style="display:flex;"><span>    return_tensors=<span style="color:#cd5555">&#39;pt&#39;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 检索相关文档</span>
+</span></span><span style="display:flex;"><span>retrieved_docs = retriever(inputs[<span style="color:#cd5555">&#39;input_ids&#39;</span>], attention_mask=inputs[<span style="color:#cd5555">&#39;attention_mask&#39;</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 将检索到的文档表示为嵌入向量</span>
+</span></span><span style="display:flex;"><span>context_embeddings = retrieved_docs[<span style="color:#cd5555">&#39;retrieved_doc_embeds&#39;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 将检索结果与输入序列的标记嵌入向量进行拼接</span>
+</span></span><span style="display:flex;"><span>input_ids = inputs[<span style="color:#cd5555">&#39;input_ids&#39;</span>]
+</span></span><span style="display:flex;"><span>attention_mask = inputs[<span style="color:#cd5555">&#39;attention_mask&#39;</span>]
+</span></span><span style="display:flex;"><span>expanded_input_ids = torch.cat([input_ids, context_embeddings], dim=-<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>expanded_attention_mask = torch.cat([attention_mask, torch.ones_like(context_embeddings)], dim=-<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 生成结果</span>
+</span></span><span style="display:flex;"><span>generated = generator.generate(
+</span></span><span style="display:flex;"><span>    input_ids=expanded_input_ids,
+</span></span><span style="display:flex;"><span>    attention_mask=expanded_attention_mask,
+</span></span><span style="display:flex;"><span>    max_length=<span style="color:#b452cd">50</span>,
+</span></span><span style="display:flex;"><span>    num_return_sequences=<span style="color:#b452cd">1</span>,
+</span></span><span style="display:flex;"><span>    num_beams=<span style="color:#b452cd">4</span>,
+</span></span><span style="display:flex;"><span>    no_repeat_ngram_size=<span style="color:#b452cd">2</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 解码生成的结果</span>
+</span></span><span style="display:flex;"><span>result = tokenizer.batch_decode(generated, skip_special_tokens=<span style="color:#8b008b;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(result)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="rlhf训练">RLHF训练</h4>
 
                     
                     <HR width="100%" id="EOF">

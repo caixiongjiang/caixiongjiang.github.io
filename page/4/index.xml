@@ -5,9 +5,139 @@
     <description>Recent content on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 06 May 2024 18:18:05 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 23 Jun 2024 18:18:05 +0800</lastBuildDate>
     
         <atom:link href="https://caixiongjiang.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+        <item>
+        <title>TensorRT动态Batch和动态宽高的实现</title>
+        <link>https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/%E5%8A%A8%E6%80%81batch%E5%92%8C%E5%AE%BD%E9%AB%98/</link>
+        <pubDate>Tue, 16 May 2023 18:18:05 +0800</pubDate>
+        
+        <guid>https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/%E5%8A%A8%E6%80%81batch%E5%92%8C%E5%AE%BD%E9%AB%98/</guid>
+        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/%E5%8A%A8%E6%80%81batch%E5%92%8C%E5%AE%BD%E9%AB%98/ -&lt;h3 id=&#34;tensorrt之动态batch和动态宽高&#34;&gt;TensorRT之动态Batch和动态宽高&lt;/h3&gt;
+&lt;h4 id=&#34;动态batch&#34;&gt;动态Batch&lt;/h4&gt;
+&lt;p&gt;该特性的需求主要源于&lt;code&gt;TensorRT&lt;/code&gt;编译时对batch的处理，若静态batch则意味着无论你有多少图，都按照固定大小batch推理。耗时是固定的。&lt;/p&gt;
+&lt;p&gt;实现动态Batch的注意点：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;1.onnx导出模型是，注意view操作不能固定batch维度数值，通常写-1。
+2.onnx导出模型是，通常可以指定&lt;code&gt;dynamic_axes&lt;/code&gt;（通常用于指定动态维度），实际上不指定也没关系。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;动态宽高&#34;&gt;动态宽高&lt;/h4&gt;
+&lt;p&gt;该特性需求来自&lt;code&gt;onnx&lt;/code&gt;导出时指定的宽高是固定的，&lt;code&gt;TensorRT&lt;/code&gt;编译时也需要固定大小引擎，若你想得到另外一个不同大小的&lt;code&gt;TensorRT&lt;/code&gt;引擎（一个eng模型只能支持一个输入分辨率）时，就需要动态宽高的存在。而直接使用&lt;code&gt;TensorRT&lt;/code&gt;的动态宽高（一个eng模型能支持不同输入分辨率的推理）会带来不必要的复杂度，所以使用中间方案：在编译时修改&lt;code&gt;onnx&lt;/code&gt;输入实现相对动态（一个onnx模型，修改参数可以得到不同输入分辨率大小的eng模型），避免重回&lt;code&gt;Pytorch&lt;/code&gt;再做导出。&lt;/p&gt;
+&lt;p&gt;实现动态宽高的注意点：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;1.不建议使用&lt;code&gt;dynamic_axes&lt;/code&gt;指定Batch以外的维度为动态，这样带来的复杂度太高，并且存在有的layer不支持。
+2.如果&lt;code&gt;onnx&lt;/code&gt;文件已经导出，但是输入的shape固定了，此时希望修改&lt;code&gt;onnx&lt;/code&gt;的输入shape：
+   步骤一：使用&lt;code&gt;TRT::compile&lt;/code&gt;函数的&lt;code&gt;inputsDimsSetup&lt;/code&gt;参数重新定义输入的shape。
+   步骤二：使用&lt;code&gt;TRT::set_layer_hook_reshape&lt;/code&gt;钩子动态修改reshape的参数实现适配。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;动态Batch demo：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; max_batch_size = &lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;/** 模型编译，onnx到trtmodel **/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;TRT::compile(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    TRT::Model::FP32,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    max_batch_size,               &lt;span style=&#34;color:#228b22&#34;&gt;//最大batch size
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;model_name.onnx&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;model_name.fp32.trtmodel&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;/** 加载编译好的引擎 **/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;auto&lt;/span&gt; infer = TRT::load_infer(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;model_name.fp32.trtmodel&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;/** 设置输入的值 **/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;/** 修改input的0维度为1，最大可以是5 **/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;infer-&amp;gt;input(&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;)-&amp;gt;resize_single_dim(&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;infer-&amp;gt;input(&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;)-&amp;gt;set_to(&lt;span style=&#34;color:#b452cd&#34;&gt;1.0f&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;/** 引擎进行推理 **/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;infer-&amp;gt;forward();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;/** 取出引擎的输出并打印 **/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;auto&lt;/span&gt; out = infer-&amp;gt;output(&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;INFO(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;out.shape = %s&amp;#34;&lt;/span&gt;, out-&amp;gt;shape_string());
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;动态宽高 demo：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;/** 这里的动态宽高是相对的，仅仅调整onnx输入大小为目的 **/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;model_name&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;//钩子函数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    TRT::set_layer_hook_reshape([](&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;const&lt;/span&gt; string&amp;amp; name, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;const&lt;/span&gt; vector&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int64_t&lt;/span&gt;&amp;gt;&amp;amp; shape)-&amp;gt;vector&amp;lt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int64_t&lt;/span&gt;&amp;gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        INFO(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;name: %s, shape: %s&amp;#34;&lt;/span&gt;, name.c_str(), iLogger::join_dims(shape).c_str());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; {-&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;25&lt;/span&gt;}; &lt;span style=&#34;color:#228b22&#34;&gt;//25代表5*5的宽高，-1代表的是Batch的维度
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    });
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/** 模型编译 **/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    TRT::compile(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        TRT::Model::FP32,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;model_name.onnx&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;model_name.fp32.trtmodel&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        {{&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;, &lt;span style=&#34;color:#b452cd&#34;&gt;5&lt;/span&gt;}}             &lt;span style=&#34;color:#228b22&#34;&gt;//对输入的重定义
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    );
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;auto&lt;/span&gt; infer = TRT::load_infer(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;model_name.fp32.trtmodel&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;auto&lt;/span&gt; model = infer-&amp;gt;output(&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    INFO(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;out.shape = %s&amp;#34;&lt;/span&gt;, out-&amp;gt;shape_string());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} 
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;- https://caixiongjiang.github.io/blog/2023/tensorrt%E9%83%A8%E7%BD%B2/%E5%8A%A8%E6%80%81batch%E5%92%8C%E5%AE%BD%E9%AB%98/ - </description>
+        </item>
     
     
     
@@ -5592,88 +5722,6 @@ $$L = L_{gt} + \lambda_1L_{kd} + \lambda_2L_{nfd}$$
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;- https://caixiongjiang.github.io/blog/2022/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E7%9A%84%E8%BE%B9%E8%A7%92%E6%96%99%E7%9F%A5%E8%AF%86/ - </description>
-        </item>
-    
-    
-    
-        <item>
-        <title>图像分割入门</title>
-        <link>https://caixiongjiang.github.io/blog/2022/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2/</link>
-        <pubDate>Wed, 10 Aug 2022 18:18:05 +0800</pubDate>
-        
-        <guid>https://caixiongjiang.github.io/blog/2022/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2/</guid>
-        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2/ -&lt;h3 id=&#34;图像分割&#34;&gt;图像分割&lt;/h3&gt;
-&lt;h4 id=&#34;图像分割的分类&#34;&gt;图像分割的分类&lt;/h4&gt;
-&lt;ul&gt;
-&lt;li&gt;语义分割：可以将图片中不同类别的事物用不同的颜色分割出来，同一类的食物使用相同的颜色填充。&lt;/li&gt;
-&lt;li&gt;实例分割：在语义分割的基础上将同一类别的不同个体分割出来，使用不同的颜色填充。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h4 id=&#34;语义分割如何做&#34;&gt;语义分割如何做？&lt;/h4&gt;
-&lt;p&gt;语义分割是对图像中的每一个像素做语义判断，对逐个像素进行分类。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;损失函数（c分类）：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;$$
-loss=-\sum_{i=1}^c(w_cy\log(\hat{y}))\quad y代表真实值，\hat{y}代表预测值\
-w_c=\frac{N-N_c}{N}\quad N代表总的像素个数，N_c代表类别为c的像素个数
-$$&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Focal loss：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Focal loss用来解决难易不同的样本。在损失函数的基础上加入难易程度的奖励，识别准确率越高越容易，权重越低；识别准确率越低越难，权重越高。
-$$
-loss=-\sum_{i=1}^c(1-\hat{y})^{\gamma}y\log(\hat{y})\quad \gamma值一般取2
-$$
-再将之前的样本比例权值$w_c$加上之后，损失函数为
-$$
-loss=-\sum_{i=1}^cw_c(1-\hat{y})^{\gamma}y\log(\hat{y})\quad
-$$&lt;/p&gt;
-&lt;h4 id=&#34;iou计算&#34;&gt;IOU计算&lt;/h4&gt;
-&lt;ul&gt;
-&lt;li&gt;在多分类任务时：&lt;code&gt;iou_dog = 正确预测为狗的数量/（真实的狗的数量 + 预测为狗的数量 - 正确预测为狗的数量）&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;在语义分割时：假设真实的图片标签为A，预测的图片为B，那么计算的公式：&lt;code&gt;A和B的交集/A和B的并集&lt;/code&gt;。在多类别时，这个指标会变成&lt;code&gt;MIOU&lt;/code&gt;：计算所有类别的平均值。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;u-net系列&#34;&gt;U-net系列&lt;/h3&gt;
-&lt;h4 id=&#34;u-net&#34;&gt;U-net&lt;/h4&gt;
-&lt;p&gt;U-net是一个典型的&lt;code&gt;编码器解码器&lt;/code&gt;结构，编码器阶段进行特征提取和下采样（卷积和池化），解码器阶段进行上采样（插值）和特征拼接。模型结构如下：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img62.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;缺点：进行特征拼接的时候，浅层特征离得比较远，上层拼接效果不佳。&lt;/p&gt;
-&lt;h4 id=&#34;u-net-1&#34;&gt;U-net++&lt;/h4&gt;
-&lt;p&gt;首先看一下网络结构：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://production-media.paperswithcode.com/methods/unet_CKUFAmj.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;特点：在U-net的基础上，把能拼凑的特征全部都用上了。拼接的方式如上图，所有相邻的特征进行拼接。中间连线的部分是因为这部分的图像大小和输出图像大小一致，通过$1\times1$卷积将他们都作为预测的损失函数（也就是经常说的多输出）。&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;U-net++的优点：&lt;/p&gt;
-&lt;p&gt;可以更容易剪枝：比如我做到L4层的效果就很好，就可以将不需要的L5的上采样过程给去掉。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;h4 id=&#34;u-net-2&#34;&gt;U-net+++&lt;/h4&gt;
-&lt;p&gt;直接看结构，也是在特征融合上下功夫：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img63.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;deeplab系列&#34;&gt;DeepLab系列&lt;/h3&gt;
-&lt;h4 id=&#34;感受野&#34;&gt;感受野&lt;/h4&gt;
-&lt;p&gt;假设一个$7\times7$的图片，通过2次$3\times3$的卷积操作，得到一个像素，那么这个像素的感受野就是$7\times7$的。那么感受野的概念其实就类似于当前计算出像素的值和前面原始图像的49个像素都有关。一个像素的感受野越大，那么它提取处的特征信息可能更加准确。&lt;/p&gt;
-&lt;h4 id=&#34;空洞卷积&#34;&gt;空洞卷积&lt;/h4&gt;
-&lt;p&gt;为了增大感受野，我们通常的做法会采用下采样（也就是池化层），但是池化层有一个缺点是它会丢失一部分信息。&lt;/p&gt;
-&lt;p&gt;空洞卷积的提出为增大感受野提供了一种新的方法，空洞卷积的做法如下图：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img58.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;空洞卷积的优势：&lt;/p&gt;
-&lt;p&gt;1.图像分割任务中需要较大的感受野来完成更好的任务&lt;/p&gt;
-&lt;p&gt;2.在Pytorch代码中之需要改变一个参数就可以了&lt;/p&gt;
-&lt;p&gt;3.扩大感受野时，参数的多少不不变的，计算代价没有变化&lt;/p&gt;
-&lt;h4 id=&#34;spp层的作用&#34;&gt;SPP层的作用&lt;/h4&gt;
-&lt;p&gt;为了使卷积网络模型满足不同分辨率的要求，我们通常会使用&lt;code&gt;spatial pyramid pooling layer&lt;/code&gt;达到这种效果。&lt;/p&gt;
-&lt;p&gt;在卷积网络中，卷积层通常不会对输入图像的分辨率由要求，但是在全连接层，会限制你图像输入的大小。&lt;code&gt;SPP-Layer&lt;/code&gt; 的结构如下图：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img59.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;不管输入的图像大小是多少，该层都把你分别16等分、4等分、分成1份，分别进行池化，再进行特征拼接。无论你的输入大小是多大，得到的结果都是一样的，这样就保障了我们的输出特征是固定的。&lt;/em&gt;&lt;/p&gt;
-&lt;h4 id=&#34;aspp特征融合策略&#34;&gt;ASPP特征融合策略&lt;/h4&gt;
-&lt;p&gt;&lt;code&gt;ASPP&lt;/code&gt;其实是在&lt;code&gt;SPP&lt;/code&gt;的策略基础上加入了不同倍率的空洞卷积。&lt;/p&gt;
-&lt;p&gt;其主要结构如下：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img60.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h4 id=&#34;deeplabv3&#34;&gt;DeepLabV3+&lt;/h4&gt;
-&lt;p&gt;先看网络结构：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/deep-learning%26computer-vision/img61.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;可以看到在特征融合层ASPP之前，有一个深度卷积网络（DCNN），这里一般选用市场上效果比较好的特征提取网络。整个网络是一种编码器和解码器的结构，解码器通过DCNN中提取的浅层特征（局部特征）和经过上采样的融合特征（考虑全局的特征）做拼接，再经过一次卷积核一次上采样（插值法）得到输出结果。注意：特征融合层采用不同倍率的空洞卷积来完成。&lt;/em&gt;&lt;/p&gt;
-- https://caixiongjiang.github.io/blog/2022/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2/ - </description>
         </item>
     
     

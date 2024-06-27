@@ -5,9 +5,312 @@
     <description>Recent content on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 23 Jun 2024 18:18:05 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 24 Jun 2024 18:18:05 +0800</lastBuildDate>
     
         <atom:link href="https://caixiongjiang.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+        <item>
+        <title>算能（Sophon）sdk部署：以SE5为例</title>
+        <link>https://caixiongjiang.github.io/blog/2023/%E5%9B%BD%E4%BA%A7sdk%E9%83%A8%E7%BD%B2/%E7%AE%97%E8%83%BDsdk%E9%83%A8%E7%BD%B2/</link>
+        <pubDate>Wed, 06 Sep 2023 18:18:05 +0800</pubDate>
+        
+        <guid>https://caixiongjiang.github.io/blog/2023/%E5%9B%BD%E4%BA%A7sdk%E9%83%A8%E7%BD%B2/%E7%AE%97%E8%83%BDsdk%E9%83%A8%E7%BD%B2/</guid>
+        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2023/%E5%9B%BD%E4%BA%A7sdk%E9%83%A8%E7%BD%B2/%E7%AE%97%E8%83%BDsdk%E9%83%A8%E7%BD%B2/ -&lt;h2 id=&#34;sophon算能se5-sdk部署&#34;&gt;Sophon（算能）：SE5 SDK部署&lt;/h2&gt;
+&lt;p&gt;算能官方提供的开发者文档：&lt;a href=&#34;https://doc.sophgo.com/sdk-docs/v23.05.01/docs_latest_release/docs/SophonSDK_doc/zh/html/index.html&#34;&gt;https://doc.sophgo.com/sdk-docs/v23.05.01/docs_latest_release/docs/SophonSDK_doc/zh/html/index.html&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;设备信息&#34;&gt;设备信息&lt;/h3&gt;
+&lt;p&gt;目前拿到的盒子型号为&lt;code&gt;SE5&lt;/code&gt;，主要参数如下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;4GB A53（cpu）专用&lt;/li&gt;
+&lt;li&gt;4GB TPU（张量处理器）专用(BM)&lt;/li&gt;
+&lt;li&gt;4GB VPU（编解码）专用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;盒子与加速卡不同，其走的Soc模式，其&lt;code&gt;Host Memory&lt;/code&gt;代表芯片主控上的内存，而&lt;code&gt;Device Memory&lt;/code&gt;则是代表划分给&lt;code&gt;TPU/VPU&lt;/code&gt;的内存。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;算力信息&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;AI算力：INT8为&lt;code&gt;17.6 TOPS&lt;/code&gt;，FP32为&lt;code&gt;2.2 TFLOPs&lt;/code&gt;。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;支持的视频解码能力：&lt;code&gt;H.264 &amp;amp; H.265: 1080P @960fps&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;支持的视频解码分辨率：&lt;code&gt;8192 * 8192 / 8K / 4K / 1080P / 720P / D1 / CIF&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;支持的视频编码能力： &lt;code&gt;H.264 &amp;amp; H.265: 1080P @50fps&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;视频编码分辨率：&lt;code&gt;4K / 1080P / 720P / D1 / CIF&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;图片解码能力：&lt;code&gt;JPEG:480张/秒 @1080P&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;环境配置soc&#34;&gt;环境配置（Soc）&lt;/h3&gt;
+&lt;p&gt;tpu-nntc环境供用户在x86主机上进行模型的编译量化，提供了libsophon环境供用户进行应用的开发部署。PCIe用户可以基于tpu-nntc和libsophon完成模型的编译量化与应用的开发部署； &lt;strong&gt;SoC用户可以在x86主机上基于tpu-nntc和libsophon完成模型的编译量化与程序的交叉编译，部署时将编译好的程序拷贝至SoC平台（SE微服务器/SM模组）中执行。&lt;/strong&gt;&lt;/p&gt;
+&lt;h4 id=&#34;开发环境配置&#34;&gt;开发环境配置&lt;/h4&gt;
+&lt;p&gt;因为最后运行的环境为&lt;code&gt;soc&lt;/code&gt;平台，以及需要完成对摄像头的拉流、模型推理。开发平台需要的开发环境为交叉编译环境。需要先在&lt;code&gt;x86_64&lt;/code&gt;架构上的主机配置交叉编译环境。&lt;/p&gt;
+&lt;p&gt;环境要求：Linux系统（Ubuntu）、x86_64架构、能连接外网（互联网）&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;下载交叉编译工具链：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu 
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;验证工具链：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ which aarch64-linux-gnu-g++
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 终端输出 /usr/bin/aarch64-linux-gnu-g++&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;配置pipeline交叉编译需要的&lt;code&gt;libsophon&lt;/code&gt;，&lt;code&gt;sophon-opencv&lt;/code&gt;，&lt;code&gt;sophon-ffmpeg&lt;/code&gt;:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;具体参考&lt;a href=&#34;https://github.com/sophgo/sophon-pipeline/blob/release/docs/docs_zh/arm_soc.md&#34;&gt;https://github.com/sophgo/sophon-pipeline/blob/release/docs/docs_zh/arm_soc.md&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;但是按照这个教程集成的&lt;code&gt;soc-sdk&lt;/code&gt;有问题，联系了厂商那边，给出了它们配置的&lt;code&gt;soc-sdk&lt;/code&gt;包，看到里面除了上面需要的库，还增加了厂商封装的AI加速库&lt;code&gt;sail&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;这样开发环境就配置好了!&lt;/p&gt;
+&lt;h4 id=&#34;运行环境配置&#34;&gt;运行环境配置&lt;/h4&gt;
+&lt;p&gt;SE5属于soc平台，内部已经集成了&lt;code&gt;libsophon&lt;/code&gt;，&lt;code&gt;sophon-opencv&lt;/code&gt;，&lt;code&gt;sophon-ffmpeg&lt;/code&gt;环境，在&lt;code&gt;/opt/sophon/&lt;/code&gt;下。&lt;/p&gt;
+&lt;p&gt;配置环境变量即可：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ vim ~/.bashrc
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 加入以下内容保存 x.y.z代表版本，不知道的可以自己进目录看一下&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#658b00&#34;&gt;export&lt;/span&gt; &lt;span style=&#34;color:#00688b&#34;&gt;PYTHONPATH&lt;/span&gt;=&lt;span style=&#34;color:#00688b&#34;&gt;$PYTHONPATH&lt;/span&gt;:/opt/sophon/sophon-opencv_&amp;lt;x.y.z&amp;gt;/opencv-python 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ &lt;span style=&#34;color:#658b00&#34;&gt;source&lt;/span&gt; ~/.bashrc
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;网络模型移植&#34;&gt;网络模型移植&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;BModel&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;BModel&lt;/code&gt;是一种面向算能TPU处理器的深度神经网络模型文件格式，其中包含目标网络的权重（weight）、TPU指令流等等。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;Stage&lt;/code&gt;是支持将同一个网络的不同&lt;code&gt;batch size&lt;/code&gt;的模型combine为一个BModel；同一个网络的不同&lt;code&gt;batch size&lt;/code&gt;的输入对应着不同的&lt;code&gt;stage&lt;/code&gt;，推理时BMRuntime会根据输入shape的大小自动选择相应stage的模型&lt;/strong&gt;。也支持将不同的网络combine为一个BModel，通过网络名称来获取不同的网络。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;动态编译和静态编译：&lt;/strong&gt; 支持模型的动态编译和静态编译，可在转换模型时通过参数设定。动态编译的&lt;code&gt;BModel&lt;/code&gt;，在Runtime时支持任意小于编译时设置的shape的输入shape；静态编译的&lt;code&gt;BModel&lt;/code&gt;，在Runtime时只支持编译时所设置的shape。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;模型转化工具链&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;算丰系列TPU平台只支持BModel模型加速。所以需要先将模型转化为BModel。&lt;/p&gt;
+&lt;p&gt;常用的&lt;code&gt;Pytorch&lt;/code&gt;和&lt;code&gt;ONNX&lt;/code&gt;模型的转化为BModel都有版本的要求：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;ONNX要求：onnx==1.7.0（Opset Version == 12）onnxruntime == 1.3.0 protobuf &amp;gt;= 3.8.0&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Pytorch要求：pytorch &amp;gt;= 1.3.0, 建议1.8.0&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;TPU-NNTC工具链&lt;/code&gt;帮助实现模型迁移。对于BM1684平台来说，它既支持float32模型，也支持int8量化模型。其模型转换流程以及章节介绍如图:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E5%AE%9E%E4%B9%A0/img4.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;如果需要运行in8 BModel，需要先准备&lt;code&gt;量化数据集&lt;/code&gt;、将原始模型转换为fp32 UModel、再使用量化工具量化为int8 UModel、最后使用&lt;code&gt;bmnetu&lt;/code&gt;编译为int8 BModel。&lt;/em&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;具体的&lt;code&gt;INT8&lt;/code&gt;流程如下：&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E5%AE%9E%E4%B9%A0/img5.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Parse-Tools：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;解析各深度学习框架下已训练好的网络模型，生成统一格式的网络模型文件—umodel， 支持的深度学习框架包括： Caffe、TensorFlow、MxNet、PyTorch、Darknet、ONNX以及PaddlePaddle。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Calibration-Tools：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;分析float32格式的umodel文件，默认基于熵损失最小算法（可选MAX等其他算法），将网络系数定点化成8bit，最后 将网络模型保存成int8格式的umodel文件。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;U-FrameWork：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;自定义的深度学习推理框架，集合了各开源深度学习框架的运算功能，提供的功能包括：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;作为基础运算平台，为定点化提供基础运算。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;作为验证平台，可以验证fp32，int8格式的网络模型的精度。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;作为接口，通过bmnetu，可以将int8umodel编译成能在SOPHON运算平台上运行的bmodel。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;更为具体的，如量化数据集的格式要求、如何进行精度测试和调优可以详细参考官方开发文档！&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&#34;算法移植&#34;&gt;算法移植&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;对于基于深度学习的视频/图片分析任务来说，通常都包括如下几个步骤：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;视频/图片解码&lt;/li&gt;
+&lt;li&gt;输入预处理&lt;/li&gt;
+&lt;li&gt;模型推理&lt;/li&gt;
+&lt;li&gt;输出后处理&lt;/li&gt;
+&lt;li&gt;视频/图片编码&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;实际任务中，算法往往还会包含多个不同神经网络模型，因此，步骤2-4会根据需要反复执行多次。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;硬件加速支持&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;SophonSDK提供了&lt;code&gt;视频/图片解码&lt;/code&gt;、&lt;code&gt;输入预处理&lt;/code&gt;、&lt;code&gt;模型推理&lt;/code&gt;、&lt;code&gt;输出后处理&lt;/code&gt;、&lt;code&gt;视频/图片编码&lt;/code&gt;五个阶段的加速。&lt;/p&gt;
+&lt;p&gt;为了提高算法的效率，在编写代码和使用接口的时候需要注意这几个方面：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;内存零copy&lt;/li&gt;
+&lt;li&gt;申请物理连续内存&lt;/li&gt;
+&lt;li&gt;将多个预处理步骤进行合并&lt;/li&gt;
+&lt;li&gt;凑4batch进行推理&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;编程接口&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;目前支持C/C++/Python三种编程接口。BMRuntime模块支持C/C++接口编程，BMCV、BMLib支持C接口编程；Python/C++编程接口基于SAIL库实现。&lt;strong&gt;目前， SAIL 模块中所有的类、枚举、函数都在 “sail” 命名空间下。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;常见算法的开发示例可以参考官方提供的demo:&lt;a href=&#34;https://github.com/sophgo/sophon-demo/&#34;&gt;https://github.com/sophgo/sophon-demo/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;常见的处理视频流的开发示例可以参考官方提供的pipeline:&lt;a href=&#34;https://github.com/sophgo/sophon-pipeline&#34;&gt;https://github.com/sophgo/sophon-pipeline&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;编译运行实例&#34;&gt;编译运行实例&lt;/h3&gt;
+&lt;p&gt;参考的代码:&lt;a href=&#34;https://github.com/sophgo/sophon-pipeline&#34;&gt;https://github.com/sophgo/sophon-pipeline&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;运行环境编译整个repo的代码：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ git clone https://github.com/sophgo/sophon-pipeline
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ &lt;span style=&#34;color:#658b00&#34;&gt;cd&lt;/span&gt; sophon-pipeline
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 编译需要SoC平台上运行的程序 soc-sdk填入开发环境配置阶段配置好的soc-sdk包的绝对地址&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ ./tools/compile.sh soc &lt;span style=&#34;color:#cd5555&#34;&gt;${&lt;/span&gt;&lt;span style=&#34;color:#00688b&#34;&gt;soc&lt;/span&gt;-sdk&lt;span style=&#34;color:#cd5555&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 这样我们就可以在`sophon-pipeline/release`中找到所要所要算法生成的可执行文件&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 以yolov5s为例，其路径为`sophon-pipeline/release/yolov5s_demo/`下&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;需要拷贝的文件包括：&lt;code&gt;模型&lt;/code&gt;(必须是Bmodel的格式)、流视频地址或者&lt;code&gt;.h264&lt;/code&gt;或者&lt;code&gt;.h265&lt;/code&gt;格式的视频文件、在编译生成的目录下的&lt;code&gt;json配置文件&lt;/code&gt;和包含可执行程序的&lt;code&gt;soc&lt;/code&gt;文件夹。&lt;/li&gt;
+&lt;li&gt;将其全部放到盒子内部的同一目录下 ，修改&lt;code&gt;json&lt;/code&gt;配置文件:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;主要配置两个参数，第一个是视频的地址、第二个是模型的地址，其他可以按需配置。具体配置含义信息可参考&lt;a href=&#34;https://github.com/sophgo/sophon-pipeline/blob/release/docs/docs_zh/yolov5.md&#34;&gt;https://github.com/sophgo/sophon-pipeline/blob/release/docs/docs_zh/yolov5.md&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;注意修改可执行文件的权限，然后运行demo：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ ./soc/yolov5s_demo --config=./cameras_yolov5.json
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 打印下面的信息就说明成功了&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[2022-10-13:16:00:26] total &lt;span style=&#34;color:#00688b&#34;&gt;fps&lt;/span&gt; =nan,ch=0: &lt;span style=&#34;color:#00688b&#34;&gt;speed&lt;/span&gt;=nan
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[2022-10-13:16:00:27] total &lt;span style=&#34;color:#00688b&#34;&gt;fps&lt;/span&gt; =24.0,ch=0: &lt;span style=&#34;color:#00688b&#34;&gt;speed&lt;/span&gt;=24.0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[2022-10-13:16:00:28] total &lt;span style=&#34;color:#00688b&#34;&gt;fps&lt;/span&gt; =24.0,ch=0: &lt;span style=&#34;color:#00688b&#34;&gt;speed&lt;/span&gt;=24.0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[2022-10-13:16:00:29] total &lt;span style=&#34;color:#00688b&#34;&gt;fps&lt;/span&gt; =25.4,ch=0: &lt;span style=&#34;color:#00688b&#34;&gt;speed&lt;/span&gt;=25.4
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;rtsp视频流输出画面&#34;&gt;RTSP视频流输出画面&lt;/h3&gt;
+&lt;p&gt;算能为&lt;code&gt;sophon_pipeline&lt;/code&gt;准备了可视化工具&lt;code&gt;pipeline_client&lt;/code&gt;。由于本次是在ubuntu上启动客户端，编译相对简单。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;下载&lt;code&gt;pipeline_client&lt;/code&gt;代码：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git clone https://github.com/sophon-ai-algo/pipeline_client.git
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;下载相关依赖：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; sudo apt install qtbase5-dev
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; sudo apt install libopencv-dev
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; sudo apt install ffmpeg
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; sudo apt install libavfilter-dev
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;在Linux下能找到默认的opencv库位置，不需要修改CMakeLists.txt，Windows端需要按照说明操作：&lt;a href=&#34;https://github.com/sophon-ai-algo/pipeline_client&#34;&gt;https://github.com/sophon-ai-algo/pipeline_client&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;编译：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ mkdir build
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ &lt;span style=&#34;color:#658b00&#34;&gt;cd&lt;/span&gt; build
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ cmake ..
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ make -j4
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ &lt;span style=&#34;color:#658b00&#34;&gt;cd&lt;/span&gt; ..
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ ./build/bin/pipeline_client &lt;span style=&#34;color:#228b22&#34;&gt;# 启动客户端&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;系统会出现类似于如下的客户端画面：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E5%AE%9E%E4%B9%A0/img6.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;RTSP需要配合一个&lt;code&gt;rtsp server&lt;/code&gt;使用，先推流到&lt;code&gt;rtsp server&lt;/code&gt;，&lt;code&gt;pipeline_client&lt;/code&gt;再拉流获取画面。使用官网推荐的&lt;code&gt;rtsp server&lt;/code&gt;:&lt;a href=&#34;https://github.com/bluenviron/mediamtx/releases&#34;&gt;https://github.com/bluenviron/mediamtx/releases&lt;/a&gt;，注意Linux x86_64机器需要选择下面这个包：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/%E5%AE%9E%E4%B9%A0/img7.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;现在&lt;code&gt;rtsp server&lt;/code&gt;，&lt;code&gt;pipeline_client&lt;/code&gt;，&lt;code&gt;sophon_pipeline&lt;/code&gt;都已经准备完毕，接下来就可以测试输出画面了（注意&lt;code&gt;sophon_pipeline&lt;/code&gt;在盒子端，&lt;code&gt;rtsp server&lt;/code&gt;和&lt;code&gt;pipeline_client&lt;/code&gt;在交叉编译端）：
+&lt;ul&gt;
+&lt;li&gt;在交叉编译端启动&lt;code&gt;rtsp server&lt;/code&gt;，解压下好的文件，并执行&lt;code&gt;./mediamtx&lt;/code&gt;，默认端口为&lt;code&gt;8544&lt;/code&gt;，如果修改端口，则需要修改其中的配置文件&lt;code&gt;mediamtx.yml&lt;/code&gt;文件，必须要确保启动的端口没有被其他应用占用。&lt;/li&gt;
+&lt;li&gt;运行&lt;code&gt;sophon-pipeline&lt;/code&gt;例程程序，推流到指定rtsp地址：将编译好的配置文件&lt;code&gt;cameras_yolov5.json&lt;/code&gt;的参数配置改为&lt;code&gt;rtsp://${ip}:8544/abc&lt;/code&gt;，这里的ip是指交叉编译机器的ip地址。&lt;/li&gt;
+&lt;li&gt;运行&lt;code&gt;pipeline_client&lt;/code&gt;，指定拉流地址为&lt;code&gt;rtsp://${ip}:8554/abc&lt;/code&gt;，如果&lt;code&gt;pipeline_client&lt;/code&gt;和&lt;code&gt;rtsp server&lt;/code&gt;在一个机子上，ip可以直接用&lt;code&gt;127.0.0.1&lt;/code&gt;或者&lt;code&gt;//localhost&lt;/code&gt;代替。&lt;/li&gt;
+&lt;li&gt;稍等片刻，则可以看见画面。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+- https://caixiongjiang.github.io/blog/2023/%E5%9B%BD%E4%BA%A7sdk%E9%83%A8%E7%BD%B2/%E7%AE%97%E8%83%BDsdk%E9%83%A8%E7%BD%B2/ - </description>
+        </item>
     
     
     
@@ -4535,185 +4838,6 @@ demo:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;- https://caixiongjiang.github.io/blog/2023/%E5%8D%8E%E4%B8%BA%E6%98%87%E8%85%BE%E9%83%A8%E7%BD%B2/atc%E6%A8%A1%E5%9E%8B%E8%BD%AC%E6%8D%A2%E5%B7%A5%E5%85%B7/ - </description>
-        </item>
-    
-    
-    
-        <item>
-        <title>AscendCL快速入门</title>
-        <link>https://caixiongjiang.github.io/blog/2023/hpc/ascendcl%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</link>
-        <pubDate>Tue, 08 Aug 2023 18:18:05 +0800</pubDate>
-        
-        <guid>https://caixiongjiang.github.io/blog/2023/hpc/ascendcl%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</guid>
-        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2023/hpc/ascendcl%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/ -&lt;h3 id=&#34;ascendcl快速入门&#34;&gt;AscendCL快速入门&lt;/h3&gt;
-&lt;p&gt;ACL（Ascend Computing Language，昇腾计算语言），是华为提供的一套用于昇腾系列处理器上进行并行加速计算的API。基于这套的API，可以管理和使用昇腾软硬件计算资源，并进行机器学习相关计算。&lt;strong&gt;当前ACL提供了C/C++和Python的编程接口，这和TensorRT提供的接口一致。&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;鉴于之前使用TensorRT部署的语义分割模型使用的是Python接口，这次在昇腾处理器上准备使用C++进行处理。&lt;/p&gt;
-&lt;h4 id=&#34;acl的主要功能&#34;&gt;ACL的主要功能&lt;/h4&gt;
-&lt;ul&gt;
-&lt;li&gt;加载离线模型进行推理&lt;/li&gt;
-&lt;li&gt;加载单个算子做计算&lt;/li&gt;
-&lt;li&gt;对图形图像的数据进行预处理&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h4 id=&#34;使用resnet50进行图片推理&#34;&gt;使用ResNet50进行图片推理&lt;/h4&gt;
-&lt;p&gt;准备工作：需要准备一张素材图片和一个转化好的&lt;code&gt;ResNet50.om&lt;/code&gt;离线模型。&lt;/p&gt;
-&lt;p&gt;先用伪代码看一下&lt;code&gt;main函数&lt;/code&gt;需要做什么：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;main&lt;/span&gt;() {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;char&lt;/span&gt; *picturePath = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;./data/dog1_1024_683.bin&amp;#34;&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;char&lt;/span&gt; *modelPath = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;./model/resnet50.om&amp;#34;&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#228b22&#34;&gt;// 准备计算需要的资源	
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  	InitResource();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	LoadModel(modelPath);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	LoadPicture(picturePath);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	inference();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	PrintResult();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#228b22&#34;&gt;// 卸载模型
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  	UnloadModel();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#228b22&#34;&gt;// 卸载图片
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  	UnloadPicture();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#228b22&#34;&gt;// 销毁资源
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  	DestroyResource();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;h4 id=&#34;ascendcl接口函数&#34;&gt;AscendCL接口函数&lt;/h4&gt;
-&lt;blockquote&gt;
-&lt;p&gt;ACL的初始化和去初始化&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;在调用ACL的任何接口之前，首先要做ACL的初始化。初始化的代码如下：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;aclInit(nullptr);&lt;/code&gt;:&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;这个接口调用会帮您准备好ACL的运行时环境。其中调用时传入的参数是一个&lt;strong&gt;配置文件在磁盘上的路径&lt;/strong&gt;，这里暂时不需要关注。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;aclFinalize();&lt;/code&gt;：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;去初始化非常机简单，在确定完成了ACL的所有调用之后，要做去初始化操作，接口调用十分简单。&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;申请和释放计算资源&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;使用昇腾处理器提供的加速计算，首先在运行时申请计算资源。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;aclrtSetDevice(0);&lt;/code&gt;：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;这个接口会告诉运行时环境我们使用的设备，或者更具体一点在使用哪个芯片。&lt;strong&gt;但是需要注意的是，芯片和我们传入的编号之间并没有物理上的一一对应关系。&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;aclrtResetDevice(0);&lt;/code&gt;：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;这里传入的设备编号和申请设备的时候使用的是同一个编号。调用这个接口会将对应设备上的所有计算资源进行复位。&lt;strong&gt;如果此时该设备上还有未完成的计算，则会等待该设备上的所有计算过程结束再复位设备。&lt;/strong&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;加载数据&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;要使用NPU进行加速计算，首先要申请能够被NPU直接访问到的专用内存。首先需要区分两个概念：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Host：Host指与Device相连的&lt;code&gt;X86&lt;/code&gt;服务器、&lt;code&gt;ARM&lt;/code&gt;服务器，会利用Device提供的NN(Neural-Network)计算能力，完成业务&lt;/li&gt;
-&lt;li&gt;Device：Device指安装了芯片的硬件设备，利用PCIe接口与Host侧连接，为Host提供NN计算能力&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;这和NVIDIA里面的概念是相同的，只能说周斌博士，不愧是你，直接把CUDA搬过来了是吧！&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;简单来说，我们的数据需要从Host端进行加载，即Host侧内存，随后将其拷贝到Device侧内存，才能进行计算。计算后的结果需要传回Host侧才能进行使用。这和模型的训练是相同的。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;申请Host侧内存：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;void *pictureMemHostPtr;&lt;/code&gt;// &lt;strong&gt;host侧内存指针&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;size_t pictureMemPtrSize;&lt;/code&gt;// &lt;strong&gt;host侧内存大小&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;aclrtMallocHost(&amp;amp;pictureMemHostPtr, pictureMemPtrSize);&lt;/code&gt;// &lt;strong&gt;申请host侧内存&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;随后即可使用&lt;code&gt;pictureMemHostPtr&lt;/code&gt;指向的内存来暂存推理输入数据。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;申请Device侧内存：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;void *pictureMemDevicePtr;&lt;/code&gt;// &lt;strong&gt;device侧内存指针&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;aclrtMalloc(&amp;amp;pictureMemDevicePtr, pictureMemPtrSize, ACL_MEM_MALLOC_HUGE_FIRST);&lt;/code&gt;// &lt;strong&gt;申请device侧内存&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;这里我们分配了跟Host侧同样大小的内存，准备用于Device侧存放推理数据。本接口最后一个参数&lt;code&gt;ACL_MEM_MALLOC_HUGE_FIRST&lt;/code&gt;是内存分配规则。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;把数据从Host侧拷贝到Device侧：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;code&gt;aclrtMemcpy(pictureMemDevicePtr, pictureMemPtrSize, pictureMemHostPtr, pictureMemPtrSize, ACL_MEMCPY_HOST_TO_DEVICE);&lt;/code&gt;:&lt;/p&gt;
-&lt;p&gt;参数的顺序是：目的内存地址，目的内存最大大小，源内存地址，拷贝长度，拷贝方向。（支持host-&amp;gt;host, host-&amp;gt;device, device-&amp;gt;host, device-&amp;gt;device）&lt;strong&gt;哈哈哈，CUDA换层皮以为我看不出来是吧！&lt;/strong&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;使用完需要释放申请过的内存：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;aclrtMallocHost-&amp;gt;aclrtFreeHost;&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;aclrtMalloc-&amp;gt;aclrtFree;&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;blockquote&gt;
-&lt;p&gt;加载模型&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;既然要调用模型进行推理，首先要把模型加载进来。&lt;/p&gt;
-&lt;p&gt;ACL提供了模型加载和内存管理方式，这里只选取相对简单的一种，即从磁盘上加载离线模型，并且加载后的模型内存由ACL自动管理：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;char* modelPath = &#39;./resnet50.om&#39;;&lt;/code&gt;// 模型文件在磁盘上的路径&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;unit32_t modelid;&lt;/code&gt;// 加载后生成的modelId，全局唯一&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;aclmdlLoadFromFile(&amp;quot;./resnet50.om&amp;quot;, &amp;amp;modelid);&lt;/code&gt;// 加载模型&lt;/li&gt;
-&lt;li&gt;这个&lt;code&gt;modelid&lt;/code&gt;在使用模型进行推理，以及卸载模型的时候还需要用到&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;卸载模型的接口：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;aclmdlUnload(modelid);&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;在c和c++层面来说，任何使用了的资源，加载了任何素材，使用完成之后都需要进行销毁和卸载。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;blockquote&gt;
-&lt;p&gt;准备推理所需数据结构&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;模型推理所需的输入输出数据，是通过一种特殊的数据结构来组织的，这种数据结构叫&lt;code&gt;dataSet&lt;/code&gt;，即所有的输入，组成了一个&lt;code&gt;dataSet&lt;/code&gt;，所有的输出组成了一个dataSet。&lt;strong&gt;如果模型的输入不止一个，那么所有的输入集合叫&lt;code&gt;dataSet&lt;/code&gt;，其中每一个输入叫&lt;code&gt;dataBuffer&lt;/code&gt;。&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;创建&lt;code&gt;dataBuffer&lt;/code&gt;：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;前面申请的Device侧的内存，并且已经把数据传过去了。当时的Device侧的内存地址为&lt;code&gt;pictureMemDevicePtr&lt;/code&gt;，内存的长度为&lt;code&gt;pictureMemPtrSize&lt;/code&gt;。&lt;/p&gt;
-&lt;p&gt;使用上面的两个对象创建一个&lt;code&gt;dataBuffer&lt;/code&gt;:&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;aclDataBuffer buffer = aclCreateDataBuffer(pictureMemDevicePtr, pictureMemPtrSize);&lt;/code&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;创建&lt;code&gt;dataSet&lt;/code&gt;：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;code&gt;aclmdlDataSet inputDataset = aclmdlCreateDataset();&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;推理所需要的输入为一个即可，我们只需要一个&lt;code&gt;dataBuffer&lt;/code&gt;。将创建好的&lt;code&gt;databuffer&lt;/code&gt;放入&lt;code&gt;dataSet&lt;/code&gt; 中：&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;aclmdlAddDatasetBuffer(inputDataset, buffer);&lt;/code&gt;有输入就必须有输出，输出的数据结构是dataSet，变量命名为&lt;code&gt;outputDataSet&lt;/code&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;用完数据结构之后需要及时销毁：&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;code&gt;aclCreateDataBuffer-&amp;gt;aclDestroyDataBuffer;&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;aclmdlCreateDataset-&amp;gt;aclmdlDestroyDataset;&lt;/code&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;推理&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;我们已经准备好了&lt;code&gt;modelid&lt;/code&gt;,&lt;code&gt;inputDataset&lt;/code&gt;,&lt;code&gt;outputDataset&lt;/code&gt;。&lt;/p&gt;
-&lt;p&gt;最终的推理只需要一行代码：&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;aclmdlExecute(modelid, inputDataset, outputDataset);&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;**这是一个同步接口，线程会阻塞在这里直到推理结束。**推理结束后就可以提取outputDataset中的数据进行使用了。&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;整体流程&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;&lt;code&gt; 初始化&lt;/code&gt;-&amp;gt;&lt;code&gt;申请计算资源&lt;/code&gt;-&amp;gt;&lt;code&gt;在Host侧加载图片&lt;/code&gt;-&amp;gt;&lt;code&gt;将图片传递到Device侧&lt;/code&gt;-&amp;gt;&lt;code&gt;加载模型&lt;/code&gt;-&amp;gt;&lt;code&gt;准备输入输出数据结构&lt;/code&gt;-&amp;gt;&lt;code&gt;推理&lt;/code&gt;-&amp;gt;&lt;code&gt;将输出传回Host侧，使用模型输出&lt;/code&gt;-&amp;gt;&lt;code&gt;销毁输入，输出&lt;/code&gt;-&amp;gt;&lt;code&gt;销毁模型&lt;/code&gt;-&amp;gt;&lt;code&gt;销毁Device和Host侧内存&lt;/code&gt;-&amp;gt;&lt;code&gt;销毁计算资源&lt;/code&gt;-&amp;gt;&lt;code&gt;去初始化&lt;/code&gt;&lt;/p&gt;
-- https://caixiongjiang.github.io/blog/2023/hpc/ascendcl%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/ - </description>
         </item>
     
     

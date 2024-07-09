@@ -5,9 +5,408 @@
     <description>Recent content on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 01 Jul 2024 18:18:05 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 08 Jul 2024 18:18:05 +0800</lastBuildDate>
     
         <atom:link href="https://caixiongjiang.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+        <item>
+        <title>《TCP/IP网络编程》第 3 章 网络地址的初始化与分配 笔记</title>
+        <link>https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-3-%E7%AB%A0-%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%88%86%E9%85%8D-%E7%AC%94%E8%AE%B0/</link>
+        <pubDate>Sat, 19 Mar 2022 13:13:00 +0800</pubDate>
+        
+        <guid>https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-3-%E7%AB%A0-%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%88%86%E9%85%8D-%E7%AC%94%E8%AE%B0/</guid>
+        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-3-%E7%AB%A0-%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%88%86%E9%85%8D-%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;第三章地址族与数据序列&#34;&gt;第三章.地址族与数据序列&lt;/h1&gt;
+&lt;h2 id=&#34;31-分配给套接字的ip地址与端口号&#34;&gt;3.1 分配给套接字的ip地址与端口号&lt;/h2&gt;
+&lt;p&gt;IP是为了收发网络数据而分配给计算机的值；端口号是为了区分程序中创建的套接字的序号。&lt;/p&gt;
+&lt;h3 id=&#34;311-网络地址&#34;&gt;3.1.1 网络地址&lt;/h3&gt;
+&lt;p&gt;IP地址分为两类：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Ipv4：4字节地址&lt;/li&gt;
+&lt;li&gt;IPv6：16字节地址&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;地址分为网络号和主机号：
+&lt;img src=&#34;https://camo.githubusercontent.com/11262bf4c83f71bf98df9b2dfae6e006335a0d706f5434383919bf4c88ff9ac0/68747470733a2f2f692e6c6f6c692e6e65742f323031392f30312f31332f356333616230656231376262652e706e67&#34; alt=&#34;Ipv4地址族&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;312-网络地址分类与主机地址边界&#34;&gt;3.1.2 网络地址分类与主机地址边界&lt;/h3&gt;
+&lt;p&gt;只需通过IP地址的第一个字节即可判断网络地址占用的总字节数，因为我们根据IP地址的边界区分网络地址，如下所示：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;A 类地址的首字节范围为：0~127&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;B 类地址的首字节范围为：128~191&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;C 类地址的首字节范围为：192~223
+还有如下这种表示方式：&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;A 类地址的首位以 0 开始&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;B 类地址的前2位以 10 开始&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;C 类地址的前3位以 110 开始&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;313-用于区分套接字的端口号&#34;&gt;3.1.3 用于区分套接字的端口号&lt;/h3&gt;
+&lt;p&gt;端口号用于同一操作系统内区分不同的套接字而设立的。端口号由16位构成，范围为0～65536，但0～1023是知名端口，一般分配给特定应用程序。&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;虽然端口号不能重复，但是 TCP 套接字和 UDP 套接字不会共用端接口号，所以允许重复。&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;32-地址信息的表示&#34;&gt;3.2 地址信息的表示&lt;/h2&gt;
+&lt;h3 id=&#34;321-ipv4地址结构体&#34;&gt;3.2.1 IPv4地址结构体&lt;/h3&gt;
+&lt;p&gt;结构体的定义:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;sockaddr_in&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    sa_family_t sin_family;  &lt;span style=&#34;color:#228b22&#34;&gt;//地址族（Address Family）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;uint16_t&lt;/span&gt; sin_port;       &lt;span style=&#34;color:#228b22&#34;&gt;//16 位 TCP/UDP 端口号
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;in_addr&lt;/span&gt; sin_addr; &lt;span style=&#34;color:#228b22&#34;&gt;//32位 IP 地址
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;char&lt;/span&gt; sin_zero[&lt;span style=&#34;color:#b452cd&#34;&gt;8&lt;/span&gt;];        &lt;span style=&#34;color:#228b22&#34;&gt;//不使用
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;该结构体中提到的另一个结构体 in_addr 定义如下，它用来存放 32 位IP地址:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;in_addr&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    in_addr_t s_addr; &lt;span style=&#34;color:#228b22&#34;&gt;//32位IPV4地址
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;关于以上两个结构体的一些数据类型。&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style=&#34;text-align:left&#34;&gt;数据类型名称&lt;/th&gt;
+&lt;th style=&#34;text-align:left&#34;&gt;数据类型说明&lt;/th&gt;
+&lt;th style=&#34;text-align:left&#34;&gt;声明的头文件&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;int 8_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;signed 8-bit int&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;sys/types.h&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;uint8_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;unsigned 8-bit int (unsigned char)&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;sys/types.h&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;int16_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;signed 16-bit int&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;sys/types.h&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;uint16_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;unsigned 16-bit int (unsigned short)&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;sys/&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;int32_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;signed 32-bit int&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;sys/types.h&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;uint32_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;unsigned 32-bit int (unsigned long)&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;sys/types.h&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;sa_family_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;地址族（address family）&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;sys/socket.h&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;socklen_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;长度（length of struct）&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;sys/socket.h&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;in_addr_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;IP地址，声明为 uint_32_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;netinet/in.h&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;in_port_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;端口号，声明为 uint_16_t&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;netinet/in.h&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;322-结构体-sockaddr_in-的成员分析&#34;&gt;3.2.2 结构体 sockaddr_in 的成员分析&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;成员 sin_family
+每种协议适用的地址族不同，比如，IPV4 使用 4 字节的地址族，IPV6 使用 16 字节的地址族。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style=&#34;text-align:left&#34;&gt;地址族（Address Family）&lt;/th&gt;
+&lt;th style=&#34;text-align:left&#34;&gt;含义&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;AF_INET&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;IPV4用的地址族&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;AF_INET6&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;IPV6用的地址族&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;AF_LOCAL&lt;/td&gt;
+&lt;td style=&#34;text-align:left&#34;&gt;本地通信中采用的 Unix 协议的地址族&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;ul&gt;
+&lt;li&gt;成员 sin_port&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;该成员保存 16 位端口号，重点在于，它以网络字节序保存。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;成员 sin_addr&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;该成员保存 32 为IP地址信息，且也以网络字节序保存&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;成员 sin_zero&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;无特殊含义。只是为结构体 sockaddr_in 结构体变量地址值将以如下方式传递给 bind 函数。&lt;/p&gt;
+&lt;p&gt;在之前的代码中&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (bind(serv_sock, (&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;sockaddr&lt;/span&gt; *)&amp;amp;serv_addr, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;sizeof&lt;/span&gt;(serv_addr)) == -&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    error_handling(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;bind() error&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;此处 bind 第二个参数期望得到的是 sockaddr 结构体变量的地址值，包括地址族、端口号、IP地址等。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;sockaddr&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    sa_family_t sin_family; &lt;span style=&#34;color:#228b22&#34;&gt;//地址族
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;char&lt;/span&gt; sa_data[&lt;span style=&#34;color:#b452cd&#34;&gt;14&lt;/span&gt;];       &lt;span style=&#34;color:#228b22&#34;&gt;//地址信息
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;此结构体 sa_data 保存的地址信息中需要包含IP地址和端口号，剩余部分应该填充 0 ，但是这样对于包含地址的信息非常麻烦，所以出现了 sockaddr_in 结构体，然后强制转换成 sockaddr 类型，则生成符合 bind 条件的参数。&lt;/p&gt;
+&lt;h2 id=&#34;33-网络字节序和地址变换&#34;&gt;3.3 网络字节序和地址变换&lt;/h2&gt;
+&lt;h3 id=&#34;331-字节序与网络字节序&#34;&gt;3.3.1 字节序与网络字节序&lt;/h3&gt;
+&lt;p&gt;CPU 保存数据的方式有两种，这意味着 CPU 解析数据的方式也有 2 种：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;大端序（Big Endian）：高位字节存放到低位地址&lt;/li&gt;
+&lt;li&gt;小端序（Little Endian）：高位字节存放到高位地址&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;0x12345678：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;大端序：0x12 0x34 0x56 0x78（按照计算机读取的顺序）&lt;/li&gt;
+&lt;li&gt;小端序：0x78 0x56 0x34 0x12（按照计算机的顺序进行读取）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;网络传输数据时统一约定方式：大端序&lt;/p&gt;
+&lt;h3 id=&#34;332-字节序转换&#34;&gt;3.3.2 字节序转换&lt;/h3&gt;
+&lt;p&gt;转换字节序的函数：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;short&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;htons&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;short&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;short&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;ntohs&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;short&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;long&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;htonl&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;long&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;long&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;ntohl&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;long&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;通过函数名称掌握其功能，只需要了解：&lt;/p&gt;
+&lt;p&gt;htons 的 h 代表主机（host）字节序。
+htons 的 n 代表网络（network）字节序。
+s 代表 short
+l 代表 long&lt;/p&gt;
+&lt;p&gt;编写代码：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch03/endian_conv.c&#34;&gt;endian_conv.c&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;编译运行&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;gcc endian_conv.c -o conv
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;./conv
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;结果：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Host ordered port: 0x1234
+Network ordered port: 0x3412
+Host ordered address: 0x12345678
+Network ordered address: 0x78563412
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;这是在小端 CPU 的运行结果。大部分人会得到相同的结果，因为 Intel 和 AMD 的 CPU 都是小端序为标准。&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;34-网络地址的初始化和分配&#34;&gt;3.4 网络地址的初始化和分配&lt;/h2&gt;
+&lt;h3 id=&#34;341-将字符串信息转换为网络字节序的整数型&#34;&gt;3.4.1 将字符串信息转换为网络字节序的整数型&lt;/h3&gt;
+&lt;p&gt;如何把类似于 201.211.214.36 转换为 4 字节的整数类型数据 ?&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;1.inet_addr函数&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#1e889b&#34;&gt;&amp;lt;arpa/inet.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;&lt;/span&gt;in_addr_t &lt;span style=&#34;color:#008b45&#34;&gt;inet_addr&lt;/span&gt;(&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;char&lt;/span&gt;* string);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;如果向该函数传递类似“211.214.107.99”的点分十进制格式的字符串，它会将其转换为32位整数型数据并返回。&lt;/p&gt;
+&lt;p&gt;具体示例：
+&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch03/inet_addr.c&#34;&gt;inet_addr.c&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;编译运行：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;gcc inet_addr.c -o addr
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;./addr
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;结果：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Network ordered integer addr: 0x4030201
+Error occured!
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;2.inet_aton函数&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;inet_aton 函数与 inet_addr 函数在功能上完全相同，也是将字符串形式的IP地址转换成整数型的IP地址。&lt;strong&gt;只不过该函数用了 in_addr 结构体，如果传递in_addr结构体的变量地址值，函数会自动把结果填入该结构体变量。&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#1e889b&#34;&gt;&amp;lt;arpa/inet.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;inet_aton&lt;/span&gt;(&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;char&lt;/span&gt; *string, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;in_addr&lt;/span&gt; *addr);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;成功时返回 1 ，失败时返回 0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;string: 含有需要转换的IP地址信息的字符串地址值
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;addr: 将保存转换结果的 in_addr 结构体变量的地址值
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;具体示例：
+&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch03/inet_aton.c&#34;&gt;inet_aton.c&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;编译运行：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;gcc inet_aton.c -o aton
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;./aton
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;结果：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Network ordered integer addr: 0x4f7ce87f
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;还有一个函数，与 inet_aton() 正好相反，它可以把网络字节序整数型IP地址转换成我们熟悉的字符串形式，函数原型如下：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#1e889b&#34;&gt;&amp;lt;arpa/inet.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#1e889b&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;char&lt;/span&gt; *&lt;span style=&#34;color:#008b45&#34;&gt;inet_ntoa&lt;/span&gt;(&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;in_addr&lt;/span&gt; adr);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;该函数将通过参数传入的整数型IP地址转换为字符串格式并返回。**但要小心，返回值为 char 指针，返回字符串地址意味着字符串已经保存在内存空间，但是该函数未向程序员要求分配内存，而是再内部申请了内存保存了字符串。**也就是说调用了该函数候要立即把信息复制到其他内存空间。因此，若再次调用 inet_ntoa 函数，则有可能覆盖之前保存的字符串信息。&lt;/p&gt;
+&lt;p&gt;示例：
+&lt;a href=&#34;https://github.com/caixiongjiang/TCPIP/blob/master/ch03/inet_ntoa.c&#34;&gt;inet_ntoa.c&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;编译运行：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;gcc inet_ntoa.c -o ntoa
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;./ntoa
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;结果：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Dotted-Decimal notation1: 1.2.3.4
+Dotted-Decimal notation2: 1.1.1.1
+Dotted-Decimal notation3: 1.2.3.4
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;342-网络地址初始化&#34;&gt;3.4.2 网络地址初始化&lt;/h3&gt;
+&lt;p&gt;常见的套接字创建的过程：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;sockaddr_in&lt;/span&gt; addr;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;char&lt;/span&gt; *serv_ip = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;211.217,168.13&amp;#34;&lt;/span&gt;;          &lt;span style=&#34;color:#228b22&#34;&gt;//声明IP地址族
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;char&lt;/span&gt; *serv_port = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;9190&amp;#34;&lt;/span&gt;;                  &lt;span style=&#34;color:#228b22&#34;&gt;//声明端口号字符串
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;memset(&amp;amp;addr, &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;sizeof&lt;/span&gt;(addr));            &lt;span style=&#34;color:#228b22&#34;&gt;//结构体变量 addr 的所有成员初始化为0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;addr.sin_family = AF_INET;                 &lt;span style=&#34;color:#228b22&#34;&gt;//制定地址族
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;addr.sin_addr.s_addr = inet_addr(serv_ip); &lt;span style=&#34;color:#228b22&#34;&gt;//基于字符串的IP地址初始化
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;addr.sin_port = htons(atoi(serv_port));    &lt;span style=&#34;color:#228b22&#34;&gt;//基于字符串的IP地址端口号初始化
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;35-基于windows端的实现&#34;&gt;3.5 基于Windows端的实现&lt;/h2&gt;
+&lt;p&gt;略&lt;/p&gt;
+&lt;h2 id=&#34;36-习题&#34;&gt;3.6 习题&lt;/h2&gt;
+- https://caixiongjiang.github.io/blog/2022/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/tcp-ip%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E7%AC%AC-3-%E7%AB%A0-%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%88%86%E9%85%8D-%E7%AC%94%E8%AE%B0/ - </description>
+        </item>
     
     
     
@@ -4231,398 +4630,6 @@ title: &amp;#34;first&amp;#34;
 stack主题预览:&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/stack.png&#34; alt=&#34;&#34;&gt;
 diary主题预览:&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/diary.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 - https://caixiongjiang.github.io/blog/2022/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/hugo%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/ - </description>
-        </item>
-    
-    
-    
-        <item>
-        <title>我的力扣刷题笔记</title>
-        <link>https://caixiongjiang.github.io/blog/2021/%E9%9D%A2%E8%AF%95%E5%87%86%E5%A4%87%E5%AE%9E%E4%B9%A0%E6%84%9F%E6%82%9F/%E6%88%91%E7%9A%84%E5%8A%9B%E6%89%A3%E5%88%B7%E9%A2%98%E7%AC%94%E8%AE%B0/</link>
-        <pubDate>Thu, 26 Aug 2021 10:18:05 +0800</pubDate>
-        
-        <guid>https://caixiongjiang.github.io/blog/2021/%E9%9D%A2%E8%AF%95%E5%87%86%E5%A4%87%E5%AE%9E%E4%B9%A0%E6%84%9F%E6%82%9F/%E6%88%91%E7%9A%84%E5%8A%9B%E6%89%A3%E5%88%B7%E9%A2%98%E7%AC%94%E8%AE%B0/</guid>
-        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2021/%E9%9D%A2%E8%AF%95%E5%87%86%E5%A4%87%E5%AE%9E%E4%B9%A0%E6%84%9F%E6%82%9F/%E6%88%91%E7%9A%84%E5%8A%9B%E6%89%A3%E5%88%B7%E9%A2%98%E7%AC%94%E8%AE%B0/ -&lt;p&gt;&lt;strong&gt;本仓库代码攻略部分在代码随想录的基础上写的&lt;/strong&gt;
-转载自&lt;a href=&#34;https://github.com/youngyangyang04/leetcode-master&#34;&gt;代码随想录主页&lt;/a&gt;
-仅用于个人学习。&lt;/p&gt;
-&lt;p&gt;强烈推荐小白的刷题顺序，经过上万网友的印证！&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;🌱&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/vim/vim%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97.md&#34;&gt;vim命令使用指南，让你摆脱鼠标敲代码&lt;/a&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;🌱&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_weekmatch/README.md&#34;&gt;力扣周赛+双周赛&lt;/a&gt;
-&lt;/br&gt;&lt;/br&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;数组&#34;&gt;数组&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E%E6%95%B0%E7%BB%84.md&#34;&gt;关于数组&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode35.md&#34;&gt;二分法&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode27.md&#34;&gt;移除元素&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcoe209.md&#34;&gt;滑动窗口&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode59.md&#34;&gt;螺旋矩阵(绕晕人的循环)&lt;/a&gt;
-&lt;/br&gt;&lt;/br&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;链表&#34;&gt;链表&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E%E9%93%BE%E8%A1%A8.md&#34;&gt;关于链表&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode203.md&#34;&gt;移除链表元素&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode707.md&#34;&gt;链表的常用操作&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode206.md&#34;&gt;反转链表&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode19.md&#34;&gt;删除倒数第N个节点(经典双指针法)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode142.md&#34;&gt;寻找环的入口&lt;/a&gt;
-&lt;/br&gt;&lt;/br&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;哈希表&#34;&gt;哈希表&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E%E5%93%88%E5%B8%8C%E8%A1%A8.md&#34;&gt;关于哈希表&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode242.md&#34;&gt;用数组实现哈希表（表长固定的情况）&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode349.md&#34;&gt;Set使用：两个数组的交集&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode202.md&#34;&gt;用Set来判断快乐数&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode01.md&#34;&gt;map使用：两数之和&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode454.md&#34;&gt;map使用：四数相加Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode383.md&#34;&gt;map使用：赎金信&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode15.md&#34;&gt;map使用：三数之和&lt;/a&gt;
-&lt;/br&gt;&lt;/br&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;字符串&#34;&gt;字符串&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode344.md&#34;&gt;简单字符串反转&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode541.md&#34;&gt;进阶字符串反转&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode%E5%89%91%E6%8C%87offer05.md&#34;&gt;替换空格&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode151.md&#34;&gt;翻转字符串里的单词(花式翻转)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode%E5%89%91%E6%8C%87offer58%E2%85%A1.md&#34;&gt;左旋字符串&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode28.md&#34;&gt;KMP算法核心：next数组的生成&lt;/a&gt;
-&lt;/br&gt;&lt;/br&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;栈与队列&#34;&gt;栈与队列&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E6%A0%88%E4%B8%8E%E9%98%9F%E5%88%97.md&#34;&gt;关于栈和队列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode232.md&#34;&gt;用栈实现队列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode225.md&#34;&gt;用队列实现栈&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode20.md&#34;&gt;栈的应用(括号匹配)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode1047.md&#34;&gt;栈的应用(删除字符串中所有相邻重复项，本质同为匹配问题)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode150.md&#34;&gt;栈的应用(计算后缀表达式)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode239.md&#34;&gt;队列应用(单调队列经典题目)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode347.md&#34;&gt;前k个高频元素和队列有什么关系&lt;/a&gt;
-&lt;/br&gt;&lt;/br&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;二叉树&#34;&gt;二叉树&lt;/h2&gt;
-&lt;p&gt;二叉树的题目类型分类：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://camo.githubusercontent.com/05f375896b965b6c1b2ead25c838b5b3385d18a112878d8e9d3dabacaf2cce8f/68747470733a2f2f696d672d626c6f672e6373646e696d672e636e2f32303231303231393139303830393435312e706e67&#34; alt=&#34;avater&#34;&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E%E4%BA%8C%E5%8F%89%E6%A0%91.md&#34;&gt;关于二叉树&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E9%80%92%E5%BD%92%E9%81%8D%E5%8E%86.md&#34;&gt;二叉树的递归遍历&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E8%BF%AD%E4%BB%A3%E9%81%8D%E5%8E%86.md&#34;&gt;二叉树的迭代遍历&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%B1%82%E5%BA%8F%E9%81%8D%E5%8E%86.md&#34;&gt;二叉树的层序遍历&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode226.md&#34;&gt;翻转二叉树&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode101.md&#34;&gt;判断二叉树是否对称&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode104.md&#34;&gt;求树的最大深度&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode111.md&#34;&gt;求树的最小深度&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode222.md&#34;&gt;完全二叉树的节点个数&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode110.md&#34;&gt;判断是否是平衡二叉树&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode257.md&#34;&gt;寻找二叉树的所有路径&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode404.md&#34;&gt;二叉树的左叶子值之和&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode112.md&#34;&gt;二叉树：判断是否存在根节点到叶子节点值的和等于给定值&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode113.md&#34;&gt;二叉树：找到所有根节点到叶子节点值的和等于给定值的所有路径&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode106.md&#34;&gt;构造二叉树(中序+后序)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode105.md&#34;&gt;构造二叉树(前序+中序)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode654.md&#34;&gt;构造最大的二叉树&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode617.md&#34;&gt;合并两个二叉树&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode700.md&#34;&gt;二叉搜索树：搜索给定的值的节点为根节点的子树&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode98.md&#34;&gt;判断是否为二叉搜索树&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode530.md&#34;&gt;搜索树的最小绝对差&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode501.md&#34;&gt;二叉搜索树中的众数&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode236.md&#34;&gt;二叉树的最近公共祖先&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode235.md&#34;&gt;二叉搜索树的最近公共祖先&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode701.md&#34;&gt;二叉搜索树中的插入操作&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode450.md&#34;&gt;二叉搜索树中的删除操作&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode669.md&#34;&gt;修剪二叉搜索树&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode108.md&#34;&gt;有序数组构造二叉搜索树&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode538.md&#34;&gt;二叉搜索树转换为累加树&lt;/a&gt;
-&lt;/br&gt;&lt;/br&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;回溯算法&#34;&gt;回溯算法&lt;/h2&gt;
-&lt;p&gt;题目类型大纲如下：
-&lt;img src=&#34;https://camo.githubusercontent.com/3bcac8ab20d3edb4151fb58a0b7c09bcf33b70bfd4a422bd74215429dd697fd6/68747470733a2f2f696d672d626c6f672e6373646e696d672e636e2f32303231303231393139323035303636362e706e67&#34; alt=&#34;avater&#34;&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E%E5%9B%9E%E6%BA%AF.md&#34;&gt;关于回溯算法&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode77.md&#34;&gt;回溯算法：组合问题&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode216.md&#34;&gt;回溯算法：组合总和Ⅲ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode17.md&#34;&gt;回溯算法:电话号码的字母组合&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode39.md&#34;&gt;回溯算法:求组合总和(二)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode40.md&#34;&gt;回溯算法:求组合总和(三)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode131.md&#34;&gt;回溯算法:分割回文串&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode93.md&#34;&gt;回溯算法:复制IP地址&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode78.md&#34;&gt;回溯算法:子集&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode90.md&#34;&gt;回溯算法:子集Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode491.md&#34;&gt;回溯算法:递增子序列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode46.md&#34;&gt;回溯算法:全排列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode47.md&#34;&gt;回溯算法:全排列Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;(!)🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode332.md&#34;&gt;回溯算法:安排行程问题&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode51.md&#34;&gt;回溯算法:N皇后问题&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode37.md&#34;&gt;回溯算法:解数独&lt;/a&gt;
-&lt;/br&gt;&lt;/br&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;贪心算法&#34;&gt;贪心算法&lt;/h2&gt;
-&lt;p&gt;题目分类大纲如下：
-&lt;img src=&#34;https://camo.githubusercontent.com/4fc596ed291c6a4f5d2f5eaa9bea34fe0af4ac9eae815bba4f96ee1bf653dd68/68747470733a2f2f696d672d626c6f672e6373646e696d672e636e2f32303231303232303135323234353538342e706e67&#34; alt=&#34;avater&#34;&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E%E8%B4%AA%E5%BF%83.md&#34;&gt;关于贪心算法&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode455.md&#34;&gt;贪心算法: 分发饼干&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode376.md&#34;&gt;贪心算法: 摆动序列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode53.md&#34;&gt;贪心算法: 最大子序和&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode122.md&#34;&gt;贪心算法:买卖股票的最佳时机Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode55.md&#34;&gt;贪心算法:跳跃游戏&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode45.md&#34;&gt;贪心算法:跳跃游戏Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode1005.md&#34;&gt;贪心算法:k次取反后最大化的数组和&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode134.md&#34;&gt;贪心算法:加油站&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode135.md&#34;&gt;贪心算法:分发糖果&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode860.md&#34;&gt;贪心算法:柠檬水找零&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;(!)🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode406.md&#34;&gt;贪心算法:根据身高重建队列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode452.md&#34;&gt;贪心算法:用最少数量的箭引爆气球&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode435.md&#34;&gt;贪心算法:无重叠区间&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode763.md&#34;&gt;贪心算法:划分字母区间&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode56.md&#34;&gt;贪心算法:合并区间&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode738.md&#34;&gt;贪心算法:单调递增的数字&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode714.md&#34;&gt;贪心算法:买卖股票的最佳时机含手续费&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode968.md&#34;&gt;贪心算法:监控二叉树&lt;/a&gt;
-&lt;/br&gt;&lt;/br&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;动态规划&#34;&gt;动态规划&lt;/h2&gt;
-&lt;p&gt;&lt;img src=&#34;https://camo.githubusercontent.com/624ae48228610285917d87d92baba28f9e2132199c3e266dbfb82f59acccf302/68747470733a2f2f636f64652d7468696e6b696e672e63646e2e626365626f732e636f6d2f706963732fe58aa8e68081e8a784e588922de680bbe7bb93e5a4a7e7bab2312e6a7067&#34; alt=&#34;avater&#34;&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92.md&#34;&gt;关于动态规划&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode509.md&#34;&gt;动态规划：斐波那契数&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode70.md&#34;&gt;动态规划：爬楼梯&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode746.md&#34;&gt;动态规划：使用最小花费爬楼梯&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode62.md&#34;&gt;动态规划：不同路径&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode63.md&#34;&gt;动态规划：不同路径Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode343.md&#34;&gt;动态规划：整数拆分&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode96.md&#34;&gt;动态规划：不同的二叉搜索树&lt;/a&gt;
-&lt;/br&gt;&lt;/br&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;背包系列：
-&lt;img src=&#34;https://camo.githubusercontent.com/5957259b2baf6135b4d6cb086e3f373cdfd9285837c83001310d882785f20d1a/68747470733a2f2f636f64652d7468696e6b696e672e63646e2e626365626f732e636f6d2f706963732fe58aa8e68081e8a784e588922de8838ce58c85e997aee9a298e680bbe7bb932e706e67&#34; alt=&#34;avater&#34;&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E01%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98.md&#34;&gt;动态规划：关于01背包问题&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E01%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98%EF%BC%88%E6%BB%9A%E5%8A%A8%E6%95%B0%E7%BB%84%EF%BC%89.md&#34;&gt;动态规划：关于01背包问题(滚动数组)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode416.md&#34;&gt;动态规划：分割等和子集&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode1049.md&#34;&gt;动态规划：最后一块石头的重量Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode494.md&#34;&gt;动态规划：目标和&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode474.md&#34;&gt;动态规划：一和零&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E%E5%AE%8C%E5%85%A8%E8%83%8C%E5%8C%85.md&#34;&gt;动态规划：关于完全背包&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode518.md&#34;&gt;动态规划：零钱兑换Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode377.md&#34;&gt;动态规划：组合总和Ⅵ(其实是排列总和)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode70dp.md&#34;&gt;动态规划：让我再爬一次楼梯&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode322.md&#34;&gt;动态规划：零钱兑换&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode279.md&#34;&gt;动态规划：完全平方数&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode139.md&#34;&gt;动态规划：单词拆分&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E%E5%A4%9A%E9%87%8D%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98.md&#34;&gt;动态规划：关于多重背包&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;打家劫舍系列：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode198.md&#34;&gt;动态规划：打家劫舍&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode213.md&#34;&gt;动态规划：打家劫舍Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode337.md&#34;&gt;动态规划：打家劫舍Ⅲ&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;股票系列：
-&lt;img src=&#34;https://camo.githubusercontent.com/7a1cbdd6eb2b8badb83c0ef9cc3fe0bbbeabdfce688be916a544acacd24e0bda/68747470733a2f2f636f64652d7468696e6b696e672e63646e2e626365626f732e636f6d2f706963732fe882a1e7a5a8e997aee9a298e680bbe7bb932e6a7067&#34; alt=&#34;avater&#34;&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode121.md&#34;&gt;动态规划：买卖股票的最佳时机&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode122dp.md&#34;&gt;动态规划：买卖股票的最佳时机Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode123.md&#34;&gt;动态规划：买卖股票的最佳时机Ⅲ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode188.md&#34;&gt;动态规划：买卖股票的最佳时机Ⅳ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode309.md&#34;&gt;动态规划：最佳买卖股票时机含冷冻期&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode714dp.md&#34;&gt;动态规划：最佳买卖股票时机含手续费&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;子序列系列：
-&lt;img src=&#34;https://camo.githubusercontent.com/d16049d91e6f7ad4859a7a9df372a17d799b0cefa800838651166ae77a711ec8/68747470733a2f2f636f64652d7468696e6b696e672e63646e2e626365626f732e636f6d2f706963732fe58aa8e68081e8a784e588922de5ad90e5ba8fe58897e997aee9a298e680bbe7bb932e6a7067&#34; alt=&#34;avater&#34;&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode300.md&#34;&gt;动态规划：最长递增子序列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode674.md&#34;&gt;动态规划：最长连续递增序列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode718.md&#34;&gt;动态规划：最长重复子数组&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode1143.md&#34;&gt;动态规划：最长公共子序列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode1035.md&#34;&gt;动态规划：不相交的线&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode53dp.md&#34;&gt;动态规划：最大子序和&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode392.md&#34;&gt;动态规划：判断子序列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode115.md&#34;&gt;动态规划：不同的子序列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode583.md&#34;&gt;动态规划：两个字符串的删除操作&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode72.md&#34;&gt;动态规划：编辑距离&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode647.md&#34;&gt;动态规划：回文子串&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode516.md&#34;&gt;动态规划：最长回文子序列&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;单调栈&#34;&gt;单调栈&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode739.md&#34;&gt;单调栈：每日温度&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode496.md&#34;&gt;单调栈：下一个更大元素Ⅰ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode503.md&#34;&gt;单调栈：下一个更大元素Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode42.md&#34;&gt;单调栈：接雨水&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode84.md&#34;&gt;单调栈：柱状图中最大的矩形&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;图论&#34;&gt;图论&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8EDijistra%E7%AE%97%E6%B3%95.md&#34;&gt;图论：关于单源最短路径（Dijistra算法）&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8EDFS%E5%92%8CBFS.md&#34;&gt;图论：关于图的遍历（DFS和BFS算法）&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;并查集&#34;&gt;并查集&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;🔥&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%85%B3%E4%BA%8E%E5%B9%B6%E6%9F%A5%E9%9B%86.md&#34;&gt;关于并查集&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;补充题目&#34;&gt;补充题目&lt;/h2&gt;
-&lt;h3 id=&#34;数组-1&#34;&gt;数组&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode1365.md&#34;&gt;1365.有多少小于当前数字的数字&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode941.md&#34;&gt;941.有效的山脉数组(双指针)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode1207.md&#34;&gt;1207.独一无二的出现次数&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode283.md&#34;&gt;283.移动零&lt;/a&gt;【数组】【双指针】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode189.md&#34;&gt;189.旋转数组&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode724.md&#34;&gt;724.寻找数组的中心下标&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode34.md&#34;&gt;34.在排序数组中查找元素的第一个和最后一个位置&lt;/a&gt;【二分法】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode922.md&#34;&gt;922.按奇偶排序树组Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode35.md&#34;&gt;35.搜索插入位置&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;链表-1&#34;&gt;链表&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode24.md&#34;&gt;24.两两交换链表中的节点&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode234.md&#34;&gt;234.回文链表&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode143.md&#34;&gt;143.重排列表&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode141.md&#34;&gt;141.环形链表&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;哈希表-1&#34;&gt;哈希表&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode205.md&#34;&gt;205.同构字符串&lt;/a&gt;【哈希表的应用】&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;字符串-1&#34;&gt;字符串&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode925.md&#34;&gt;925.长按键入&lt;/a&gt;【模拟匹配】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode844.md&#34;&gt;844.比较含退格的字符串&lt;/a&gt;【栈模拟】【空间更优的双指针】&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;二叉树-1&#34;&gt;二叉树&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode129.md&#34;&gt;129.求根到叶子节点数字之和&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode1382.md&#34;&gt;1382.将二叉搜索树变平衡&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode100.md&#34;&gt;100.相同的树&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode116.md&#34;&gt;116.填充每个节点的下一个右侧节点指针&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;二分查找&#34;&gt;二分查找&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode668.md&#34;&gt;668.乘法表中的第k小的数&lt;/a&gt;【值作为边界】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode719.md&#34;&gt;719.找出第k小的距离对&lt;/a&gt;【距离作为边界】&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;回溯算法-1&#34;&gt;回溯算法&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode52.md&#34;&gt;52.N皇后Ⅱ&lt;/a&gt;【有难度】&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;贪心算法-1&#34;&gt;贪心算法&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode649.md&#34;&gt;649.Dota2参议院&lt;/a&gt;【有难度】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode1221.md&#34;&gt;1221.分割平衡字符串&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;动态规划-1&#34;&gt;动态规划&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode05.md&#34;&gt;5.最长回文子串&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode132.md&#34;&gt;132.分割回文串Ⅱ&lt;/a&gt;【有难度，在&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode05.md&#34;&gt;前一题&lt;/a&gt;的基础上写】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode673.md&#34;&gt;673.最长递增子序列的个数&lt;/a&gt;【难度较大】&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;图论-1&#34;&gt;图论&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode463.md&#34;&gt;463.岛屿的周长&lt;/a&gt;【模拟】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode841.md&#34;&gt;841.钥匙和房间&lt;/a&gt;【有向图】 dfs,bfs都可以&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode127.md&#34;&gt;127.单词接龙&lt;/a&gt;【广搜,有难度】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode542.md&#34;&gt;542.01矩阵&lt;/a&gt;【广搜｜动态规划】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode994.md&#34;&gt;994.腐烂的橘子&lt;/a&gt;【广搜】【01矩阵的升级版】&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;并查集-1&#34;&gt;并查集&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;(!)&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode684.md&#34;&gt;684.冗余连接&lt;/a&gt;【并查集基础题目】&lt;/li&gt;
-&lt;li&gt;(!)&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode685.md&#34;&gt;685.冗余连接Ⅱ&lt;/a&gt;【并查集基础题目】&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;模拟&#34;&gt;模拟&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode657.md&#34;&gt;657.机器人能否回到原点&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode31.md&#34;&gt;31.下一个排列&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode36.md&#34;&gt;36.有效的数独&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;拓扑排序&#34;&gt;拓扑排序&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode207.md&#34;&gt;207.课程表&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode210.md&#34;&gt;210.课程表Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;位运算&#34;&gt;位运算&lt;/h3&gt;
-&lt;h3 id=&#34;算法模板&#34;&gt;算法模板&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/%E5%90%84%E7%B1%BB%E7%AE%97%E6%B3%95%E6%A8%A1%E6%9D%BF.md&#34;&gt;各类算法模板&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;每日一题&#34;&gt;每日一题&lt;/h2&gt;
-&lt;h3 id=&#34;2021-11月&#34;&gt;2021 11月&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode575.md&#34;&gt;575.分糖果&lt;/a&gt;【简单贪心】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode237.md&#34;&gt;237.删除链表中的节点&lt;/a&gt;【删除节点的第二种方法】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode407.md&#34;&gt;407.接雨水Ⅱ&lt;/a&gt;【最小堆经典题目】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode367.md&#34;&gt;367.有效的完全平方数&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode1218.md&#34;&gt;1218.最长定差子序列&lt;/a&gt;【动态规划】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode268.md&#34;&gt;268.丢失的数字&lt;/a&gt;【排序|哈希集合|位运算|数学方法】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode598.md&#34;&gt;598.范围求和Ⅱ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode299.md&#34;&gt;299.猜数字游戏&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;(!)&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode488.md&#34;&gt;488.祖玛游戏&lt;/a&gt;【双指针|回溯】【困难】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode495.md&#34;&gt;495.提莫攻击&lt;/a&gt;【简单模拟】&lt;/li&gt;
-&lt;li&gt;(!)&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode629.md&#34;&gt;629.K个逆序对数组&lt;/a&gt;【序列DP】【困难】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode375.md&#34;&gt;375.猜数字大小Ⅱ&lt;/a&gt;【动态规划】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode520.md&#34;&gt;520.检测大写字母&lt;/a&gt;【简单分类讨论】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode677.md&#34;&gt;677.键值映射&lt;/a&gt;【类的实现】【暴力|哈希映射|字典树】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode319.md&#34;&gt;319.灯泡开关&lt;/a&gt;【数论】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode391.md&#34;&gt;391.完美矩形&lt;/a&gt;【困难】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode318.md&#34;&gt;318.最大单词长度乘积&lt;/a&gt;【位运算降低复杂度】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode563.md&#34;&gt;563.二叉树的坡度&lt;/a&gt;【二叉树遍历】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode397.md&#34;&gt;397.整数替换&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode594.md&#34;&gt;594.最长和谐子序列&lt;/a&gt;【枚举|哈希表】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode559.md&#34;&gt;559. N 叉树的最大深度&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode384.md&#34;&gt;384.打乱数组&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode859.md&#34;&gt;859：亲密字符串&lt;/a&gt;【字符串模拟】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode423.md&#34;&gt;423.从英文中重建数字&lt;/a&gt;【字典树的应用】&lt;/li&gt;
-&lt;li&gt;(!)&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode458.md&#34;&gt;458.可怜的小猪&lt;/a&gt;【数论||动态规划】【困难】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode700.md&#34;&gt;700.二叉搜索树中的搜索&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;(!)&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode519.md&#34;&gt;519.随机翻转矩阵&lt;/a&gt;【分块||数组映射】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode438.md&#34;&gt;438.找到字符串中所有字母异位词&lt;/a&gt;【哈希表的维护】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode786.md&#34;&gt;786.第 K 个最小的素数分数&lt;/a&gt;【二分查找||自定义排序】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/leetcode400.md&#34;&gt;400.第 N 位数字&lt;/a&gt;【数学模拟】&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;2021-12月&#34;&gt;2021 12月&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode1446.md&#34;&gt;1446.连续字符&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode506.md&#34;&gt;506.相对名次&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode1005.md&#34;&gt;1005.K 次取反后最大化的数组和&lt;/a&gt;【贪心】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_train/leetcode383.md&#34;&gt;383.赎金信&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode383.md&#34;&gt;372.超级次方&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode1816.md&#34;&gt;1816.截断句子&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode1034.md&#34;&gt;1034.边界着色&lt;/a&gt;【深搜||广搜】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode689.md&#34;&gt;689.边界着色&lt;/a&gt;【困难】【滑动窗口】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode794.md&#34;&gt;794.有效的井字游戏&lt;/a&gt;【模拟判断】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode748.md&#34;&gt;748.最短补全词&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode911.md&#34;&gt;911.在线选举&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode709.md&#34;&gt;709.转换成小写字母&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode807.md&#34;&gt;807.保持城市天际线&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode630.md&#34;&gt;630.课程表Ⅲ&lt;/a&gt;【优先队列】【贪心】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode851.md&#34;&gt;851.喧闹和富有&lt;/a&gt;【深度优先搜索】【拓扑排序】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode1610.md&#34;&gt;1610.可见点的最大数目&lt;/a&gt;【滑动窗口】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode1518.md&#34;&gt;1518.换酒问题&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode419.md&#34;&gt;419.甲板上的战舰&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode997.md&#34;&gt;997.找到小镇的法官&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode475.md&#34;&gt;475.供暖器&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode1154.md&#34;&gt;1154.一年中的第几天&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode686.md&#34;&gt;686. 重复叠加字符串匹配&lt;/a&gt;【字符串匹配】【KMP算法】&lt;/li&gt;
-&lt;li&gt;(!)&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode1044.md&#34;&gt;1044. 最长重复子串&lt;/a&gt;【字符串哈希+二分】【后缀数组+哈希算法】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode1705.md&#34;&gt;1705. 吃苹果的最大数目&lt;/a&gt;【贪心】【优先队列】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode1609.md&#34;&gt;1609. 奇偶树&lt;/a&gt;【层序遍历】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode1078.md&#34;&gt;1078. Bigram 分词&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode825.md&#34;&gt;825. 适龄的朋友&lt;/a&gt;【排序+二分】【排序+双指针】【桶排序】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode472.md&#34;&gt;472. 连接词&lt;/a&gt;【字典书】【dfs】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode472.md&#34;&gt;1995.统计特殊四元组&lt;/a&gt;【暴力】【哈希】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode846.md&#34;&gt;846.一手顺子&lt;/a&gt;【排序+哈希】【纯哈希】&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/caixiongjiang/caixiongjiang/blob/main/leetcode_java/leetcode_everyday/2021.12/leetcode507.md&#34;&gt;507. 完美数&lt;/a&gt;【纯数学】&lt;/li&gt;
-&lt;/ul&gt;
-- https://caixiongjiang.github.io/blog/2021/%E9%9D%A2%E8%AF%95%E5%87%86%E5%A4%87%E5%AE%9E%E4%B9%A0%E6%84%9F%E6%82%9F/%E6%88%91%E7%9A%84%E5%8A%9B%E6%89%A3%E5%88%B7%E9%A2%98%E7%AC%94%E8%AE%B0/ - </description>
         </item>
     
     

@@ -334,6 +334,24 @@ color: #515151;
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8e%e8%bf%ad%e4%bb%a3%e5%99%a8%e5%88%b0%e7%94%9f%e6%88%90%e5%99%a8" onclick="onNavClick(`#从迭代器到生成器-nav`)" id="从迭代器到生成器-nav">
+									从迭代器到生成器
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -527,6 +545,24 @@ color: #515151;
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8e%e8%bf%ad%e4%bb%a3%e5%99%a8%e5%88%b0%e7%94%9f%e6%88%90%e5%99%a8" onclick="onNavClick(`#从迭代器到生成器-nav`)" id="从迭代器到生成器-nav">
+									从迭代器到生成器
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -625,9 +661,9 @@ color: #515151;
                             
 
                             
-                            4 min
+                            9 min
                             
-                            23 s.
+                            3 s.
                         
                     </div>
                 </div>
@@ -978,6 +1014,336 @@ color: #515151;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(add_to(<span style="color:#b452cd">1</span>))
 </span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(add_to(<span style="color:#b452cd">2</span>))
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="从迭代器到生成器">从迭代器到生成器</h3>
+<p>Python中能够使用for循环迭代的对象叫可迭代对象，也叫iterables，包含<code>__iter__</code>方法。</p>
+<p>我们可以通过<code>hasattr</code>来判断一个对象是否包含某个方法。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>my_lst = [<span style="color:#b452cd">1</span>, <span style="color:#b452cd">2</span>, <span style="color:#b452cd">3</span>]
+</span></span><span style="display:flex;"><span>my_int = <span style="color:#b452cd">123</span>
+</span></span><span style="display:flex;"><span>my_str = <span style="color:#cd5555">&#34;123&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#658b00">hasattr</span>(my_lst, <span style="color:#cd5555">&#34;__iter__&#34;</span>))  <span style="color:#228b22"># True</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#658b00">hasattr</span>(my_int, <span style="color:#cd5555">&#34;__iter__&#34;</span>))  <span style="color:#228b22"># False</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#658b00">hasattr</span>(my_str, <span style="color:#cd5555">&#34;__iter__&#34;</span>))  <span style="color:#228b22"># True</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Python中的for循环底层发生的事：
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/python_advance/img1.jpg" alt=""></p>
+<p>使用while循环来实现上述过程：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>my_lst = [<span style="color:#b452cd">1</span>, <span style="color:#b452cd">2</span>, <span style="color:#b452cd">3</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>it = <span style="color:#658b00">iter</span>(my_lst)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">while</span> <span style="color:#8b008b;font-weight:bold">True</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">try</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">print</span>(<span style="color:#658b00">next</span>(it))
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">except</span> <span style="color:#008b45;font-weight:bold">StopIteration</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">break</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>假设我们有一个日志文件，存储着结构化的数据，我们需要对其进行处理，通常的做法如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">tracemalloc</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">process_line</span>(obj: <span style="color:#658b00">str</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>file_path = <span style="color:#cd5555">&#34;./logs/service.log&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>tracemalloc.start()
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">with</span> <span style="color:#658b00">open</span>(file_path, <span style="color:#cd5555">&#34;r&#34;</span>) <span style="color:#8b008b;font-weight:bold">as</span> f:
+</span></span><span style="display:flex;"><span>    lines = f.readlines()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">for</span> line <span style="color:#8b008b">in</span> lines:
+</span></span><span style="display:flex;"><span>    process_line(line)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>current, peak = tracemalloc.get_traced_memory()
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#cd5555">f</span><span style="color:#cd5555">&#34;Current memory usage: </span><span style="color:#cd5555">{</span>current / <span style="color:#b452cd">1024</span>**<span style="color:#b452cd">2</span><span style="color:#cd5555">}</span><span style="color:#cd5555"> MB&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#cd5555">f</span><span style="color:#cd5555">&#34;Peak memory usage: </span><span style="color:#cd5555">{</span>peak / <span style="color:#b452cd">1024</span>**<span style="color:#b452cd">2</span><span style="color:#cd5555">}</span><span style="color:#cd5555"> MB&#34;</span>)
+</span></span><span style="display:flex;"><span>tracemalloc.stop()
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># Current memory usage: 0.8936986923217773 MB</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># Peak memory usage: 0.9117012023925781 MB</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>目前日志中的行数为5000行，假设日志文件为100w行，内存会直接达到200MB，而且这是处理函数为空的情况。</p>
+<p>有什么更好的方法在处理大文件的读取处理呢？迭代器的方法就很适合。下面的例子通过一个自定义的迭代器来处理日志文件：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">tracemalloc</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">process_line</span>(obj: <span style="color:#658b00">str</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>filepath = <span style="color:#cd5555">&#34;logs/service.log&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>tracemalloc.start()
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">LineIterator</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, file_path):
+</span></span><span style="display:flex;"><span>        self.file = <span style="color:#658b00">open</span>(file_path, <span style="color:#cd5555">&#34;r&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __iter__(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> self
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __next__(self):
+</span></span><span style="display:flex;"><span>        line = self.file.readline()
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> line:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">return</span> line
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">else</span>:
+</span></span><span style="display:flex;"><span>            self.file.close()
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">raise</span> <span style="color:#008b45;font-weight:bold">StopIteration</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>line_iter = LineIterator(file_path=filepath)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">for</span> line <span style="color:#8b008b">in</span> line_iter:
+</span></span><span style="display:flex;"><span>    process_line(line)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>current, peak = tracemalloc.get_traced_memory()
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#cd5555">f</span><span style="color:#cd5555">&#34;Current memory usage: </span><span style="color:#cd5555">{</span>current / <span style="color:#b452cd">1024</span>**<span style="color:#b452cd">2</span><span style="color:#cd5555">}</span><span style="color:#cd5555"> MB&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#cd5555">f</span><span style="color:#cd5555">&#34;Peak memory usage: </span><span style="color:#cd5555">{</span>peak / <span style="color:#b452cd">1024</span>**<span style="color:#b452cd">2</span><span style="color:#cd5555">}</span><span style="color:#cd5555"> MB&#34;</span>)
+</span></span><span style="display:flex;"><span>tracemalloc.stop()
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># Current memory usage: 0.004233360290527344 MB</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># Peak memory usage: 0.056969642639160156 MB</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以明显看到内存使用很小，且自定义的操作可以在<code>__next__</code>方法中实现。在自定义迭代器中，最重要的方法是<code>__next__</code>，<code>__init__</code>和<code>__iter__</code>显得很累赘。</p>
+<p>Python中有另一种对象叫生成器，使用yeild关键字实现，它会自动产生<code>__iter__</code>和<code>__next__</code>方法。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">generator</span>(n):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> <span style="color:#658b00">range</span>(n):
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;before yield&#34;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">yield</span> i
+</span></span><span style="display:flex;"><span>        <span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;after yield&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>gen = generator(<span style="color:#b452cd">3</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#658b00">next</span>(gen))
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#cd5555">&#34;---&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">for</span> i <span style="color:#8b008b">in</span> gen:
+</span></span><span style="display:flex;"><span>    <span style="color:#658b00">print</span>(i)
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># before yield</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 0</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># ---</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># after yield</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># before yield</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 1</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># after yield</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># before yield</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 2</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># after yield</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以看到生成器是从哪里退出就从哪里进入的。</p>
+<p>所以我们可以对自定义的迭代器类进行改造：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">line_generator</span>(filepath):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">with</span> <span style="color:#658b00">open</span>(filepath, <span style="color:#cd5555">&#34;r&#34;</span>) <span style="color:#8b008b;font-weight:bold">as</span> f:
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> line <span style="color:#8b008b">in</span> f:
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> line.split(<span style="color:#cd5555">&#34;|&#34;</span>)[-<span style="color:#b452cd">1</span>].strip() == <span style="color:#cd5555">&#34;Create&#34;</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">yield</span> <span style="color:#8b008b;font-weight:bold">True</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">else</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>line_gen = line_generator(filepath=filepath)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">for</span> line <span style="color:#8b008b">in</span> line_gen:
+</span></span><span style="display:flex;"><span>    process_line(line)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>使用上述生成器的写法和自定义迭代器的类写法是相同的，使用的内存都很小。
+<strong>生成器的特点</strong>：
+1.惰性计算，只有在迭代到这个元素时，才会生成它，而不是所有的内容先生成在读取，这样比较节省内存。
+2.生成器可以没有终点。</p>
+<p>给一道题写一下，提升理解：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">multiplication_generator</span>(x):
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>gen = multiplication_generator(<span style="color:#b452cd">2</span>)
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#658b00">next</span>(gen)) <span style="color:#228b22"># 1x2=2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#658b00">next</span>(gen)) <span style="color:#228b22"># 2x2=4</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#658b00">next</span>(gen)) <span style="color:#228b22"># 3x2=6</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">print</span>(<span style="color:#658b00">next</span>(gen)) <span style="color:#228b22"># 4x2=8</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>答案如下：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">multiplication_generator</span>(x):
+</span></span><span style="display:flex;"><span>    index = <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">while</span> <span style="color:#8b008b;font-weight:bold">True</span>:
+</span></span><span style="display:flex;"><span>        index += <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">yield</span> <span style="color:#cd5555">f</span><span style="color:#cd5555">&#34;</span><span style="color:#cd5555">{</span>index<span style="color:#cd5555">}</span><span style="color:#cd5555"> * </span><span style="color:#cd5555">{</span>x<span style="color:#cd5555">}</span><span style="color:#cd5555"> = </span><span style="color:#cd5555">{</span>index * x<span style="color:#cd5555">}</span><span style="color:#cd5555">&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>也可以用迭代器的写法：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">Iterator</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __init__(self, x):
+</span></span><span style="display:flex;"><span>        self.i = <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>        self.x = x
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __iter__(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> self
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">def</span> __next__(self):
+</span></span><span style="display:flex;"><span>        self.i += <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#cd5555">f</span><span style="color:#cd5555">&#34;</span><span style="color:#cd5555">{</span>self.i<span style="color:#cd5555">}</span><span style="color:#cd5555"> * </span><span style="color:#cd5555">{</span>self.x<span style="color:#cd5555">}</span><span style="color:#cd5555"> = </span><span style="color:#cd5555">{</span>self.i * self.x<span style="color:#cd5555">}</span><span style="color:#cd5555">&#34;</span>
 </span></span></code></pre></td></tr></table>
 </div>
 </div>

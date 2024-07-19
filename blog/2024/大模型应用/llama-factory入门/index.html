@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html><head>
+<title>LLaMA-Factory：大模型的训练工厂</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="开源大模型的训练工厂，使用说明、参数详解及微调经验">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="LLaMA-Factory：大模型的训练工厂" />
+<meta property="og:description" content="开源大模型的训练工厂，使用说明、参数详解及微调经验" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://caixiongjiang.github.io/blog/2024/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BA%94%E7%94%A8/llama-factory%E5%85%A5%E9%97%A8/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2024-07-18T18:18:05+08:00" />
+<meta property="article:modified_time" content="2024-07-18T09:19:06+08:00" />
+<meta property="og:see_also" content="https://caixiongjiang.github.io/blog/2024/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BA%94%E7%94%A8/xinference/" /><meta property="og:see_also" content="https://caixiongjiang.github.io/blog/2024/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BA%94%E7%94%A8/llm%E9%83%A8%E7%BD%B2%E5%A4%A7%E5%85%A8/" /><meta property="og:see_also" content="https://caixiongjiang.github.io/blog/2024/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BA%94%E7%94%A8/vllm%E5%B9%B6%E5%8F%91/" /><meta property="og:see_also" content="https://caixiongjiang.github.io/blog/2024/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BA%94%E7%94%A8/nlpllm/" /><meta property="og:see_also" content="https://caixiongjiang.github.io/blog/2024/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BA%94%E7%94%A8/langchain%E5%85%A5%E9%97%A8/" />
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/avater.jfif">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.5.11/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://caixiongjiang.github.io/">
+    
+        <div class="nav-title">
+            🌀Jarson Cai&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            头脑是日用品，不是装饰品
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://github.com/caixiongjiang">
+    GitHub
+</a>
+<br>
+
+<a href="mailto:nau_cxj@163.com">
+    Email
+</a>
+<br>
+
+<a href="https://leetcode-cn.com/u/cai-xiong-jiang/">
+    Leetcode
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2024 🌀Jarson Cai&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#llama-factory%e5%a4%a7%e6%a8%a1%e5%9e%8b%e7%9a%84%e8%ae%ad%e7%bb%83%e5%b7%a5%e5%8e%82" onclick="onNavClick(`#llama-factory大模型的训练工厂-nav`)" id="llama-factory大模型的训练工厂-nav">
+									LLaMA-Factory：大模型的训练工厂
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%ae%ad%e7%bb%83%e6%a1%86%e6%9e%b6%e9%83%a8%e7%bd%b2" onclick="onNavClick(`#训练框架部署-nav`)" id="训练框架部署-nav">
+									训练框架部署
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e9%9b%86%e5%87%86%e5%a4%87" onclick="onNavClick(`#数据集准备-nav`)" id="数据集准备-nav">
+									数据集准备
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%ad%e7%bb%83%e5%8f%82%e6%95%b0%e8%af%a6%e8%a7%a3" onclick="onNavClick(`#训练参数详解-nav`)" id="训练参数详解-nav">
+									训练参数详解
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#llama-factory%e5%a4%a7%e6%a8%a1%e5%9e%8b%e7%9a%84%e8%ae%ad%e7%bb%83%e5%b7%a5%e5%8e%82" onclick="onNavClick(`#llama-factory大模型的训练工厂-nav`)" id="llama-factory大模型的训练工厂-nav">
+									LLaMA-Factory：大模型的训练工厂
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%ae%ad%e7%bb%83%e6%a1%86%e6%9e%b6%e9%83%a8%e7%bd%b2" onclick="onNavClick(`#训练框架部署-nav`)" id="训练框架部署-nav">
+									训练框架部署
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e9%9b%86%e5%87%86%e5%a4%87" onclick="onNavClick(`#数据集准备-nav`)" id="数据集准备-nav">
+									数据集准备
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%ad%e7%bb%83%e5%8f%82%e6%95%b0%e8%af%a6%e8%a7%a3" onclick="onNavClick(`#训练参数详解-nav`)" id="训练参数详解-nav">
+									训练参数详解
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://caixiongjiang.github.io/">
+            🌀Jarson Cai&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://caixiongjiang.github.io/">
+        <div class="single-column-header-title">🌀Jarson Cai&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">头脑是日用品，不是装饰品</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+                
+            
+
+            <div class="post-head-wrapper"
+                
+                    
+                    
+                    style="background-image: url('https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/llamafactory_title.jpg')"
+                    
+                
+            >
+                <div class="post-title">
+                    LLaMA-Factory：大模型的训练工厂
+                    
+                    <div class="post-subtitle">
+                        开源大模型的训练工厂，使用说明、参数详解及微调经验
+                    </div>
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2024-07-18 18:18
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/">[大模型]</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/deep_learning">Deep_learning</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            15 min
+                            
+                            50 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h3 id="llama-factory大模型的训练工厂">LLaMA-Factory：大模型的训练工厂</h3>
+<p>Github官网：https://github.com/hiyouga/LLaMA-Factory</p>
+<p>LLaMA-Factory集成了几乎市面上所有的开源大模型架构的训练，也集成了Full、Freeze、LoRA、QLoRA等主流训练方法，以及各种数据精度（16、8、4、2）的训练。</p>
+<h4 id="训练框架部署">训练框架部署</h4>
+<ul>
+<li>如果你使用conda管理python环境，则使用如下命令：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>conda create -n LLaMA-Factory <span style="color:#00688b">python</span>=3.10
+</span></span><span style="display:flex;"><span>conda activate LLaMA-Factory
+</span></span><span style="display:flex;"><span>git clone --depth <span style="color:#b452cd">1</span> https://github.com/hiyouga/LLaMA-Factory.git
+</span></span><span style="display:flex;"><span><span style="color:#658b00">cd</span> LLaMA-Factory
+</span></span><span style="display:flex;"><span>pip install -e <span style="color:#cd5555">&#34;.[torch,metrics]&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>如果你使用Docker部署，可以直接执行说明书指出的<code>Build without Docker Compose</code>:</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker build -f ./docker/docker-cuda/Dockerfile <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    --build-arg <span style="color:#00688b">INSTALL_BNB</span>=<span style="color:#658b00">false</span> <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    --build-arg <span style="color:#00688b">INSTALL_VLLM</span>=<span style="color:#658b00">false</span> <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    --build-arg <span style="color:#00688b">INSTALL_DEEPSPEED</span>=<span style="color:#658b00">false</span> <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    --build-arg <span style="color:#00688b">INSTALL_FLASHATTN</span>=<span style="color:#658b00">false</span> <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    --build-arg <span style="color:#00688b">PIP_INDEX</span>=https://pypi.org/simple <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -t llamafactory:latest .
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>docker run -dit --gpus=all <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -v ./hf_cache:/root/.cache/huggingface <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -v ./ms_cache:/root/.cache/modelscope <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -v ./data:/app/data <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -v ./output:/app/output <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -p 7860:7860 <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -p 8000:8000 <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    --shm-size 16G <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    --name llamafactory <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    llamafactory:latest
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>docker <span style="color:#658b00">exec</span> -it llamafactory bash
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>根据个人需要，我需要对一些文件进行修改之后，再构建镜像：</p>
+<ul>
+<li>修改<code>.dockerignore</code>的内容</li>
+</ul>
+<p>原本的文件内容：</p>
+<pre tabindex="0"><code>.vscode
+.git
+.github
+.venv
+cache
+data
+docker
+saves
+hf_cache
+output
+.dockerignore
+.gitattributes
+.gitignore
+</code></pre><p>其中docker是部署需要的文件，saves是模型微调后保存权重的位置，data是数据集保存的位置。由于我后续需要先制作数据集并拷贝进容器，所以需要把data去掉，修改后的文件内容：</p>
+<pre tabindex="0"><code>.vscode
+.git
+.github
+.venv
+cache
+docker
+saves
+hf_cache
+output
+.dockerignore
+.gitattributes
+.gitignore
+</code></pre><ul>
+<li>修改<code>docker/docker-cuda/Dockerfile</code>的内容，修改pip源，修改下载环境的参数，将内容中的设置卷去掉：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-dockerfile" data-lang="dockerfile"><span style="display:flex;"><span><span style="color:#228b22"># Define installation arguments</span><span style="color:#a61717;background-color:#e3d2d2">
+</span></span></span><span style="display:flex;"><span><span style="color:#a61717;background-color:#e3d2d2"></span><span style="color:#8b008b;font-weight:bold">ARG</span> <span style="color:#00688b">INSTALL_BNB</span>=<span style="color:#658b00">false</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">ARG</span> <span style="color:#00688b">INSTALL_VLLM</span>=<span style="color:#658b00">true</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">ARG</span> <span style="color:#00688b">INSTALL_DEEPSPEED</span>=<span style="color:#658b00">false</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">ARG</span> <span style="color:#00688b">INSTALL_FLASHATTN</span>=<span style="color:#658b00">false</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">ARG</span> <span style="color:#00688b">PIP_INDEX</span>=https://pypi.tuna.tsinghua.edu.cn/simple<span style="color:#a61717;background-color:#e3d2d2">
+</span></span></span><span style="display:flex;"><span><span style="color:#a61717;background-color:#e3d2d2">
+</span></span></span><span style="display:flex;"><span><span style="color:#a61717;background-color:#e3d2d2"></span><span style="color:#228b22"># Set up volumes </span><span style="color:#a61717;background-color:#e3d2d2">
+</span></span></span><span style="display:flex;"><span><span style="color:#a61717;background-color:#e3d2d2"></span><span style="color:#228b22"># VOLUME [ &#34;/root/.cache/huggingface&#34;, &#34;/root/.cache/modelscope&#34;, &#34;/app/data&#34;, &#34;/app/output&#34; ]</span><span style="color:#a61717;background-color:#e3d2d2">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>
+<p>制作数据集加入data文件中，这部分会在下文进行说明</p>
+</li>
+<li>
+<p>制作镜像，启动镜像，进入镜像：</p>
+</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker build -f ./docker/docker-cuda/Dockerfile <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -t llamafactory:latest .
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 映射的做法，将本地文件映射到容器中进行操作</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># model_hub存放大模型相关的权重</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 也可以去掉-v相关的内容，容器启动后使用docker cp将需要的文件传进去</span>
+</span></span><span style="display:flex;"><span>docker run -itd --gpus all <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -v ./data:/app/data <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -v ./output:/app/output <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -v ./model_hub:/app/model_hub <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -p 7860:7860 <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    -p 8000:8000 <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    --shm-size 16G <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    --name llamafactory <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>    llamafactory:latest
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>docker <span style="color:#658b00">exec</span> -it llamafactory /bin/bash
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="数据集准备">数据集准备</h4>
+<p>由于我们常用的场景通常为对话问答场景，中文相关的问答数据在<code>data</code>文件夹下的<code>alpaca_zh_demo.json</code>有说明：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>[
+</span></span><span style="display:flex;"><span>  {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">&#34;instruction&#34;</span>: <span style="color:#cd5555">&#34;识别并解释给定列表中的两个科学理论：细胞理论和日心说。&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">&#34;input&#34;</span>: <span style="color:#cd5555">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">&#34;output&#34;</span>: <span style="color:#cd5555">&#34;细胞理论是生物科学的一个理论，它认为所有生命体都是由微小的基本单元——细胞所构成。这是生物学的一个基础理论，认为细胞是所有生物的基本结构和功能单位，所有的生物都是由一个或多个细胞组成，细胞只能通过细胞分裂产生新的细胞。这一理论由薛定谔、施瓦内和雪莱于1839年首次提出。\n\n日心说是指太阳是太阳系的中心，也就是说，行星围绕太阳旋转的理论。这个理论打破了传统的地心说观点，认为地球并不是宇宙的中心。日心说的提出者是尼古拉·哥白尼，他在16世纪初发表了他的著作《天体运行论》，阐述了太阳系行星围绕太阳运行的模型，为天文学的发展做出了巨大贡献。&#34;</span>
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>  <span style="color:#a61717;background-color:#e3d2d2">...</span>
+</span></span><span style="display:flex;"><span>  {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">&#34;instruction&#34;</span>: <span style="color:#cd5555">&#34;输入三支篮球队的名称并生成一个适当的口号。&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">&#34;input&#34;</span>: <span style="color:#cd5555">&#34;输入：俄克拉荷马城雷霆队，芝加哥公牛队，布鲁克林网队。&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">&#34;output&#34;</span>: <span style="color:#cd5555">&#34;输出： \&#34;雷霆，公牛和网队：各显神通，角逐群雄!\&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>]
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>instruction中的内容代表指令，也就是你需要让大模型干什么事，这往往是和大模型的系统提示词相关的。然后定义输入和输出。</strong></p>
+<blockquote>
+<p>数据集的数据组织方式</p>
+</blockquote>
+<p>一个比较简单的方式，就是根据你需要大模型做的一个提示词来生成相关的数据。举一个CoT风格的提示词例子：</p>
+<p><strong>系统提示词</strong>：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scss" data-lang="scss"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">你是一个高级自然语言处理专家</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">专注于解决复杂的文本分析任务</span><span style="color:#a61717;background-color:#e3d2d2">。</span><span style="color:#8b008b;font-weight:bold">你的任务是分析一段文本</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">识别其中的情感倾向</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">并提供详细的推理过程</span><span style="color:#a61717;background-color:#e3d2d2">。</span><span style="color:#8b008b;font-weight:bold">请按照以下步骤操作</span><span style="color:#a61717;background-color:#e3d2d2">：</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">1</span><span style="color:#008b45;font-weight:bold">.</span> **<span style="color:#8b008b;font-weight:bold">文本输入</span>**<span style="color:#a61717;background-color:#e3d2d2">：</span><span style="color:#8b008b;font-weight:bold">接收用户提供的文本段落</span><span style="color:#a61717;background-color:#e3d2d2">。</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">2</span><span style="color:#008b45;font-weight:bold">.</span> **<span style="color:#8b008b;font-weight:bold">初步分析</span>**<span style="color:#a61717;background-color:#e3d2d2">：</span><span style="color:#8b008b;font-weight:bold">对文本进行初步的情感分析</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">识别可能的情感倾向</span><span style="color:#a61717;background-color:#e3d2d2">。</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">3</span><span style="color:#008b45;font-weight:bold">.</span> **<span style="color:#8b008b;font-weight:bold">深入分析</span>**<span style="color:#a61717;background-color:#e3d2d2">：</span><span style="color:#8b008b;font-weight:bold">详细分析文本中的关键词和短语</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">确定情感的具体类型</span><span style="color:#a61717;background-color:#e3d2d2">（</span><span style="color:#8b008b;font-weight:bold">如正面</span><span style="color:#a61717;background-color:#e3d2d2">、</span><span style="color:#8b008b;font-weight:bold">负面</span><span style="color:#a61717;background-color:#e3d2d2">、</span><span style="color:#8b008b;font-weight:bold">中性</span><span style="color:#a61717;background-color:#e3d2d2">）。</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">4</span><span style="color:#008b45;font-weight:bold">.</span> **<span style="color:#8b008b;font-weight:bold">推理过程</span>**<span style="color:#a61717;background-color:#e3d2d2">：</span><span style="color:#8b008b;font-weight:bold">列出所有支持你情感分析结论的关键证据和逻辑推理步骤</span><span style="color:#a61717;background-color:#e3d2d2">。</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">5</span><span style="color:#008b45;font-weight:bold">.</span> **<span style="color:#8b008b;font-weight:bold">输出结果</span>**<span style="color:#a61717;background-color:#e3d2d2">：</span><span style="color:#8b008b;font-weight:bold">总结你的分析和推理过程</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">提供一个明确的情感倾向结论</span><span style="color:#a61717;background-color:#e3d2d2">。</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>**<span style="color:#8b008b;font-weight:bold">注意事项</span>**<span style="color:#a61717;background-color:#e3d2d2">：</span>
+</span></span><span style="display:flex;"><span>- <span style="color:#8b008b;font-weight:bold">确保分析过程中考虑文本的上下文和语境</span><span style="color:#a61717;background-color:#e3d2d2">。</span>
+</span></span><span style="display:flex;"><span>- <span style="color:#8b008b;font-weight:bold">避免仅基于单一词汇做出判断</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">要综合考虑整个文本段落</span><span style="color:#a61717;background-color:#e3d2d2">。</span>
+</span></span><span style="display:flex;"><span>- <span style="color:#8b008b;font-weight:bold">推理过程要详细且逻辑清晰</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">便于理解和验证</span><span style="color:#a61717;background-color:#e3d2d2">。</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>**<span style="color:#8b008b;font-weight:bold">输出样例</span>**<span style="color:#a61717;background-color:#e3d2d2">：</span>
+</span></span><span style="display:flex;"><span>- <span style="color:#8b008b;font-weight:bold">输入文本</span><span style="color:#a61717;background-color:#e3d2d2">：</span><span style="color:#cd5555">&#34;今天天气真好，阳光明媚，我感到非常愉快。&#34;</span>
+</span></span><span style="display:flex;"><span>- <span style="color:#8b008b;font-weight:bold">输出结果</span><span style="color:#a61717;background-color:#e3d2d2">：</span><span style="color:#8b008b;font-weight:bold">情感倾向为正面</span><span style="color:#a61717;background-color:#e3d2d2">。</span><span style="color:#8b008b;font-weight:bold">推理过程</span><span style="color:#a61717;background-color:#e3d2d2">：</span><span style="color:#8b008b;font-weight:bold">1</span><span style="color:#008b45;font-weight:bold">.</span> <span style="color:#8b008b;font-weight:bold">文本中提到</span><span style="color:#a61717;background-color:#e3d2d2">“</span><span style="color:#8b008b;font-weight:bold">天气真好</span><span style="color:#a61717;background-color:#e3d2d2">”</span><span style="color:#8b008b;font-weight:bold">和</span><span style="color:#a61717;background-color:#e3d2d2">“</span><span style="color:#8b008b;font-weight:bold">阳光明媚</span><span style="color:#a61717;background-color:#e3d2d2">”，</span><span style="color:#8b008b;font-weight:bold">这些词汇通常与正面情感相关</span><span style="color:#a61717;background-color:#e3d2d2">。</span><span style="color:#8b008b;font-weight:bold">2</span><span style="color:#008b45;font-weight:bold">.</span> <span style="color:#a61717;background-color:#e3d2d2">“</span><span style="color:#8b008b;font-weight:bold">感到非常愉快</span><span style="color:#a61717;background-color:#e3d2d2">”</span><span style="color:#8b008b;font-weight:bold">直接表明了正面情感</span><span style="color:#a61717;background-color:#e3d2d2">。</span><span style="color:#8b008b;font-weight:bold">综合以上分析</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">确定情感倾向为正面</span><span style="color:#a61717;background-color:#e3d2d2">。</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>用户提示词</strong>：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scss" data-lang="scss"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">我今天吃了一个汉堡</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">它很好吃</span><span style="color:#a61717;background-color:#e3d2d2">，</span><span style="color:#8b008b;font-weight:bold">而且我只花了5块钱</span><span style="color:#a61717;background-color:#e3d2d2">。</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们可以生成如下的数据样例：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>[
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;instruction&#34;</span>: <span style="color:#cd5555">&#34;请分析以下文本的情感倾向，并提供详细的推理过程。确保考虑文本的上下文和语境，避免仅基于单一词汇做出判断。推理过程要详细且逻辑清晰，便于理解和验证。&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;input&#34;</span>: <span style="color:#cd5555">&#34;文本：&#39;我昨天去了一家新开的餐厅，食物非常美味，服务也很周到，我感到非常满意。&#39;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;output&#34;</span>: <span style="color:#cd5555">&#34;情感倾向：正面\n\n推理过程：\n1. 文本中提到“食物非常美味”，这是一个明显的正面评价，表明用户对食物的质量感到满意。\n2. “服务也很周到”进一步强化了正面情感，因为良好的服务体验通常会提升整体满意度。\n3. “我感到非常满意”直接表达了用户的正面情感，确认了整体的正面评价。\n\n结论：根据上述分析，文本的情感倾向为正面。&#34;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>]
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>将制作好的数据集放在data目录下，并在<code>data/dataset_info.json</code>文件中加入新的字段：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a61717;background-color:#e3d2d2">&lt;自定义数据集名称&gt;:</span> <span style="color:#a61717;background-color:#e3d2d2">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;file_name&#34;</span>: <span style="color:#a61717;background-color:#e3d2d2">&lt;数据集所在位置文件&gt;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span><span style="color:#a61717;background-color:#e3d2d2">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>然后，你就可以在训练的配置文件中使用这个数据集了！</p>
+<h4 id="训练参数详解">训练参数详解</h4>
+<p>我的习惯是通过调整<code>examples</code>文件夹的配置文件来修改训练、验证、推理、模型合并等。</p>
+<ul>
+<li>训练，这里只讲最常用的LoRA训练参数解析，找到<code>train_lora</code>下面的<code>llama3_lora_sft.yaml</code>文件：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#228b22">### model</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">model_name_or_path</span>:<span style="color:#bbb"> </span>model_hub/qwen/Qwen2-7B-Instruct<span style="color:#bbb"> </span><span style="color:#228b22"># 本地的模型路径（如果是docker则是容器内的路径）</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#228b22">### method （这部分的参数主要是选择使用什么训练方法，不需要改）</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">stage</span>:<span style="color:#bbb"> </span>sft<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">do_train</span>:<span style="color:#bbb"> </span><span style="color:#8b008b;font-weight:bold">true</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">finetuning_type</span>:<span style="color:#bbb"> </span>lora<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">lora_target</span>:<span style="color:#bbb"> </span>all<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#228b22">### dataset （数据集必须要选dataset_info.json中注册的数据集） </span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">dataset</span>:<span style="color:#bbb"> </span>zhidian_data_3000, alpaca_zh_demo<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">template</span>:<span style="color:#bbb"> </span>llama3<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">cutoff_len</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">4096</span><span style="color:#bbb">  </span><span style="color:#228b22"># 模型最大长度，也就是模型训练完成之后的最大上下文长度，一般是1024的倍数</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">max_samples</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">1000</span><span style="color:#bbb"> </span><span style="color:#228b22"># 每个数据集的最大样本数，假设你的数据集大小超过了1000，则需要调整</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">overwrite_cache</span>:<span style="color:#bbb"> </span><span style="color:#8b008b;font-weight:bold">true</span><span style="color:#bbb">  
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">preprocessing_num_workers</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">4</span><span style="color:#bbb"> </span><span style="color:#228b22"># 数据集读取使用的线程数</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#228b22">### output</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">output_dir</span>:<span style="color:#bbb"> </span>saves/qwen/Qwen2-7B-Instruct/lora/sft1<span style="color:#bbb"> </span><span style="color:#228b22"># 输出的lora权重路径</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">logging_steps</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">10</span><span style="color:#bbb"> </span><span style="color:#228b22"># 日志的记录步数（一般会记录学习率、损失等信息）</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">save_steps</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">500</span><span style="color:#bbb"> </span><span style="color:#228b22"># 权重检查点的保存步数</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">plot_loss</span>:<span style="color:#bbb"> </span><span style="color:#8b008b;font-weight:bold">true</span><span style="color:#bbb"> </span><span style="color:#228b22"># 是否进行画图</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">overwrite_output_dir</span>:<span style="color:#bbb"> </span><span style="color:#8b008b;font-weight:bold">true</span><span style="color:#bbb"> </span><span style="color:#228b22"># 是否覆盖训练的路径</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#228b22">### train</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">per_device_train_batch_size</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">1</span><span style="color:#bbb">   </span><span style="color:#228b22"># 训练的batch</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">gradient_accumulation_steps</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">8</span><span style="color:#bbb">   </span><span style="color:#228b22"># 梯度累计步数</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">learning_rate</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">1.0e-4</span><span style="color:#bbb">    </span><span style="color:#228b22"># 基础学习率</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">num_train_epochs</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">2.0</span><span style="color:#bbb">    </span><span style="color:#228b22"># 训练的epoch数</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">lr_scheduler_type</span>:<span style="color:#bbb"> </span>cosine<span style="color:#bbb"> </span><span style="color:#228b22"># 学习率优化的方法</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">warmup_ratio</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">0.1</span><span style="color:#bbb">  </span><span style="color:#228b22"># warm up热身训练比</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">bf16</span>:<span style="color:#bbb"> </span><span style="color:#8b008b;font-weight:bold">true</span><span style="color:#bbb">  </span><span style="color:#228b22"># 使用bf16数据进行训练</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">ddp_timeout</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">180000000</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#228b22">### eval</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">val_size</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">0.1</span><span style="color:#bbb">  </span><span style="color:#228b22"># 验证集占训练过程的比例</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">per_device_eval_batch_size</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">1</span><span style="color:#bbb"> </span><span style="color:#228b22"># 验证集每次验证的样本数</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">eval_strategy</span>:<span style="color:#bbb"> </span>steps  <span style="color:#bbb"> </span><span style="color:#228b22"># 评估使用的步数计量</span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">eval_steps</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">500</span><span style="color:#bbb">  </span><span style="color:#228b22"># 500个step进行一次评估，一般来说都会与训练保存权重的steps保持一致</span><span style="color:#bbb">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>运行如下命令：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#00688b">CUDA_VISIBLE_DEVICES</span>=&lt;你的gpu id&gt; <span style="color:#cd5555">\
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555"></span>llamafactory-cli train examples/train_lora/llama3_lora_sft.yaml
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这些只是最基础的一些设置，你也可以使用训练面板去训练，往往参数会更详细一些，运行如下命令打开面板：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>llamafactory-cli webui
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>然后在浏览器打开<code>&lt;ip地址&gt;:7860</code>打开训练面板，进行设置训练参数。如果要改端口号需要先输入，<code>export GRADIO_SERVER_PORT=&lt;端口号&gt;</code>再运行上述命令即可。
+界面预览：</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img62.jpg" alt=""></p>
+<p>在设置好训练参数后，点击预览命令，会生成命令行的命令。
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img63.jpg" alt="">
+复制出来，在前面加上<code>CUDA_VISIBLE_DEVICES=&lt;gpu-ids&gt;</code>在命令行运行开始训练。</p>
+<p>训练完之后之后的推理接口以及大模型与LoRA权重合并，分别使用如下命令：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>llamafactory-cli chat examples/inference/llama3_lora_sft.yaml
+</span></span><span style="display:flex;"><span>llamafactory-cli <span style="color:#658b00">export</span> examples/merge_lora/llama3_lora_sft.yaml
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>修改里面的参数再运行即可，其中chat命令对应的端口号是8000，如果想要修改端口号同样要先修改环境变量，<code>export API_PORT=&lt;端口号&gt;</code>再运行命令。你也可以直接在命令之前加上环境变量的取值。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#00688b">API_PORT</span>=<span style="color:#b452cd">10000</span> chat examples/inference/llama3_lora_sft.yaml
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><em>注意：使用容器的话修改了端口号，必须要宿主机的端口映射进入容器中的端口号，这样才能正确访问</em></p>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2024-07-18</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+			下回<br>已经到头啦。
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2024/python%E8%BF%9B%E9%98%B6/python%E8%BF%9B%E9%98%B6%E7%94%A8%E6%B3%95%E4%B8%89/">
+			上回<br>Python进阶用法（三）
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2024 🌀Jarson Cai&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "https://twikoo-rho-olive.vercel.app/",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

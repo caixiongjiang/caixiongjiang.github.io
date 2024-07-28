@@ -257,12 +257,12 @@
     
     
         <item>
-        <title>Python中的进程、线程、协程原理和使用探究</title>
+        <title>Python中的多进程、多线程、协程原理和使用探究</title>
         <link>https://caixiongjiang.github.io/blog/2024/python%E8%BF%9B%E9%98%B6/python%E4%B8%AD%E7%9A%84%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E5%8D%8F%E7%A8%8B/</link>
         <pubDate>Mon, 22 Jul 2024 18:18:05 +0800</pubDate>
         
         <guid>https://caixiongjiang.github.io/blog/2024/python%E8%BF%9B%E9%98%B6/python%E4%B8%AD%E7%9A%84%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E5%8D%8F%E7%A8%8B/</guid>
-        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2024/python%E8%BF%9B%E9%98%B6/python%E4%B8%AD%E7%9A%84%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E5%8D%8F%E7%A8%8B/ -&lt;h3 id=&#34;python中的进程线程协程原理和使用探究&#34;&gt;Python中的进程、线程、协程原理和使用探究&lt;/h3&gt;
+        <description>🌀Jarson Cai&#39;s Blog https://caixiongjiang.github.io/blog/2024/python%E8%BF%9B%E9%98%B6/python%E4%B8%AD%E7%9A%84%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E5%8D%8F%E7%A8%8B/ -&lt;h3 id=&#34;python中的多进程多线程协程原理和使用探究&#34;&gt;Python中的多进程、多线程、协程原理和使用探究&lt;/h3&gt;
 &lt;h4 id=&#34;heading&#34;&gt;&lt;/h4&gt;
 - https://caixiongjiang.github.io/blog/2024/python%E8%BF%9B%E9%98%B6/python%E4%B8%AD%E7%9A%84%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B%E5%8D%8F%E7%A8%8B/ - </description>
         </item>
@@ -351,6 +351,730 @@
 &lt;/div&gt;&lt;h4 id=&#34;整体方案设计&#34;&gt;整体方案设计&lt;/h4&gt;
 &lt;p&gt;这里只看了第一组&lt;code&gt;馒头科技&lt;/code&gt;的部分，其余思路都是相差不大的，可以自行去github查看：
 &lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img64.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;PDF解析与信息抽取步骤：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;pdf文本抽取 -&amp;gt; 页面召回 -&amp;gt; 表格识别 -&amp;gt; 信息过滤&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;pdf文本抽取&lt;/strong&gt;使用了官方提供的脚本:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 25
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 26
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 27
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 28
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 29
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 30
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 31
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 32
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 33
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 34
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 35
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 36
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 37
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 38
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 39
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 40
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 41
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 42
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 43
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 44
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 45
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 46
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 47
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 48
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 49
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 50
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 51
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 52
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 53
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 54
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 55
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 56
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 57
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 58
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 59
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 60
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 61
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 62
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 63
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 64
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 65
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 66
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 67
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 68
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 69
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 70
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 71
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 72
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 73
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 74
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 75
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 76
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 77
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 78
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 79
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 80
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 81
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 82
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 83
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 84
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 85
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 86
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 87
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 88
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 89
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 90
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 91
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 92
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 93
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 94
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 95
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 96
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 97
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 98
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 99
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;100
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;101
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;102
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;103
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;104
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;105
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;106
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;107
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;108
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;109
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;110
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;111
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;112
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;113
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;114
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;115
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;116
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;117
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;118
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;119
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;120
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;121
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;122
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;123
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;124
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;125
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;126
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;127
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;128
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;129
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;130
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;131
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;132
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;133
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;134
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;135
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;136
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;137
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;138
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;139
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;140
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;141
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;142
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;143
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;144
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;145
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;146
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;147
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;148
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;149
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;150
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;151
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;152
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;153
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;154
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;155
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;156
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;157
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;158
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;159
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;160
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;161
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;162
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;163
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;164
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;165
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;166
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;167
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;168
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;169
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;170
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;171
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;172
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;173
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;174
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;175
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;176
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;177
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;178
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;179
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;180
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;181
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;182
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;183
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;184
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;185
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;186
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;187
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;188
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;glob&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;pdfplumber&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;re&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;collections&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; defaultdict
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;json&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;multiprocessing&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; Pool
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;PDFProcessor&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; __init__(self, filepath):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self.filepath = filepath
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self.pdf = pdfplumber.open(filepath)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self.all_text = defaultdict(&lt;span style=&#34;color:#658b00&#34;&gt;dict&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self.allrow = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self.last_num = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;check_lines&lt;/span&gt;(self, page, top, buttom):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        lines = page.extract_words()[::]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        text = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        last_top = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        last_check = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; l &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(lines)):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            each_line = lines[l]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            check_re = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;(?:。|；|单位：元|单位：万元|币种：人民币|\d|报告(?:全文)?(?:（修订版）|（修订稿）|（更正后）)?)$&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; top == &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; buttom == &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;abs&lt;/span&gt;(last_top - each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;top&amp;#39;&lt;/span&gt;]) &amp;lt;= &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    text = text + each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;elif&lt;/span&gt; last_check &amp;gt; &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; (page.height * &lt;span style=&#34;color:#b452cd&#34;&gt;0.9&lt;/span&gt; - each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;top&amp;#39;&lt;/span&gt;]) &amp;gt; &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;not&lt;/span&gt; re.search(check_re, text):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    text = text + each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    text = text + &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt; + each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;elif&lt;/span&gt; top == &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;top&amp;#39;&lt;/span&gt;] &amp;gt; buttom:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;abs&lt;/span&gt;(last_top - each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;top&amp;#39;&lt;/span&gt;]) &amp;lt;= &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        text = text + each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;elif&lt;/span&gt; last_check &amp;gt; &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; (page.height * &lt;span style=&#34;color:#b452cd&#34;&gt;0.85&lt;/span&gt; - each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;top&amp;#39;&lt;/span&gt;]) &amp;gt; &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;not&lt;/span&gt; re.search(check_re,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                                                                                          text):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        text = text + each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        text = text + &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt; + each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;top&amp;#39;&lt;/span&gt;] &amp;lt; top &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;top&amp;#39;&lt;/span&gt;] &amp;gt; buttom:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;abs&lt;/span&gt;(last_top - each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;top&amp;#39;&lt;/span&gt;]) &amp;lt;= &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        text = text + each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;elif&lt;/span&gt; last_check &amp;gt; &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; (page.height * &lt;span style=&#34;color:#b452cd&#34;&gt;0.85&lt;/span&gt; - each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;top&amp;#39;&lt;/span&gt;]) &amp;gt; &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;not&lt;/span&gt; re.search(check_re,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                                                                                          text):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        text = text + each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        text = text + &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt; + each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            last_top = each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;top&amp;#39;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            last_check = each_line[&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;x1&amp;#39;&lt;/span&gt;] - page.width * &lt;span style=&#34;color:#b452cd&#34;&gt;0.85&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; text
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;drop_empty_cols&lt;/span&gt;(self, data):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;# 删除所有列为空数据的列&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        transposed_data = &lt;span style=&#34;color:#658b00&#34;&gt;list&lt;/span&gt;(&lt;span style=&#34;color:#658b00&#34;&gt;map&lt;/span&gt;(&lt;span style=&#34;color:#658b00&#34;&gt;list&lt;/span&gt;, &lt;span style=&#34;color:#658b00&#34;&gt;zip&lt;/span&gt;(*data)))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        filtered_data = [col &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; col &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; transposed_data &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;not&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;all&lt;/span&gt;(cell &lt;span style=&#34;color:#8b008b&#34;&gt;is&lt;/span&gt; &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; cell &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; col)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        result = &lt;span style=&#34;color:#658b00&#34;&gt;list&lt;/span&gt;(&lt;span style=&#34;color:#658b00&#34;&gt;map&lt;/span&gt;(&lt;span style=&#34;color:#658b00&#34;&gt;list&lt;/span&gt;, &lt;span style=&#34;color:#658b00&#34;&gt;zip&lt;/span&gt;(*filtered_data)))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; result
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;extract_text_and_tables&lt;/span&gt;(self, page):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        buttom = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        tables = page.find_tables()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(tables) &amp;gt;= &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            count = &lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(tables)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; table &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; tables:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; table.bbox[&lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;] &amp;lt; buttom:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;pass&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    count -= &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    top = table.bbox[&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    text = self.check_lines(page, top, buttom)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    text_list = text.split(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; _t &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(text_list)):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        self.all_text[self.allrow] = {&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;page&amp;#39;&lt;/span&gt;: page.page_number, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;allrow&amp;#39;&lt;/span&gt;: self.allrow,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                                      &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;type&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;inside&amp;#39;&lt;/span&gt;: text_list[_t]}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        self.allrow += &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    buttom = table.bbox[&lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    new_table = table.extract()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    r_count = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; r &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(new_table)):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        row = new_table[r]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; row[&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;] &lt;span style=&#34;color:#8b008b&#34;&gt;is&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;None&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            r_count += &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; c &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(row)):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; row[c] &lt;span style=&#34;color:#8b008b&#34;&gt;is&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;not&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;None&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; row[c] &lt;span style=&#34;color:#8b008b&#34;&gt;not&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; [&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39; &amp;#39;&lt;/span&gt;]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; new_table[r - r_count][c] &lt;span style=&#34;color:#8b008b&#34;&gt;is&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;None&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                        new_table[r - r_count][c] = row[c]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                        new_table[r - r_count][c] += row[c]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                    new_table[r][c] = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            r_count = &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    end_table = []
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; row &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; new_table:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; row[&lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;] != &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;None&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            cell_list = []
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            cell_check = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;False&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; cell &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; row:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; cell != &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;None&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                    cell = cell.replace(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                    cell = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; cell != &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                    cell_check = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;True&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                cell_list.append(cell)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; cell_check == &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;True&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                end_table.append(cell_list)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    end_table = self.drop_empty_cols(end_table)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; row &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; end_table:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        self.all_text[self.allrow] = {&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;page&amp;#39;&lt;/span&gt;: page.page_number, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;allrow&amp;#39;&lt;/span&gt;: self.allrow,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                                      &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;type&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;excel&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;inside&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#658b00&#34;&gt;str&lt;/span&gt;(row)}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#228b22&#34;&gt;# self.all_text[self.allrow] = {&amp;#39;page&amp;#39;: page.page_number, &amp;#39;allrow&amp;#39;: self.allrow, &amp;#39;type&amp;#39;: &amp;#39;excel&amp;#39;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#228b22&#34;&gt;#                               &amp;#39;inside&amp;#39;: &amp;#39; &amp;#39;.join(row)}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        self.allrow += &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; count == &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        text = self.check_lines(page, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;, buttom)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        text_list = text.split(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; _t &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(text_list)):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            self.all_text[self.allrow] = {&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;page&amp;#39;&lt;/span&gt;: page.page_number, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;allrow&amp;#39;&lt;/span&gt;: self.allrow,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                                          &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;type&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;inside&amp;#39;&lt;/span&gt;: text_list[_t]}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            self.allrow += &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            text = self.check_lines(page, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            text_list = text.split(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; _t &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(text_list)):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                self.all_text[self.allrow] = {&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;page&amp;#39;&lt;/span&gt;: page.page_number, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;allrow&amp;#39;&lt;/span&gt;: self.allrow,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                              &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;type&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;text&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;inside&amp;#39;&lt;/span&gt;: text_list[_t]}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                self.allrow += &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        first_re = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;[^计](?:报告(?:全文)?(?:（修订版）|（修订稿）|（更正后）)?)$&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        end_re = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;^(?:\d|&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\\&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;|\/|第|共|页|-|_| ){1,}&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; self.last_num == &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;try&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                first_text = &lt;span style=&#34;color:#658b00&#34;&gt;str&lt;/span&gt;(self.all_text[&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;][&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;inside&amp;#39;&lt;/span&gt;])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                end_text = &lt;span style=&#34;color:#658b00&#34;&gt;str&lt;/span&gt;(self.all_text[&lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(self.all_text) - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;][&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;inside&amp;#39;&lt;/span&gt;])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; re.search(first_re, first_text) &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;not&lt;/span&gt; &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;[&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; end_text:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    self.all_text[&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;][&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;type&amp;#39;&lt;/span&gt;] = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;页眉&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; re.search(end_re, end_text) &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;not&lt;/span&gt; &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;[&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; end_text:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        self.all_text[&lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(self.all_text) - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;][&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;type&amp;#39;&lt;/span&gt;] = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;页脚&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;except&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#658b00&#34;&gt;print&lt;/span&gt;(page.page_number)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;try&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                first_text = &lt;span style=&#34;color:#658b00&#34;&gt;str&lt;/span&gt;(self.all_text[self.last_num + &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;][&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;inside&amp;#39;&lt;/span&gt;])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                end_text = &lt;span style=&#34;color:#658b00&#34;&gt;str&lt;/span&gt;(self.all_text[&lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(self.all_text) - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;][&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;inside&amp;#39;&lt;/span&gt;])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; re.search(first_re, first_text) &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;[&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;not&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; end_text:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    self.all_text[self.last_num + &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;][&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;type&amp;#39;&lt;/span&gt;] = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;页眉&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; re.search(end_re, end_text) &lt;span style=&#34;color:#8b008b&#34;&gt;and&lt;/span&gt; &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;[&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;not&lt;/span&gt; &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; end_text:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    self.all_text[&lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(self.all_text) - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;][&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;type&amp;#39;&lt;/span&gt;] = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;页脚&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;except&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#658b00&#34;&gt;print&lt;/span&gt;(page.page_number)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self.last_num = &lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(self.all_text) - &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;process_pdf&lt;/span&gt;(self):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#658b00&#34;&gt;len&lt;/span&gt;(self.pdf.pages)):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            self.extract_text_and_tables(self.pdf.pages[i])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;save_all_text&lt;/span&gt;(self, path):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; key &lt;span style=&#34;color:#8b008b&#34;&gt;in&lt;/span&gt; self.all_text.keys():
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;with&lt;/span&gt; &lt;span style=&#34;color:#658b00&#34;&gt;open&lt;/span&gt;(path, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;a+&amp;#39;&lt;/span&gt;, encoding=&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;utf-8&amp;#39;&lt;/span&gt;) &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;as&lt;/span&gt; file:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                file.write(json.dumps(self.all_text[key], ensure_ascii=&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;False&lt;/span&gt;) + &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;process_file&lt;/span&gt;(file_path):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;try&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#658b00&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;start &amp;#39;&lt;/span&gt;, file_path)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        processor = PDFProcessor(file_path)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        processor.process_pdf()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        save_path = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;alltxt2/&amp;#39;&lt;/span&gt; + file_path.split(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;/&amp;#39;&lt;/span&gt;)[-&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;].replace(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;.pdf&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;.txt&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        processor.save_all_text(save_path)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#658b00&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;finish &amp;#39;&lt;/span&gt;, save_path)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;except&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#658b00&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;check&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;folder_path = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;allpdf&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;file_paths = glob.glob(&lt;span style=&#34;color:#cd5555&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;{&lt;/span&gt;folder_path&lt;span style=&#34;color:#cd5555&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;/*&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;file_paths = &lt;span style=&#34;color:#658b00&#34;&gt;sorted&lt;/span&gt;(file_paths, reverse=&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;True&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;with&lt;/span&gt; Pool(processes=&lt;span style=&#34;color:#b452cd&#34;&gt;15&lt;/span&gt;) &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;as&lt;/span&gt; pool:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    results = pool.map(process_file, file_paths)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;最终呈现的效果如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;44
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;45
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;46
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;47
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;48
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;49
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;50
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;51
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;52
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;53
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;54
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;55
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;56
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;57
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;58
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;59
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;60
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;61
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;62
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;63
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;64
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;65
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;66
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;67
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;68
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;69
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;70
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;71
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;72
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;73
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;74
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;75
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;76
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;77
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;78
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;79
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-txt&#34; data-lang=&#34;txt&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 1, &amp;#34;allrow&amp;#34;: 0, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 1, &amp;#34;allrow&amp;#34;: 1, &amp;#34;type&amp;#34;: &amp;#34;页眉&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;江苏安靠智能输电工程科技股份有限公司2019年年度报告全文&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 1, &amp;#34;allrow&amp;#34;: 2, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;江苏安靠智能输电工程科技股份有限公司&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 1, &amp;#34;allrow&amp;#34;: 3, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;2019年年度报告&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 1, &amp;#34;allrow&amp;#34;: 4, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;2020-008&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 1, &amp;#34;allrow&amp;#34;: 5, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;2020年01月&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 1, &amp;#34;allrow&amp;#34;: 6, &amp;#34;type&amp;#34;: &amp;#34;页脚&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;1&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 7, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 8, &amp;#34;type&amp;#34;: &amp;#34;页眉&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;江苏安靠智能输电工程科技股份有限公司2019年年度报告全文&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 9, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第一节重要提示、目录和释义&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 10, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;公司董事会、监事会及董事、监事、高级管理人员保证年度报告内容的真实、准确、完整，不存在虚假记载、误导性陈述或重大遗漏，并承担个别和连带的法律责任。&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 11, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;公司负责人陈晓晖、主管会计工作负责人陈晓凌及会计机构负责人(会计主管人员)王春梅声明：保证年度报告中财务报告的真实、准确、完整。&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 12, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;所有董事均已出席了审议本报告的董事会会议。&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 13, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;本报告中如有涉及未来的计划、业绩预测等方面内容，均不构成公司对任何投资者及相关人士的承诺，投资者及相关人士应对此保持足够的风险认识，并且应当理解计划、预测与承诺之间的差异。&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 14, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;本公司敬请广大投资者认真阅读本报告，并注意以下风险：&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 15, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;1、宏观经济增速放缓带来的行业风险&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 16, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;当前国内国际宏观经济环境下，增长放缓，需求下降。公司所处行业发展与宏观经济环境及下游行业景气度密切相关。当宏观经济处于上升阶段时，新开工上升，电力需求增加，输配电系统投资增加；反之，当宏观经济处于下降阶段时，供需逆转，电力需求减少，输配电系统投资减少。若宏观经济形势发生变化或产业经济发展方向发生重大调整，导致国家电力网络建设投资规模相应缩减，将对公司所处行业经营环境产生较大的不利影响，导致行业市场容量缩减，对公司业绩造成不利影响。&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 17, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;2、客户高度集中风险&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 18, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;公司主要通过参与国家电网、南方电网、五大发电集团、地方政府或下属&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 2, &amp;#34;allrow&amp;#34;: 19, &amp;#34;type&amp;#34;: &amp;#34;页脚&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;2&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 3, &amp;#34;allrow&amp;#34;: 20, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 3, &amp;#34;allrow&amp;#34;: 21, &amp;#34;type&amp;#34;: &amp;#34;页眉&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;江苏安靠智能输电工程科技股份有限公司2019年年度报告全文&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 3, &amp;#34;allrow&amp;#34;: 22, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;机构等客户招标的方式进行销售，部分投标采取与电缆厂商合作的方式。而我国发电企业及输配电企业高度集中的格局决定了公司客户集中度较高。鉴于国家电网、南方电网及五大发电集团在产业链中的主导地位以及市场高度集中的格局，如果公司主要客户发生重大变化，可能对公司经营造成不利影响。&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 3, &amp;#34;allrow&amp;#34;: 23, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;3、市场竞争风险&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 3, &amp;#34;allrow&amp;#34;: 24, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;随着行业的不断发展，政策及监管环境等可能发生变化，市场竞争方式可能发生改变，公司产品面临的市场竞争环境也将日趋激烈，产品售价存在下降风险。随着客户对高压、超高压产品需求的不断提升，潜在生产厂商可能积极进入，现有生产厂商投资力度可能加大，亦可能取得技术上的实质突破；国外厂商也可能采取降价等手段加剧市场竞争状况。如公司不能维持技术竞争力及价格竞争力等方面的优势，将面临竞争力下降、毛利率降低等风险。&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 3, &amp;#34;allrow&amp;#34;: 25, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;4、产品质量风险&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 3, &amp;#34;allrow&amp;#34;: 26, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;公司生产的产品是输配电环节重要的组成部分，若产品发生质量问题，将很有可能对电力输送产生重大影响，造成严重损失。未来，若公司相关产品出现质量问题，可能面临退货、民事赔偿以及行政处罚等不利影响，情形严重的，可能导致公司不再满足国家电网、南方电网或五大发电集团等客户的投标资格，上述情况的发生将会对公司声誉和经营业绩带来不利影响。&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 3, &amp;#34;allrow&amp;#34;: 27, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;公司经本次董事会审议通过的利润分配预案为：以截至2019年12月31日扣除回购专户上已回购股份（已回购股份2,209,650股）后的总股本97,795,350&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 3, &amp;#34;allrow&amp;#34;: 28, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;股为基数，向全体股东每10股派发现金红利5元（含税），送红股0股（含税），以资本公积金向全体股东每10股转增3股，共计转增29,338,605股，转增后总股本为129,343,605股（不扣除已回购的股份2,209,650股）。&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 3, &amp;#34;allrow&amp;#34;: 29, &amp;#34;type&amp;#34;: &amp;#34;页脚&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;3&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 30, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 31, &amp;#34;type&amp;#34;: &amp;#34;页眉&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;江苏安靠智能输电工程科技股份有限公司2019年年度报告全文&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 32, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;目录&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 33, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第一节重要提示、目录和释义.......................................................................................................7&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 34, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第二节公司简介和主要财务指标.................................................................................................11&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 35, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第三节公司业务概要.....................................................................................................................19&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 36, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第四节经营情况讨论与分析.........................................................................................................47&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 37, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第五节重要事项...........................................................................................................................130&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 38, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第六节股份变动及股东情况.......................................................................................................137&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 39, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第七节优先股相关情况...............................................................................................................137&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 40, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第八节可转换公司债券相关情况...............................................................................................137&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 41, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第九节董事、监事、高级管理人员和员工情况.......................................................................138&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 42, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第十节公司治理...........................................................................................................................139&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 43, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第十一节公司债券相关情况.......................................................................................................148&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 44, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第十二节财务报告.......................................................................................................................156&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 45, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;第十三节备查文件目录...............................................................................................................157&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 4, &amp;#34;allrow&amp;#34;: 46, &amp;#34;type&amp;#34;: &amp;#34;页脚&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;4&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 47, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 48, &amp;#34;type&amp;#34;: &amp;#34;页眉&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;江苏安靠智能输电工程科技股份有限公司2019年年度报告全文&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 49, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;释义&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 50, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;释义项&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;释义内容&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 51, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;一、简称&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 52, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;安靠智电、本公司、公司、发行人&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;江苏安靠智能输电工程科技股份有限公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 53, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;河南安靠&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;河南安靠电力工程设计有限公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 54, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;溧阳常瑞&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;溧阳市常瑞电力科技有限公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 55, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;江苏凌瑞&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;江苏凌瑞电力科技有限公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 56, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;安靠创投&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;江苏安靠创业投资有限公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 57, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;安云创投&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;江苏安云创业投资有限公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 58, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;安靠有限&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;江苏安靠超高压电缆附件有限公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 59, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;安靠光热&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;江苏安靠光热发电系统科技有限公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 60, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;ABB&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;ABB（中国）有限公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 61, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;3M&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;明尼苏达矿务及制造业公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 62, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;建创能鑫&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;建创能鑫（天津）创业投资有限责任公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 63, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;曲水增益、卓辉增益&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;曲水卓辉增益投资管理中心（有限合伙）&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 64, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;国家电网&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;国家电网有限公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 65, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;南方电网&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;中国南方电网有限责任公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 66, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;&amp;#39;, &amp;#39;&amp;#39;, &amp;#39;中国华能集团公司、中国大唐集团公司、中国华电集团公司、中国&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 67, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;五大发电集团&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;国电集团公司、国家电力投资集团公司&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 68, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;中国证监会、证监会&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;中国证券监督管理委员会&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 69, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;深交所&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;深圳证券交易所&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 70, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;公司法&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;中华人民共和国公司法&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 71, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;证券法&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;中华人民共和国证券法&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 72, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;股东大会&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;江苏安靠智能输电工程科技股份有限公司股东大会&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 73, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;董事会&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;江苏安靠智能输电工程科技股份有限公司董事会&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 74, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;监事会&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;江苏安靠智能输电工程科技股份有限公司监事会&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 75, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;公司章程&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;江苏安靠智能输电工程科技股份有限公司章程&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 76, &amp;#34;type&amp;#34;: &amp;#34;excel&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;[&amp;#39;报告期&amp;#39;, &amp;#39;指&amp;#39;, &amp;#39;2019年1月1日至2019年12月31日&amp;#39;]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{&amp;#34;page&amp;#34;: 5, &amp;#34;allrow&amp;#34;: 77, &amp;#34;type&amp;#34;: &amp;#34;text&amp;#34;, &amp;#34;inside&amp;#34;: &amp;#34;&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;最终呈现效果如上，根据文本的类型进行分类，分为&lt;code&gt;text&lt;/code&gt;，&lt;code&gt;excel&lt;/code&gt;，&lt;code&gt;页眉&lt;/code&gt;，&lt;code&gt;页脚&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;页面的召回&lt;/strong&gt;也是使用较为简单的方式，使用关键词找到对应的页去召回对应的页。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;表格识别&lt;/strong&gt;则使用了基于图像识别的表格提取（年报中的横线和竖线去提取，然后做ocr）。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;信息过滤&lt;/strong&gt;则对每个报表的文本中的非合并报表、调整报表、母公司报表进行过滤。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;问题分类：
+迭代过程： 基于规则 -&amp;gt; 大模型prompt -&amp;gt; P-Tuning&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;记录一下他们使用的&lt;strong&gt;大模型Prompt内容&lt;/strong&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-txt&#34; data-lang=&#34;txt&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;请问“{}”是属于下面哪个类别的问题？
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;A：基本信息查询，例如证券信息、股票简称、股票代码、外文名称、法定代表人、注册地址、办公地址、公司网址、电子信箱等
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;B：公司员工人数统计，例如员工人数、员工专业、员工教育程度等
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;C：财务相关，例如金额、费用、资产、收入等
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;D：以上都不是
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;例如：
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;1. XXXX的费用收入是多少元？
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;输出：C
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2. XX公司法定代表人是谁？
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;输出：A
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3. 请简要介绍分析XX公司的XXX情况。 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;输出：D
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;4. XX公司硕士人数是什么？
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;输出：B
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;你只需要回答编号，不要回答其他内容.
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;模型微调的问题分类情况：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;字母分类编号&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;分类选项名称&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;分类描述&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;A&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;公司基本信息&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;可以通过检索【公司基本信息表】来获取结果&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;B&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;公司员工信息&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;可以通过检索【公司员工信息表】来获取结果&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;C&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;财务报表相关内容&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;可以通过检索【财务三大报表】来获取结果&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;D&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;计算题&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;可以通过问题类型检索计算因子来完成计算&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;E&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;统计题&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;需要根据问题类型分析条件检索来获取结果&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;F&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;开放性问题&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;根据问题关键词来检索全文相关匹配来回答问题&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;微调使用的prompt:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;prompt_classify_question = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;&amp;#34;&amp;#34;请问&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;{question_text}&lt;/span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;是属于下面哪个类别的问题？
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;A：公司基本信息,包含股票简称，公司名称人外文名称，法定代表人，注册地址，办公地址，公司网址网站，电子信箱等.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;B：公司员工信息,包含员工人数，员工专业，员工类别，员工教育程度等.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;C：财务报表相关内容，包含资产负债表，现金流量表，利润表中存在的字段，包括费用，资产，金额，收入等.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;D：计算题,无法从年报中直接获得,需要根据计算公式获得，包括增长率，率，比率，比重,占比等.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;E：统计题，需要从题目获取检索条件，在数据集/数据库中进行检索、过滤、排序后获得结果.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;F：开放性问题,包括介绍情况,介绍方法,分析情况,分析影响,什么是xxx.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;你只需要回答字母编号，不要回答字母编号及选项文本外的其他内容.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;.format(question_text=question_text)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;P-Tuning v2微调使用的方法可以看&lt;a href=&#34;https://github.com/THUDM/ChatGLM3/tree/main/finetune_demo&#34;&gt;https://github.com/THUDM/ChatGLM3/tree/main/finetune_demo&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;这里我们也可以用lora的方法进行微调，微调之后可以直接合并为一个模型，更为方便。将&lt;code&gt;prompt_classify_question&lt;/code&gt;作为输入，回答的字母作为输出，&lt;code&gt;instruction&lt;/code&gt;字段设置为合适的任务指引即可。&lt;/p&gt;
+&lt;p&gt;对于意图识别任务来说，根据自己做过的项目经验来说，如果想要精准识别，32b以下的模型必须微调，32b级别的模型通过调整提示词，增加样例，可以实现精准分类。一般通过规则匹配+大模型（微调或者32b级别+提示词）基本可以做到98%以上的正确率。对于项目的迭代来说，32b级别的大模型会更加方便，减少任务增加带来的微调成本。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;SQL生成任务：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;数据构造使用了超大模型API服务来给小模型提供样例的方式进行。数据构造的具体过程如下：
+&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img65.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;可以看到该团队在微调的过程中还加入了对一些中文含义数字转化为实际数字的能力增强。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;关键词提取任务设计的提示词如下：
+&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img66.jpg&#34; alt=&#34;&#34;&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;基本信息问答任务&#34;&gt;基本信息问答任务&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;处理流程：
+&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img67.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;回答示例：
+&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img68.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;根据基本信息计算任务&#34;&gt;根据基本信息计算任务&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;处理流程：
+&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img69.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;回答示例：
+&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img70.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;文本召回类任务&#34;&gt;文本召回类任务&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;处理流程：
+&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img71.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;回答示例：
+&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img72.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;个人理解这里是用规则匹配（关键词 + 问题）召回的，没有做向量库相关的内容。&lt;/p&gt;
+&lt;h4 id=&#34;prompt设计结构总结&#34;&gt;Prompt设计结构总结&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;角色定义：精确，与完成任务所需背景知识匹配&lt;/li&gt;
+&lt;li&gt;任务目标描述：简洁明了，避免使用模糊或歧义的词汇&lt;/li&gt;
+&lt;li&gt;任务具体要求、思维链、步骤：多用枚举，&lt;strong&gt;少用否定句（也就是不要让大模型不做什么）&lt;/strong&gt;，如流程较长应考虑拆分为多个任务&lt;/li&gt;
+&lt;li&gt;案例：具有代表性，分别代表不同类型&lt;/li&gt;
+&lt;li&gt;输出要求：明确输出格式要求，可再次强调 重要的任务要求&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;模型微调总结&#34;&gt;模型微调总结&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/LLM/img73.jpg&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;根据项目的经验是，提升基础模型的能力是最划算的，占用的显存也是最少的。因为为了保证模型的应对不同任务的回答速度，不同的模型实例都得提前加载，显存使用是叠加的。如果能不用微调就能解决，就代表可以使用高并发框架来使用一份32b级别的大模型资源来做不同的任务，省时省力省成本。&lt;/p&gt;
 - https://caixiongjiang.github.io/blog/2024/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BA%94%E7%94%A8/%E5%A4%A9%E6%B1%A0%E9%87%91%E8%9E%8D%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%8C%91%E6%88%98%E8%B5%9B%E6%80%9D%E8%B7%AF/ - </description>
         </item>
     
@@ -665,6 +1389,70 @@ output
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;}&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;你也可以将数据集的字段多写一些!&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;在指令监督微调时，instruction 列对应的内容会与 input 列对应的内容拼接后作为人类指令，即人类指令为 instruction + &amp;ldquo;\n&amp;rdquo; + input。而 output 列对应的内容为模型回答。&lt;/p&gt;
+&lt;p&gt;如果指定，system 列对应的内容将被作为系统提示词。&lt;/p&gt;
+&lt;p&gt;history 列是由多个字符串二元组构成的列表，分别代表历史消息中每轮对话的指令和回答。注意在指令监督微调时，历史消息中的回答内容也会被用于模型学习。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;包含所有可选字段的数据集格式如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;instruction&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;人类指令（必填）&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;input&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;人类输入（选填）&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;output&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;模型回答（必填）&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;system&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;系统提示词（选填）&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;history&amp;#34;&lt;/span&gt;: [
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      [&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;第一轮指令（选填）&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;第一轮回答（选填）&amp;#34;&lt;/span&gt;],
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      [&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;第二轮指令（选填）&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;第二轮回答（选填）&amp;#34;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;对于上述格式的数据，&lt;code&gt;dataset_info.json&lt;/code&gt;中的数据集描述应为：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;数据集名称&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;:&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;file_name&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;data.json&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;columns&amp;#34;&lt;/span&gt;: {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;prompt&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;instruction&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;query&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;input&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;response&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;output&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;system&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;system&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;&amp;#34;history&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;history&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;然后，你就可以在训练的配置文件中使用这个数据集了！&lt;/p&gt;
 &lt;h4 id=&#34;训练参数详解&#34;&gt;训练参数详解&lt;/h4&gt;
 &lt;p&gt;我的习惯是通过调整&lt;code&gt;examples&lt;/code&gt;文件夹的配置文件来修改训练、验证、推理、模型合并等。&lt;/p&gt;
@@ -725,8 +1513,8 @@ output
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;### dataset （数据集必须要选dataset_info.json中注册的数据集） &lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;dataset&lt;/span&gt;:&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;zhidian_data_3000, alpaca_zh_demo&lt;span style=&#34;color:#bbb&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;template&lt;/span&gt;:&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;llama3&lt;span style=&#34;color:#bbb&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;cutoff_len&lt;/span&gt;:&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#b452cd&#34;&gt;4096&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;  &lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 模型最大长度，也就是模型训练完成之后的最大上下文长度，一般是1024的倍数&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;template&lt;/span&gt;:&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;qwen&lt;span style=&#34;color:#bbb&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;cutoff_len&lt;/span&gt;:&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#b452cd&#34;&gt;4096&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;  &lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 模型最大长度，也就是模型训练完成之后的最大上下文长度，一般是1024的倍数（instrcution + input + output）&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;max_samples&lt;/span&gt;:&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#b452cd&#34;&gt;1000&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 每个数据集的最大样本数，假设你的数据集大小超过了1000，则需要调整&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;overwrite_cache&lt;/span&gt;:&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;true&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;  
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;preprocessing_num_workers&lt;/span&gt;:&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#b452cd&#34;&gt;4&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;# 数据集读取使用的线程数&lt;/span&gt;&lt;span style=&#34;color:#bbb&#34;&gt;

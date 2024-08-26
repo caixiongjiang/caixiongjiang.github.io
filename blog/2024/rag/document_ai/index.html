@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html><head>
+<title>Document-AI: 使用模型工具处理非结构化、复杂的各类文档</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="在RAG制作知识库的前期，需要通过对非结构化数据的识别，清洗来增强文档质量，提高知识库的质量">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="Document-AI: 使用模型工具处理非结构化、复杂的各类文档" />
+<meta property="og:description" content="在RAG制作知识库的前期，需要通过对非结构化数据的识别，清洗来增强文档质量，提高知识库的质量" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://caixiongjiang.github.io/blog/2024/rag/document_ai/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2024-08-06T18:18:05+08:00" />
+<meta property="article:modified_time" content="2024-08-06T09:19:06+08:00" />
+
+
+
+
+
+
+
+
+
+
+
+
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+  
+
+
+
+
+<link rel="icon" href="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/avater.jfif">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/journal.min.3f72a5fc8f5b5dd732a4b476aced0eece2156958d9d414316494ddb10593ddf7.css" integrity="sha256-P3Kl/I9bXdcypLR2rO0O7OIVaVjZ1BQxZJTdsQWT3fc=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://caixiongjiang.github.io/scss/dark-mode.min.c0082f0b082177f6fb3768ff91439a097de49689bd26f4d49f76d94ebb81e02d.css" integrity="sha256-wAgvCwghd/b7N2j/kUOaCX3klom9JvTUn3bZTruB4C0=" media="screen">
+
+
+<script src="/js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Fira+Mono|Material+Icons");
+</script>
+
+
+  
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script"
+async
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+MathJax.Hub.Queue(function() {
+
+
+
+var all = MathJax.Hub.getAllJax(), i;
+for(i = 0; i < all.length; i += 1) {
+all[i].SourceElement().parentNode.className += ' has-jax';
+}
+});
+</script>
+
+<style>
+code.has-jax {
+font: inherit;
+font-size: 100%;
+background: inherit;
+border: inherit;
+color: #515151;
+}
+</style>
+
+
+
+
+
+  
+    <script src="/js/toc.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.5.11/dist/twikoo.all.min.js"></script>
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://caixiongjiang.github.io/">
+    
+        <div class="nav-title">
+            🌀Jarson Cai&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            头脑是日用品，不是装饰品
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/blog">
+                文章📖
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/categories">
+                分类📌
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/tags">
+                标签🏷️
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/series">
+                系列📚
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/archive">
+                归档📃
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/about">
+                关于👋
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/friends">
+                友链🔗
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                RSS📢
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+<a href="https://github.com/caixiongjiang">
+    GitHub
+</a>
+<br>
+
+<a href="mailto:nau_cxj@163.com">
+    Email
+</a>
+<br>
+
+<a href="https://leetcode-cn.com/u/cai-xiong-jiang/">
+    Leetcode
+</a>
+<br>
+
+        <hr>
+        
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2024 🌀Jarson Cai&#39;s Blog
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#document-ai" onclick="onNavClick(`#document-ai-nav`)" id="document-ai-nav">
+									Document-AI
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#datalab%e5%bc%80%e6%ba%90%e5%b7%a5%e5%85%b7" onclick="onNavClick(`#datalab开源工具-nav`)" id="datalab开源工具-nav">
+									Datalab开源工具
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#surya" onclick="onNavClick(`#surya-nav`)" id="surya-nav">
+									Surya
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#texify" onclick="onNavClick(`#texify-nav`)" id="texify-nav">
+									Texify
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#marker" onclick="onNavClick(`#marker-nav`)" id="marker-nav">
+									Marker
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#unstructed" onclick="onNavClick(`#unstructed-nav`)" id="unstructed-nav">
+									unstructed
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/blog">
+                    文章📖
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/categories">
+                    分类📌
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/tags">
+                    标签🏷️
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/series">
+                    系列📚
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/archive">
+                    归档📃
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/about">
+                    关于👋
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/friends">
+                    友链🔗
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    RSS📢
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目录 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#document-ai" onclick="onNavClick(`#document-ai-nav`)" id="document-ai-nav">
+									Document-AI
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#datalab%e5%bc%80%e6%ba%90%e5%b7%a5%e5%85%b7" onclick="onNavClick(`#datalab开源工具-nav`)" id="datalab开源工具-nav">
+									Datalab开源工具
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#surya" onclick="onNavClick(`#surya-nav`)" id="surya-nav">
+									Surya
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#texify" onclick="onNavClick(`#texify-nav`)" id="texify-nav">
+									Texify
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#marker" onclick="onNavClick(`#marker-nav`)" id="marker-nav">
+									Marker
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#unstructed" onclick="onNavClick(`#unstructed-nav`)" id="unstructed-nav">
+									unstructed
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://caixiongjiang.github.io/">
+            🌀Jarson Cai&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://caixiongjiang.github.io/">
+        <div class="single-column-header-title">🌀Jarson Cai&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">头脑是日用品，不是装饰品</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    Document-AI: 使用模型工具处理非结构化、复杂的各类文档
+                    
+                    <div class="post-subtitle">
+                        在RAG制作知识库的前期，需要通过对非结构化数据的识别，清洗来增强文档质量，提高知识库的质量
+                    </div>
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2024-08-06 18:18
+                        </time>
+                        
+
+                        
+                            <i class="material-icons" style="">folder</i>
+                                <a href="/categories/">[NLP]</a>
+                                &nbsp;
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/rag">RAG</a>
+                                &nbsp;
+                            
+                        
+                        
+                            <i class="material-icons" style="">schedule</i>
+                            
+
+                            
+                            
+
+                            
+                            19 min
+                            
+                            42 s.
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h2 id="document-ai">Document-AI</h2>
+<p>随着RAG的爆火，目前市面上出现了许多做文档解析的工具，它们相比传统的文档解析，增加了许多非结构化数据的读取和识别。现在我将会介绍几款目前市面上比较火的工具。</p>
+<h3 id="datalab开源工具">Datalab开源工具</h3>
+<p>Datalab目前开源了三款免费使用的工具，不过12个月内超过500w美元收入的组织进行商业使用时需要收费。旗下有三款文档解析工具，分别是Surya、Texify、Marker。</p>
+<p>Datalab门户：<a href="https://www.datalab.to">https://www.datalab.to</a></p>
+<h4 id="surya">Surya</h4>
+<p>Surya是一个文档OCR工具包，它可以胜任：</p>
+<ul>
+<li>90多种语言的OCR，与云服务相比，具有良好的基准</li>
+<li>任何语言的行级文本检测</li>
+<li>布局分析（表、图像、标题等检测）</li>
+<li>阅读顺序检测</li>
+</ul>
+<p>官方Github:<a href="https://github.com/VikParuchuri/surya">https://github.com/VikParuchuri/surya</a></p>
+<blockquote>
+<p>下载</p>
+</blockquote>
+<p>首先下载好<code>Python3.9+</code>和<code>Pytorch</code>环境，然后再安装<code>surya-ocr</code>。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>conda create -n parser <span style="color:#00688b">python</span>=3.10
+</span></span><span style="display:flex;"><span>conda activate parser
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 我这里使用的 MacOS 系统</span>
+</span></span><span style="display:flex;"><span>pip install <span style="color:#00688b">torch</span>==2.0.1 <span style="color:#00688b">torchvision</span>==0.15.2 <span style="color:#00688b">torchaudio</span>==2.0.2
+</span></span><span style="display:flex;"><span>pip install surya-ocr
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>OCR（文本识别）</p>
+</blockquote>
+<ul>
+<li>命令行执行：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>surya_ocr DATA_PATH --images --langs hi,en
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>
+<p>常用参数说明：</p>
+<ul>
+<li><code>DATA_PATH</code>可以是图片，pdf，或者是包含图片和pdf的文件夹</li>
+<li><code>--langs</code>用于指定OCR的语言，可以通过逗号指定多种语言，但不建议同时超过4种。这里使用语言名称或双字母ISO代码来指定。语言相关的ISO代码查询：<a href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes">https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes</a></li>
+<li><code>--lang_file</code>可以为不同的pdf/图像分别使用不同的语言，可以通过该参数自行指定语言。格式为JSON dict，键为文件名，值为列表，如<code>{&quot;file1.pdf&quot;: [&quot;en&quot;, &quot;hi&quot;], &quot;file2.pdf&quot;: [&quot;en&quot;]}</code>。</li>
+<li><code>--images</code>参数将保存页面的图像和检测到的文本行（可选）</li>
+<li><code>--results_dir</code>参数指定要保存结果的目录</li>
+<li><code>--max</code>参数指定要处理的最大页数</li>
+<li><code>--start_page</code>参数指定要开始处理的页码</li>
+</ul>
+</li>
+<li>
+<p>结果<code>results.json</code>文件的格式说明，其中key是没有扩展名（.pdf）的输入文件名。每个value将会是一个字典列表，输入文档每页一个，每页字典都包含：</p>
+<ul>
+<li><code>text_lines</code> - 每行检测到的文本和边界框
+<ul>
+<li><code>text</code> - 行中的文本</li>
+<li><code>confidence</code> - 检测到的文本中的模型置信度（0～1）</li>
+<li><code>polygon</code> -（x1，y1），（x2，y2），（x3，y3），（x4，y4）格式的文本行的多边形。这些点从左上角按顺时针顺序排列。</li>
+<li><code>bbox</code> - 文本行（x1，y1，x2，y2）格式的轴对齐矩形。（x1，y1）是左上角，（x2，y2）是右下角。</li>
+</ul>
+</li>
+<li><code>language</code> - 该页面指定的语言</li>
+<li><code>page</code> - 文件中的页码</li>
+<li><code>image_bbox</code> - （X1，y1，x2，y2）格式的图像的bbox。（x1，y1）是左上角，（x2，y2）是右下角。所有行bbox都将包含在这个bbox中。</li>
+</ul>
+</li>
+<li>
+<p>结果示例：</p>
+<ul>
+<li>原pdf：
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/rag/img1.jpg" alt=""></li>
+<li>转化后的image：<strong>这里不是真正的图片的意思，而是为了查看OCR效果使用的临时图片</strong>:
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/rag/img2.jpg" alt=""></li>
+<li><code>result.json</code>中对应的内容格式：
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">68
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">69
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">70
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">71
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">72
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">&#34;text_lines&#34;</span>: [
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;polygon&#34;</span>: [
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">244.0</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">83.0</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">967.0</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">83.0</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">967.0</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">133.0</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">244.0</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">133.0</span>
+</span></span><span style="display:flex;"><span>            ]
+</span></span><span style="display:flex;"><span>        ],
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;confidence&#34;</span>: <span style="color:#b452cd">0.98974609375</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;text&#34;</span>: <span style="color:#cd5555">&#34;构件与中间件技术 – 构件的复用&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;bbox&#34;</span>: [
+</span></span><span style="display:flex;"><span>            <span style="color:#b452cd">244.0</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#b452cd">83.0</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#b452cd">967.0</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#b452cd">133.0</span>
+</span></span><span style="display:flex;"><span>        ]
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;polygon&#34;</span>: [
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">331.0</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">432.0</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">1230.0</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">432.0</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">1230.0</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">456.0</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">331.0</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">456.0</span>
+</span></span><span style="display:flex;"><span>            ]
+</span></span><span style="display:flex;"><span>        ],
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;confidence&#34;</span>: <span style="color:#b452cd">0.9853515625</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;text&#34;</span>: <span style="color:#cd5555">&#34;1、理想状态是直接复用构件库中现成的构件，但大多数情况下，必须对构件进行或&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">&#34;bbox&#34;</span>: [
+</span></span><span style="display:flex;"><span>            <span style="color:#b452cd">331.0</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#b452cd">432.0</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#b452cd">1230.0</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#b452cd">456.0</span>
+</span></span><span style="display:flex;"><span>        ]
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a61717;background-color:#e3d2d2">...</span>
+</span></span><span style="display:flex;"><span>],
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">&#34;languages&#34;</span>: [
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;zh&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#cd5555">&#34;en&#34;</span>
+</span></span><span style="display:flex;"><span>],
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">&#34;image_bbox&#34;</span>: [
+</span></span><span style="display:flex;"><span>    <span style="color:#b452cd">0.0</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#b452cd">0.0</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#b452cd">1440.0</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#b452cd">810.0</span>
+</span></span><span style="display:flex;"><span>],
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">&#34;page&#34;</span>: <span style="color:#b452cd">75</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div>这样便可以比较清楚地知道<code>image_bbox</code>代表整个页面的大小，<code>bbox</code>和<code>polygon</code>则代表每条文本的位置。</li>
+</ul>
+</li>
+<li>
+<p>Python调用：</p>
+</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">PIL</span> <span style="color:#8b008b;font-weight:bold">import</span> Image
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">surya.ocr</span> <span style="color:#8b008b;font-weight:bold">import</span> run_ocr
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">surya.model.detection</span> <span style="color:#8b008b;font-weight:bold">import</span> segformer
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">surya.model.recognition.model</span> <span style="color:#8b008b;font-weight:bold">import</span> load_model
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">surya.model.recognition.processor</span> <span style="color:#8b008b;font-weight:bold">import</span> load_processor
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>image = Image.open(IMAGE_PATH)
+</span></span><span style="display:flex;"><span>langs = [<span style="color:#cd5555">&#34;en&#34;</span>] <span style="color:#228b22"># Replace with your languages</span>
+</span></span><span style="display:flex;"><span>det_processor, det_model = segformer.load_processor(), segformer.load_model()
+</span></span><span style="display:flex;"><span>rec_model, rec_processor = load_model(), load_processor()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>predictions = run_ocr([image], [langs], det_model, det_processor, rec_model, rec_processor)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>OCR模型可以通过编译获得15%的速度提升，首先设置<code>RECOGNITION_STATIC_CACHE=true</code>，然后运行如下代码：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> <span style="color:#008b45;text-decoration:underline">torch</span>
+</span></span><span style="display:flex;"><span>rec_model.decoder.model.decoder = torch.compile(rec_model.decoder.model.decoder)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>Text line detection（文本行检测）</p>
+</blockquote>
+<ul>
+<li>命令行执行：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>surya_detect DATA_PATH --images
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>
+<p>常用参数说明：</p>
+<ul>
+<li><code>DATA_PATH</code>可以是图片，pdf，或者是包含图片和pdf的文件夹</li>
+<li><code>--images</code>参数将保存页面的图像和检测到的文本行（可选）</li>
+<li><code>--max</code>参数指定要处理的最大页数</li>
+<li><code>--results_dir</code>参数指定要保存结果的目录</li>
+</ul>
+</li>
+<li>
+<p>结果<code>results.json</code>文件的格式说明，其中key是没有扩展名（.pdf）的输入文件名。每个value将会是一个字典列表，输入文档每页一个，每页字典都包含：</p>
+<ul>
+<li><code>bboxes</code> - 检测到文本的边界框
+<ul>
+<li><code>confidence</code> - 检测到的文本中在检测模型中的置信度（0～1）</li>
+<li><code>polygon</code> -（x1，y1），（x2，y2），（x3，y3），（x4，y4）格式的文本行的多边形。这些点从左上角按顺时针顺序排列。</li>
+<li><code>bbox</code> - 文本行（x1，y1，x2，y2）格式的轴对齐矩形。（x1，y1）是左上角，（x2，y2）是右下角。</li>
+</ul>
+</li>
+<li><code>vertical_lines</code> - 在文档中检测到的垂直线
+<ul>
+<li><code>bbox</code> - 轴对齐的文本坐标。</li>
+</ul>
+</li>
+<li><code>page</code> - 文件中的页码</li>
+<li><code>image_bbox</code> - （X1，y1，x2，y2）格式的图像的bbox。（x1，y1）是左上角，（x2，y2）是右下角。所有行bbox都将包含在这个bbox中。</li>
+</ul>
+</li>
+<li>
+<p>结果示例：</p>
+<ul>
+<li>文本检测框：
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/rag/img3.jpg" alt=""></li>
+<li>垂直线：
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/rag/img4.jpg" alt=""></li>
+</ul>
+</li>
+<li>
+<p>Python调用：</p>
+</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">PIL</span> <span style="color:#8b008b;font-weight:bold">import</span> Image
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">surya.detection</span> <span style="color:#8b008b;font-weight:bold">import</span> batch_text_detection
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">surya.model.detection.model</span> <span style="color:#8b008b;font-weight:bold">import</span> load_model, load_processor
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>image = Image.open(IMAGE_PATH)
+</span></span><span style="display:flex;"><span>model, processor = load_model(), load_processor()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># predictions is a list of dicts, one per image</span>
+</span></span><span style="display:flex;"><span>predictions = batch_text_detection([image], model, processor)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>总体来说，该部分内容为OCR功能的第一步，也就是文本区域检测，相对多了一个对齐垂直线检测。</li>
+</ul>
+<blockquote>
+<p>Layout analysis（布局分析）</p>
+</blockquote>
+<ul>
+<li>命令行执行：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>surya_layout DATA_PATH --images
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>
+<p>常用参数说明：</p>
+<ul>
+<li><code>DATA_PATH</code>可以是图片，pdf，或者是包含图片和pdf的文件夹</li>
+<li><code>--images</code>参数将保存页面的图像和检测到的文本行（可选）</li>
+<li><code>--max</code>参数指定要处理的最大页数</li>
+<li><code>--results_dir</code>参数指定要保存结果的目录</li>
+</ul>
+</li>
+<li>
+<p>结果<code>results.json</code>文件的格式说明，其中key是没有扩展名（.pdf）的输入文件名。每个value将会是一个字典列表，输入文档每页一个，每页字典都包含：</p>
+<ul>
+<li><code>bboxes</code> - 检测到文本的边界框
+<ul>
+<li><code>bbox</code> - 文本行（x1，y1，x2，y2）格式的轴对齐矩形。（x1，y1）是左上角，（x2，y2）是右下角。</li>
+<li><code>polygon</code> -（x1，y1），（x2，y2），（x3，y3），（x4，y4）格式的文本行的多边形。这些点从左上角按顺时针顺序排列。</li>
+<li><code>confidence</code> - 检测到的文本中在检测模型中的置信度（0～1）</li>
+<li><code>label</code> - Bbox的标签。标题、脚注、公式、列表项、页脚、页头、图片、图形、章节标题、表格、文本、标题之一。</li>
+</ul>
+</li>
+<li><code>page</code> - 文件中的页码</li>
+<li><code>image_bbox</code> - （X1，y1，x2，y2）格式的图像的bbox。（x1，y1）是左上角，（x2，y2）是右下角。所有行bbox都将包含在这个bbox中。</li>
+</ul>
+</li>
+<li>
+<p>结果示例：</p>
+<ul>
+<li>pdf版面分析结果：<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/rag/img5.jpg" alt=""></li>
+<li><code>result.json</code>中对应的内容格式：
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 63
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 64
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 65
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 66
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 67
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 68
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 69
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 70
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 71
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 72
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 73
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 74
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 75
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 76
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 77
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 78
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 79
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 80
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 81
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 82
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 83
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 84
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 85
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 86
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 87
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 88
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 89
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 90
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 91
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 92
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 93
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 94
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 95
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 96
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 97
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 98
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 99
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">100
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">101
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">102
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">103
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">104
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">105
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">106
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">107
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">108
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">109
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">110
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">111
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">112
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">113
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">114
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">115
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">116
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">117
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">118
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">119
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">120
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">121
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">122
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">123
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">124
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">125
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">126
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">127
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">&#34;3&#34;</span>: [
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">&#34;bboxes&#34;</span>: [
+</span></span><span style="display:flex;"><span>                {
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;polygon&#34;</span>: [
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">60</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">13</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">244</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">13</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">244</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">169</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">60</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">169</span>
+</span></span><span style="display:flex;"><span>                        ]
+</span></span><span style="display:flex;"><span>                    ],
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;confidence&#34;</span>: <span style="color:#b452cd">1.0</span>,
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;label&#34;</span>: <span style="color:#cd5555">&#34;Figure&#34;</span>,
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;bbox&#34;</span>: [
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">60</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">13</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">244</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">169</span>
+</span></span><span style="display:flex;"><span>                    ]
+</span></span><span style="display:flex;"><span>                },
+</span></span><span style="display:flex;"><span>                {
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;polygon&#34;</span>: [
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">1195</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">72</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">1407</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">72</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">1407</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">135</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">1195</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">135</span>
+</span></span><span style="display:flex;"><span>                        ]
+</span></span><span style="display:flex;"><span>                    ],
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;confidence&#34;</span>: <span style="color:#b452cd">1.0</span>,
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;label&#34;</span>: <span style="color:#cd5555">&#34;Text&#34;</span>,
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;bbox&#34;</span>: [
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">1195</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">72</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">1407</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">135</span>
+</span></span><span style="display:flex;"><span>                    ]
+</span></span><span style="display:flex;"><span>                },
+</span></span><span style="display:flex;"><span>                {
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;polygon&#34;</span>: [
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">455</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">308</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">990</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">308</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">990</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">398</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">455</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">398</span>
+</span></span><span style="display:flex;"><span>                        ]
+</span></span><span style="display:flex;"><span>                    ],
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;confidence&#34;</span>: <span style="color:#b452cd">1.0</span>,
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;label&#34;</span>: <span style="color:#cd5555">&#34;Text&#34;</span>,
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;bbox&#34;</span>: [
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">455</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">308</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">990</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">398</span>
+</span></span><span style="display:flex;"><span>                    ]
+</span></span><span style="display:flex;"><span>                },
+</span></span><span style="display:flex;"><span>                {
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;polygon&#34;</span>: [
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">583</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">438</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">857</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">438</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">857</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">516</span>
+</span></span><span style="display:flex;"><span>                        ],
+</span></span><span style="display:flex;"><span>                        [
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">583</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#b452cd">516</span>
+</span></span><span style="display:flex;"><span>                        ]
+</span></span><span style="display:flex;"><span>                    ],
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;confidence&#34;</span>: <span style="color:#b452cd">1.0</span>,
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;label&#34;</span>: <span style="color:#cd5555">&#34;Text&#34;</span>,
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">&#34;bbox&#34;</span>: [
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">583</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">438</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">857</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#b452cd">516</span>
+</span></span><span style="display:flex;"><span>                    ]
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">&#34;image_bbox&#34;</span>: [
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">0.0</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">0.0</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">1440.0</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#b452cd">810.0</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">&#34;page&#34;</span>: <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    ]
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+</li>
+<li>
+<p>Python调用：</p>
+</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">PIL</span> <span style="color:#8b008b;font-weight:bold">import</span> Image
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">surya.detection</span> <span style="color:#8b008b;font-weight:bold">import</span> batch_text_detection
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">surya.layout</span> <span style="color:#8b008b;font-weight:bold">import</span> batch_layout_detection
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">surya.model.detection.model</span> <span style="color:#8b008b;font-weight:bold">import</span> load_model, load_processor
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">from</span> <span style="color:#008b45;text-decoration:underline">surya.settings</span> <span style="color:#8b008b;font-weight:bold">import</span> settings
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>image = Image.open(IMAGE_PATH)
+</span></span><span style="display:flex;"><span>model = load_model(checkpoint=settings.LAYOUT_MODEL_CHECKPOINT)
+</span></span><span style="display:flex;"><span>processor = load_processor(checkpoint=settings.LAYOUT_MODEL_CHECKPOINT)
+</span></span><span style="display:flex;"><span>det_model = load_model()
+</span></span><span style="display:flex;"><span>det_processor = load_processor()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># layout_predictions is a list of dicts, one per image</span>
+</span></span><span style="display:flex;"><span>line_predictions = batch_text_detection([image], det_model, det_processor)
+</span></span><span style="display:flex;"><span>layout_predictions = batch_layout_detection([image], model, processor, line_predictions)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>Reading order（阅读顺序）</p>
+</blockquote>
+<ul>
+<li>命令行执行：</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>surya_order DATA_PATH --images
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>常用参数说明：
+<ul>
+<li><code>DATA_PATH</code>可以是图片，pdf，或者是包含图片和pdf的文件夹</li>
+<li><code>--images</code>参数将保存页面的图像和检测到的文本行（可选）</li>
+<li><code>--max</code>参数指定要处理的最大页数</li>
+<li><code>--results_dir</code>参数指定要保存结果的目录</li>
+</ul>
+</li>
+<li>结果<code>results.json</code>文件的格式说明，其中key是没有扩展名（.pdf）的输入文件名。每个value将会是一个字典列表，输入文档每页一个，每页字典都包含：
+<ul>
+<li><code>bboxes</code> - 检测到文本的边界框
+<ul>
+<li><code>bbox</code> - 文本行（x1，y1，x2，y2）格式的轴对齐矩形。（x1，y1）是左上角，（x2，y2）是右下角。</li>
+<li><code>position</code> - Bbox阅读顺序中的位置，从0开始。</li>
+<li><code>label</code> - Bbox的标签。标题、脚注、公式、列表项、页脚、页头、图片、图形、章节标题、表格、文本、标题之一。</li>
+</ul>
+</li>
+<li><code>page</code> - 文件中的页码</li>
+<li><code>image_bbox</code> - （X1，y1，x2，y2）格式的图像的bbox。（x1，y1）是左上角，（x2，y2）是右下角。所有行bbox都将包含在这个bbox中。</li>
+</ul>
+</li>
+<li>结果示例：
+<ul>
+<li>pdf阅读顺序分析结果：<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/rag/img6.jpg" alt=""></li>
+</ul>
+</li>
+</ul>
+<h4 id="texify">Texify</h4>
+<p>Texify是Marker团队针对公式识别难题专门开发的一款pdf上的公式转化为markdown语法的公式识别器。</p>
+<h4 id="marker">Marker</h4>
+<p>Marker是深度学习模型组成的pdf -&gt; markdown 工具的pipeline，Pipeline中的组件包含：</p>
+<ul>
+<li>提取文本，必要时OCR（启发式、surya、tesseract）</li>
+<li>检测页面布局并查找阅读顺序（surya）</li>
+<li>清理和格式化每个块（启发式，texify）</li>
+<li>合并块和后处理完整文本（启发式，pdf_postprocessor）
+需要注意的是，它最后只在必要时使用模型，这提高了速度和准确性。其中提取文本和检测页面布局以及查找阅读顺序使用到的surya，我们在前面已经介绍过了。</li>
+</ul>
+<p>在整个Marker工具中用到6个模型：</p>
+<ul>
+<li>公式转化模型（ocr）：texify_model</li>
+<li>页面布局分析模型（detect）：layout_model</li>
+<li>阅读顺序分析模型：order_model</li>
+<li>编辑模型（classify）：edit_model</li>
+<li>文本检测模型（detect）：detection_model</li>
+<li>文本识别模型（ocr）：ocr_model</li>
+</ul>
+<p>Marker识别流程：</p>
+<ul>
+<li>1、Pypdfium提取PDF数据内容</li>
+<li>2、对文本内容按照页码进行分块</li>
+<li>3、检测每页的行级文本（detection_model）</li>
+<li>4、对需要识别的文本进行识别，主要为无法选中的图片文本（ocr_model）</li>
+<li>5、对每页文档进行页面布局检测，结合ocr的结果提取出相应的文本块内容（layout_model）</li>
+<li>6、提取页眉页脚等，再进行阅读顺序排序（order_model）</li>
+<li>7、将代码块和表格单独识别，并对公式进行转换（texify_model）</li>
+<li>8、根据需要提取出前面分为纯图片的内容，进行保存，并以链接的形式插入markdown中</li>
+<li>9、最后将所有提取出的元信息，进行一些基本的过滤清理，按照顺序组装起来成为成品markdown（edit_model）</li>
+</ul>
+<h4 id="unstructed">unstructed</h4>
+
+                    
+                    <HR width="100%" id="EOF">
+		            <p style="color:#777;">最后修改于 2024-08-06</p>
+                    
+                    
+                    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://image-1252109614.cos.ap-beijing.myqcloud.com/img/20210508215939.png" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+			下回<br>已经到头啦。
+                </a>
+                
+                
+                
+                <a class="older-posts" href="https://caixiongjiang.github.io/blog/2024/python%E8%BF%9B%E9%98%B6/python%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF/">
+			上回<br>Python的编程艺术
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+
+
+<div id="tcomment"></div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+魔改自 <a href="https://github.com/riba2534/hugo-blog">Riba2534</a> by <a href="https://caixiongjiang.github.io">Jarson Cai</a>
+<br>
+
+&copy;
+	
+	2024 🌀Jarson Cai&#39;s Blog
+	</div>
+            </div>
+    <script>
+let app;
+
+app = new Vue({
+    el: '#app',
+    data: {
+        scrollY: 0,
+        navOpacity: 0,
+        isDrawerOpen: false,
+        mounted: false,
+        isDarkMode: false
+    },
+    methods: {
+            sgn(t, x) {
+                let k = 1. / (1. - 2 * t);
+                if (x <= t) return 0;
+                else if (x >= 1 - t) return 1;
+                else {
+                    return k * (x - t);
+                }
+            },
+            handleScroll() {
+                this.scrollY = window.scrollY;
+                this.navOpacity = this.sgn(.0, Math.min(1, Math.max(0, window.scrollY / (this.pageHeadHeight() - this.navBarHeight() * 0.8))));
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+
+                if (this.navOpacity >= 1) {
+                    navBackground.style.opacity = 1;
+                    navTitle.style.opacity = 1;
+                } else {
+                    navBackground.style.opacity = 0;
+                    navTitle.style.opacity = 0;
+                }
+            },
+            handleResize() {
+                const {navBar, navBackground, navTitle, extraContainer, streamContainer} = this.$refs;
+                extraContainer.style.left = (streamContainer.offsetWidth - extraContainer.offsetWidth) + 'px';
+            },
+            navBarHeight() {
+                return this.$refs.navBar.offsetHeight;
+            },
+            pageHeadHeight() {
+                return this.$refs.pageHead.offsetHeight;
+            },
+            toggleDrawer() {
+                this.isDrawerOpen = !this.isDrawerOpen;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            closeDrawer() {
+                this.isDrawerOpen = false;
+                document.getElementsByTagName('html')[0].style.overflow = this.isDrawerOpen ? 'hidden' : 'unset';
+            },
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                if (this.isDarkMode==true){
+                    document.cookie = "night=1;path=/";
+                    document.body.classList.add("night");
+                } else {
+                    document.cookie = "night=0;path=/";
+                    document.body.classList.remove("night");
+                }
+            },
+            debounce(func, wait, options) {
+                let lastArgs,
+                    lastThis,
+                    maxWait,
+                    result,
+                    timerId,
+                    lastCallTime
+
+                let lastInvokeTime = 0
+                let leading = false
+                let maxing = false
+                let trailing = true
+
+                
+                const useRAF = (!wait && wait !== 0 && typeof root.requestAnimationFrame === 'function')
+
+                if (typeof func !== 'function') {
+                    throw new TypeError('Expected a function')
+                }
+                function isObject(value) {
+                    const type = typeof value
+                    return value != null && (type === 'object' || type === 'function')
+                }
+
+                wait = +wait || 0
+                if (isObject(options)) {
+                    leading = !!options.leading
+                    maxing = 'maxWait' in options
+                    maxWait = maxing ? Math.max(+options.maxWait || 0, wait) : maxWait
+                    trailing = 'trailing' in options ? !!options.trailing : trailing
+                }
+
+                function invokeFunc(time) {
+                    const args = lastArgs
+                    const thisArg = lastThis
+
+                    lastArgs = lastThis = undefined
+                    lastInvokeTime = time
+                    result = func.apply(thisArg, args)
+                    return result
+                }
+
+                function startTimer(pendingFunc, wait) {
+                    if (useRAF) {
+                    root.cancelAnimationFrame(timerId)
+                    return root.requestAnimationFrame(pendingFunc)
+                    }
+                    return setTimeout(pendingFunc, wait)
+                }
+
+                function cancelTimer(id) {
+                    if (useRAF) {
+                    return root.cancelAnimationFrame(id)
+                    }
+                    clearTimeout(id)
+                }
+
+                function leadingEdge(time) {
+                    
+                    lastInvokeTime = time
+                    
+                    timerId = startTimer(timerExpired, wait)
+                    
+                    return leading ? invokeFunc(time) : result
+                }
+
+                function remainingWait(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+                    const timeWaiting = wait - timeSinceLastCall
+
+                    return maxing
+                    ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
+                    : timeWaiting
+                }
+
+                function shouldInvoke(time) {
+                    const timeSinceLastCall = time - lastCallTime
+                    const timeSinceLastInvoke = time - lastInvokeTime
+
+                    
+                    
+                    
+                    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                    (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait))
+                }
+
+                function timerExpired() {
+                    const time = Date.now()
+                    if (shouldInvoke(time)) {
+                    return trailingEdge(time)
+                    }
+                    
+                    timerId = startTimer(timerExpired, remainingWait(time))
+                }
+
+                function trailingEdge(time) {
+                    timerId = undefined
+
+                    
+                    
+                    if (trailing && lastArgs) {
+                    return invokeFunc(time)
+                    }
+                    lastArgs = lastThis = undefined
+                    return result
+                }
+
+                function cancel() {
+                    if (timerId !== undefined) {
+                    cancelTimer(timerId)
+                    }
+                    lastInvokeTime = 0
+                    lastArgs = lastCallTime = lastThis = timerId = undefined
+                }
+
+                function flush() {
+                    return timerId === undefined ? result : trailingEdge(Date.now())
+                }
+
+                function pending() {
+                    return timerId !== undefined
+                }
+
+                function debounced(...args) {
+                    const time = Date.now()
+                    const isInvoking = shouldInvoke(time)
+
+                    lastArgs = args
+                    lastThis = this
+                    lastCallTime = time
+
+                    if (isInvoking) {
+                    if (timerId === undefined) {
+                        return leadingEdge(lastCallTime)
+                    }
+                    if (maxing) {
+                        
+                        timerId = startTimer(timerExpired, wait)
+                        return invokeFunc(lastCallTime)
+                    }
+                    }
+                    if (timerId === undefined) {
+                    timerId = startTimer(timerExpired, wait)
+                    }
+                    return result
+                }
+                debounced.cancel = cancel
+                debounced.flush = flush
+                debounced.pending = pending
+                return debounced
+                }
+
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleResize);
+        window._nonDesktop = function () {
+            let check = false;
+            (function (a) {
+                if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+            })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+        
+        var night = document.cookie.replace(/(?:(?:^|.*;\s*)night\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (night==""){
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                
+            }
+        }else{
+            
+            if (night=="1") {
+                this.toggleDarkMode();
+            }
+        }
+    },
+    mounted() {
+        this.handleScroll();
+        this.handleResize();
+        this.mounted = true;
+
+        
+        
+        
+            twikoo.init({
+                envId: "https://twikoo-rho-olive.vercel.app/",
+                el: '#tcomment',
+                region:  null ,
+            });
+        
+
+        document.querySelectorAll("table").forEach(function(elem){
+            elem.classList.add("table-striped");
+            elem.classList.add("table");
+            elem.classList.add("table-responsive");
+            elem.classList.add("table-hover");
+        })
+
+        
+        spy();
+        window.addEventListener('scroll', this.debounce(spy, 250, { 'maxWait': 250 }), false);
+        
+        
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleResize);
+    }
+});
+
+
+
+</script>
+    </body>
+</html>

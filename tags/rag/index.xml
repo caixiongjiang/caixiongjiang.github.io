@@ -6,7 +6,21 @@
     <description>Recent content in RAG on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 06 Aug 2024 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/tags/rag/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 25 Aug 2024 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/tags/rag/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Advanced-RAG: RAG进阶使用技巧</title>
+      <link>https://caixiongjiang.github.io/blog/2024/rag/advanced_rag/</link>
+      <pubDate>Sun, 25 Aug 2024 18:18:05 +0800</pubDate>
+      
+      <guid>https://caixiongjiang.github.io/blog/2024/rag/advanced_rag/</guid>
+      <description>Naive RAG 前言：目前下述的代码都基于Langchain 0.1的版本进行，目前Langchain已经更新到0.2，还有在构建RAG应用的时候还是不要过分依赖框架，降低灵活性，这有时候会让你的工程开发陷入被动！
+首先先介绍一下最简单的RAG的流程，其主要的流程如下图所示：
+将知识库文本拆分为块，然后使用一些Transformer Encoder模型将这些块嵌入向量中，将所有这些向量放入索引中，最后为LLM创建一个提示，告诉模型根据我们在搜索步骤中发现的上下文，回答用户的查询。
+在运行时，我们使用相同的编码器模型矢量化用户的查询，然后针对索引执行此查询矢量的搜索，找到top-k结果，从我们的数据库中检索相应的文本块，并将其作为上下文输入LLM提示符。
+示例的RAG提示词模版如下：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 # 英文提示词 prompt_template = &amp;#34;&amp;#34;&amp;#34;Give the answer to the user query delimited by triple backticks ```{query}```\ using the information given in context delimited by triple backticks ```{context}```.\ If there is no relevant information in the provided context, try to answer yourself, but tell user that you did not have any relevant context to base your answer on.</description>
+    </item>
+    
     <item>
       <title>Document-AI: 使用模型工具处理非结构化、复杂的各类文档</title>
       <link>https://caixiongjiang.github.io/blog/2024/rag/document_ai/</link>
@@ -24,23 +38,6 @@ Surya Surya是一个文档OCR工具包，它可以胜任：
 命令行执行： 1 surya_ocr DATA_PATH --images --langs hi,en 常用参数说明：
 DATA_PATH可以是图片，pdf，或者是包含图片和pdf的文件夹 --langs用于指定OCR的语言，可以通过逗号指定多种语言，但不建议同时超过4种。这里使用语言名称或双字母ISO代码来指定。语言相关的ISO代码查询：https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes --lang_file可以为不同的pdf/图像分别使用不同的语言，可以通过该参数自行指定语言。格式为JSON dict，键为文件名，值为列表，如{&amp;quot;file1.pdf&amp;quot;: [&amp;quot;en&amp;quot;, &amp;quot;hi&amp;quot;], &amp;quot;file2.pdf&amp;quot;: [&amp;quot;en&amp;quot;]}。 --images参数将保存页面的图像和检测到的文本行（可选） --results_dir参数指定要保存结果的目录 --max参数指定要处理的最大页数 --start_page参数指定要开始处理的页码 结果results.json文件的格式说明，其中key是没有扩展名（.pdf）的输入文件名。每个value将会是一个字典列表，输入文档每页一个，每页字典都包含：
 text_lines - 每行检测到的文本和边界框 text - 行中的文本 confidence - 检测到的文本中的模型置信度（0～1） polygon -（x1，y1），（x2，y2），（x3，y3），（x4，y4）格式的文本行的多边形。这些点从左上角按顺时针顺序排列。 bbox - 文本行（x1，y1，x2，y2）格式的轴对齐矩形。（x1，y1）是左上角，（x2，y2）是右下角。 language - 该页面指定的语言 page - 文件中的页码 image_bbox - （X1，y1，x2，y2）格式的图像的bbox。（x1，y1）是左上角，（x2，y2）是右下角。所有行bbox都将包含在这个bbox中。 结果示例：</description>
-    </item>
-    
-    <item>
-      <title>RAG实战（四）- 关键词检索</title>
-      <link>https://caixiongjiang.github.io/blog/2024/rag/rag-4-%E5%85%B3%E9%94%AE%E8%AF%8D%E6%A3%80%E7%B4%A2/</link>
-      <pubDate>Mon, 24 Jun 2024 18:18:05 +0800</pubDate>
-      
-      <guid>https://caixiongjiang.github.io/blog/2024/rag/rag-4-%E5%85%B3%E9%94%AE%E8%AF%8D%E6%A3%80%E7%B4%A2/</guid>
-      <description>RAG实战（四）- 关键词检索 BM25检索器 BM25 是一种基于概率的排名函数，用于信息检索系统。BM25原理是根据查询词在文档中的出现频率以及查询词在整个文本集中的出现频率，来计算查询词和文档的相似度。BM25模型的主要思想是：如果一个词在一份文档（这里的文档一般是指分块之后的document）中出现的频率高，且在其他文档中出现的频率低，那么这个词对于这份文档的重要性就越高，相似度就越高。BM25模型对于长文档和短文档有一个平衡处理，防止因文档长度不同，而导致的词频偏差。
-基本原理 BM25基于这样一个假设：对于一个特定的查询项，它在相关文档中出现的频率高于在非相关文档中的频率。算法通过结合词项频率（TF）和文档频率（DF）来计算文档的得分。
-TF（词项频率） 词项频率是指一个词项在文档中出现的次数。BM25对传统TF的计算方法进行了调整，引入了饱和度和长度归一化，以防止长文档由于包含更多词项而获得不公平的高评分。
-IDF（逆文档频率） 逆文档频率是衡量词项稀有程度的指标。它的计算基于整个文档集合，用来降低常见词项的权重，并提升罕见词项的权重。
-计算公式： $$ \text{BM25}(D, Q) = \sum_{i=1}^n\text{IDF}(q_i)\cdot\frac{f(q_i, D)\cdot(k_1 + 1)}{f(q_i, D) + k_1\cdot(1-b+b\cdot \frac{\text{len}(D)}{\text{avg_len}})} $$
-其中：
-$n$是查询中的词项数。 $q_i$是查询中的第$i$个词项。 $\text{IDF}(q_i)$是逆文档频率，计算方式通常是$\text{log}\frac{N-n(q_i)+0.5}{n(q_i)+0.5}$，其中$N$是文档总数，$n(q_i)$ 是包含词项$q_i$的文档数。 $\text{len}(D)$是文档$D$的长度。 $\text{avg_len}$是所有文档的平均长度。 $k_1$和$b$是调整参数，通常设置为$k_1=1.5$和$b=0.75$ 代码使用 在LangChain中已经集成了该方法，模块名叫BM25Retriever。
-示例使用代码：
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 from typing import ( List ) from langchain.</description>
     </item>
     
   </channel>

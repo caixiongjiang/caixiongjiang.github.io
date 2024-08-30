@@ -6,7 +6,26 @@
     <description>Recent content in NLP on 🌀Jarson Cai&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 25 Aug 2024 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/categories/nlp/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 29 Aug 2024 18:18:05 +0800</lastBuildDate><atom:link href="https://caixiongjiang.github.io/categories/nlp/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>高级RAG检索策略之知识图谱</title>
+      <link>https://caixiongjiang.github.io/blog/2024/rag/%E9%AB%98%E7%BA%A7rag-kg/</link>
+      <pubDate>Thu, 29 Aug 2024 18:18:05 +0800</pubDate>
+      
+      <guid>https://caixiongjiang.github.io/blog/2024/rag/%E9%AB%98%E7%BA%A7rag-kg/</guid>
+      <description>高级RAG检索策略之知识图谱 在文档的属性分明，不同的文档之间没有很强的关联性，或者每个文档的长度都不大的情况下，基于向量数据库的普通RAG也能很好地工作。但如果使用大型的私有知识库，普通的RAG检索的效果往往没有那么理想。知识图谱的核心在于通过三元组形式（实体-关系-实体）来描述事物之间的关联，这种结构化的数据表示方法不仅能够捕捉数据的语义含义，还能便于理解和分析。
+整体流程 知识图谱在RAG中的使用流程如图所示：
+首先和普通RAG的流程相同的是，它们首先都需要进行文本分块。后续知识图谱RAG会将分块后的文档进行实体和关系的提取，提取出实体和关系后保存到图数据库中。
+检索的时候会将问题的实体提取出来再对图数据库进行检索，检索结果是一个庞大的实体关系网络，最后将检索到的实体和关系以及目标文本结合问题提交给大模型进行答案生成。
+当然知识图谱RAG也可以图检索、向量检索和关键词检索等，这样可以综合利用多个检索的链路进行判断，提高检索的准确性和效率。
+解决的场景 在 RAG 中使用知识图谱主要解决在大型文档库上问答和理解困难的问题，特别是那些普通RAG方法难以处理的全局性问题。
+普通RAG在回答针对整个文档库的全局性问题时表现不佳，例如问题：请告诉我所有关于XXX的事情，这个问题涉及到的上下文可能分布在整个大型文档库中，普通RAG的向量检索方法很难得到这种分散、细粒度的文档信息，向量检索经常使用top-k算法来获取最相近的上下文文档，这种方式很容易遗漏关联的文档块，从而导致信息检索不完整。
+知识图谱RAG和普通RAG的区别 知识图谱RAG使用图结构来表示和存储信息，捕捉实体间的复杂关系，而普通RAG通常使用向量化的文本数据 知识图谱RAG通过图遍历和子图检索来获取相关信息，普通RAG主要依赖向量相似度搜索 知识图谱RAG能更好地理解实体间的关系和层次结构，提供更丰富的上下文，普通RAG在处理复杂关系时能力有限 数据入库 知识图谱和普通RAG的数据入库流程不同，普通RAG在进行文档分块后，通常使用embedding模型将文档块进行向量化，将向量和文档保存到向量数据库。与普通RAG不同，知识图谱RAG在入库过程中会将文档块进行实体和关系的提取，提取出实体和关系后保存到图数据库。
+实体提取的传统方法是基于预定义的规则和词典、统计机器学习或者深度学习等技术，但进入到LLM时代后，实体提取更多的是使用LLM来进行，因为LLM能够更好地理解文本的语义，实现也更加简单。
+LLamaIndex中的KnowledgeGraphIndex类中的实体提取提示词如下：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 DEFAULT_KG_TRIPLET_EXTRACT_TMPL = ( &amp;#34;Some text is provided below. Given the text, extract up to &amp;#34; &amp;#34;{max_knowledge_triplets} &amp;#34; &amp;#34;knowledge triplets in the form of (subject, predicate, object).</description>
+    </item>
+    
     <item>
       <title>Advanced-RAG: RAG进阶使用技巧</title>
       <link>https://caixiongjiang.github.io/blog/2024/rag/advanced_rag/</link>

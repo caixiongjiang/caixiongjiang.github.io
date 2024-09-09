@@ -26,17 +26,10 @@ GraphRAG Pipeline通常由两个基本过程组成：索引和查询
 3、分层聚类：GraphRAG使用Leiden技术在初始知识图谱上执行分层聚类。Leiden是一种社区检索算法。可以有效发现图表中的社区结构。每个集群中的实体被分配给不同的社区，以便进行更深入的分析。
 注意：社区是图中的一组节点，这些节点彼此紧密相连，但与网络中其他密集组的连接稀疏。
 社区摘要生成：GraphRAG使用自下而上的方法为每个社区及其成员生成摘要。这些摘要包括社区内的主要实体、他们的关系和关键主张。此步骤概述了整个数据集，并为后续查询提供了有用的上下文信息。
-查询（Querying） GraphRAG有两种不同的查询工作流程，专为不同的查询量身定做。
-Global Search：通过利用社区摘要，将整个知识库相关的整体问题推理。
-Local Search：通过向它们的邻居和相关概念筛出特定实体
-Global Search Global Search工作流程包含以下阶段：
-1、用户查询和对话历史记录：系统将用户查询和对话历史记录作为初始输入。
-2、社区报告批处理：系统使用LLM从社区层次结构的指定级别生成的节点报告作为上下文数据。这些社区报告被洗牌并区分为多个批次。
-3、评级中间回复（Rated Intermediate Responses, RIR）： 每批社区报告都会被进一步划分为预定义大小的文本块。每个文本块用于生成一个中间回复。回复包含一个信息片段列表，称为点。每个点都有一个表示其重要性的数字分数。这些生成的中间回复就是额定中间回复（额定中间回复 1、回复 2&amp;hellip;&amp;hellip;回复 N）。
-4、排序和筛选：系统对这些中间回复进行排序和筛选，选出最重要的点。被选中的重要内容构成汇总的中间回复。
-5、最终响应：聚合的中间响应被用作生成最终响应的上下文。
-global search阶段的使用的map_system_prompt提示词模版：https://github.com/microsoft/graphrag/blob/main//graphrag/query/structured_search/global_search/map_system_prompt.py DeepSeekV2 翻译的中文版本：
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 # Copyright (c) 2024 Microsoft Corporation.</description>
+提示词Tuning 尽管可以使用这里初始化的默认提示模板，但强烈建议通过GraphRAG提供的命令来创建自适应提示模板：GraphRAG会提取输入数据的信息，并借助大模型来分析与生成更具有针对性的提示模板。
+提示词自适应调整的流程如下： 命令参数使用如下：
+1 2 3 python -m graphrag.prompt_tune [--root ROOT] [--domain DOMAIN] [--method METHOD] [--limit LIMIT] [--language LANGUAGE] \ [--max-tokens MAX_TOKENS] [--chunk-size CHUNK_SIZE] [--n-subset-max N_SUBSET_MAX] [--k K] \ [--min-examples-required MIN_EXAMPLES_REQUIRED] [--no-entity-types] [--output OUTPUT] 参数说明：
+--root（可选）：数据项目根目录，包括配置文件（YML、JSON或.env）。默认为当前目录。 --domain（可选）：与您的输入数据相关的领域，如“空间科学”、“微生物学”或“环境新闻”。如果留空，域将从输入数据中推断出来。 --method（可选）：选择文档的方法。选项是全部、随机、自动或顶部。默认是随机的。 --limit（可选）：使用随机或顶部选择时加载的文本单位限制。默认值为15。如果大模型的token长度有限制，这里的limit参数可以设置小一些 --language（可选）：用于输入处理的语言。如果它与输入的语言不同，LLM将进行翻译。默认值为“”，这意味着它将从输入中自动检测到。 --max-tokens（可选）：提示生成的最大令牌数量。默认值为2000。需要注意这里的数值不包括输入的内容产生的token --chunk-size（可选）：用于从输入文档生成文本单元的令牌大小。默认值为200。 --n-subset-max（可选）：使用自动选择方法时要嵌入的文本块chunk数量。默认值为300。 --k（可选）：使用自动选择方法时要选择的文档数量。默认值为15。 --min-examples-required（可选）：实体提取提示所需的最小示例数量。默认值为2。 --no-entity-types（可选）：使用未键入的实体提取生成。当您的数据涵盖许多主题或高度随机化时，我们建议使用此数据。 --output（可选）：保存生成提示的文件夹。默认值为“提示”。 使用8k长度的大模型，如下配置大概可以完整生成：python -m graphrag.</description>
     </item>
     
     <item>

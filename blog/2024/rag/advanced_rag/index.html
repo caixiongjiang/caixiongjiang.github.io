@@ -783,6 +783,24 @@ color: #515151;
 						
 						
 							<li>
+								<a href="#%e7%94%9f%e6%88%90%e5%8f%8d%e9%a6%88%e5%be%aa%e7%8e%afgenerative-feedback-loop-in-rag" onclick="onNavClick(`#生成反馈循环generative-feedback-loop-in-rag-nav`)" id="生成反馈循环generative-feedback-loop-in-rag-nav">
+									生成反馈循环（Generative Feedback Loop in RAG）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
 								<a href="#%e5%8f%82%e8%80%83%e5%bc%95%e7%94%a8" onclick="onNavClick(`#参考引用-nav`)" id="参考引用-nav">
 									参考引用
 								</a>
@@ -1594,6 +1612,24 @@ color: #515151;
 						
 						
 							<li>
+								<a href="#%e7%94%9f%e6%88%90%e5%8f%8d%e9%a6%88%e5%be%aa%e7%8e%afgenerative-feedback-loop-in-rag" onclick="onNavClick(`#生成反馈循环generative-feedback-loop-in-rag-nav`)" id="生成反馈循环generative-feedback-loop-in-rag-nav">
+									生成反馈循环（Generative Feedback Loop in RAG）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
 								<a href="#%e5%8f%82%e8%80%83%e5%bc%95%e7%94%a8" onclick="onNavClick(`#参考引用-nav`)" id="参考引用-nav">
 									参考引用
 								</a>
@@ -1861,9 +1897,9 @@ color: #515151;
                             
 
                             
-                            57 min
+                            60 min
                             
-                            28 s.
+                            52 s.
                         
                     </div>
                 </div>
@@ -2551,6 +2587,29 @@ $$</p>
 </div><ul>
 <li>回退提示(Step-back prompting)使用LLM生成一个更普适的查询，检索它我们获得一个更普适或更高层次的上下文语境，有助于支撑初始查询的答案。初始查询的检索同时被执行，两个上下文都被提交到LLM以便在最后一步生成答案。</li>
 </ul>
+<h2 id="生成反馈循环generative-feedback-loop-in-rag">生成反馈循环（Generative Feedback Loop in RAG）</h2>
+<p>RAG中的生成反馈循环是基于RAG系统的大模型回答<strong>生成一系列的记忆以及一些QA回答信息</strong>，将这些信息不断地存储进向量数据库中，来增强RAG系统回答的质量。</p>
+<p>常规的RAG链路如下：
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/rag/img27.jpg" alt=""></p>
+<p>常规的RAG在LLM和向量数据库之间并没有交互，而生成反馈循环实际上是增强了两者的联系。基本的流程是LLM产生的输出，会被反馈到RAG系统中，也就是将问题和生成的答案的内容加入到新的向量数据库中，稍候进行使用。</p>
+<p>增加了生成反馈循环的RAG链路如下：
+<img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/rag/img28.jpg" alt=""></p>
+<ul>
+<li>生成反馈循环的优势：</li>
+</ul>
+<p>1、该循环将新的数据输入和交互纳入训练数据中。</p>
+<p>2、这允许模型适应不断变化的模式和趋势，提高未来产出的相关性和准确性。</p>
+<p>3、会产生部分的用户个性化定制回答。</p>
+<p>这部分新产生的QA数据可以与常规知识库分开保存，它类似于一个cache，用户在输入问题后，可以在这部分额外QA库先进行搜索。这将会降低一部分开销，因为额外的QA库规模远小于常规的知识库。</p>
+<p>4、如果在返回的模块中，加入人类的反馈，或者LLM的评估反馈，基于评估，有选择性地增加额外QA库，这样可以<strong>减少初始数据的偏见和错误</strong>。</p>
+<ul>
+<li>生成反馈循环的例子：</li>
+</ul>
+<p><strong>步骤一</strong>：用户提问，搜索先前生成的额外的QA问答库，然后同步搜索知识库，如果没有搜索到相关内容，则去知识库去搜索得到结果。</p>
+<p><strong>步骤二</strong>：较为强大的LLM会生成相应的QA回答内容，RAG系统会将它存储下来，并进入向量数据库。</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/rag/img29.jpg" alt=""></p>
+<p><strong>步骤三</strong>：如果当前提问的问题和之前的QA库中问题相同或者相似，这时候可以使用一个小的LLM根据给定的历史QA回答进行调整做出响应。对应的相应时间会减少，相应的内容质量也与强大的LLM相当，因为它使用了强大的LLM遗留下的知识。（这与缓存非常相似，甚至如果问题完全相同，可以忽略搜索这个步骤，直接取回答案。）</p>
+<p><img src="https://blog-1311257248.cos.ap-nanjing.myqcloud.com/imgs/rag/img30.jpg" alt=""></p>
 <h2 id="参考引用">参考引用</h2>
 <p>如果用户使用多个检索来源生成答案，无论是因为初始查询的复杂性（用户不得不执行多个子查询，然后将检索到的上下文合并为一个答案），还是因为在不同文档中找到了某个查询的相关上下文，那么就会出现一个问题，即Generator是否能准确地显示所使用的引用来源。</p>
 <p>有几种方法可以做到这一点：</p>
